@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using static AnimeStudio.Crypto;
+using static AnimeStudio.CryptoHelper;
 using System.IO;
 using System.Text.Json;
 

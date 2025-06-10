@@ -28,9 +28,6 @@
 		<Content Include="..\AnimeStudio.Libraries\ooz.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-		<Content Include="..\AnimeStudio.Libraries\hk4e.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
 	</ItemGroup>
 	
 </Project>
