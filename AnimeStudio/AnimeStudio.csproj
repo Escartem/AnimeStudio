@@ -25,7 +25,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="..\AnimeStudio.Libraries\ooz.dll">
+		<Content Include="..\AnimeStudio.Libraries\oodle.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>

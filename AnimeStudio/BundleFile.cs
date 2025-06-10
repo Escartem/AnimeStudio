@@ -581,7 +581,7 @@ namespace AnimeStudio
                                     compressedBytesSpan = Mr0kUtils.Decrypt(compressedBytesSpan, (Mr0k)Game);
                                 }
 
-                                var numWrite = OozHelper.Decompress(compressedBytesSpan, uncompressedBytesSpan);
+                                var numWrite = OodleHelper.Decompress(compressedBytesSpan, uncompressedBytesSpan);
                                 if (numWrite != uncompressedSize)
                                 {
                                     Logger.Warning($"Oodle decompression error, write {numWrite} bytes but expected {uncompressedSize} bytes");
