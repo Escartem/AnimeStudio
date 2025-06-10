@@ -1,0 +1,20 @@
+[binaries]
+c = '/opt/emsdk/upstream/emscripten/emcc'
+cpp = '/opt/emsdk/upstream/emscripten/em++'
+ar = '/opt/emsdk/upstream/emscripten/emar'
+strip = '/opt/emsdk/upstream/bin/llvm-strip'
+objcopy = '/opt/emsdk/upstream/bin/llvm-objcopy'
+exe_wrapper = ['/usr/bin/v8', '--experimental-wasm-simd']
+
+[properties]
+skip_sanity_check = true
+c_args = ['-Weverything', '-fno-lax-vector-conversions', '-Werror', '-O2', '-msimd128']
+cpp_args = ['-Weverything', '-fno-lax-vector-conversions', '-Werror', '-O2', '-msimd128']
+c_link_args = ['-s', 'ENVIRONMENT=shell']
+cpp_link_args = ['-s', 'ENVIRONMENT=shell']
+
+[host_machine]
+system = 'emscripten'
+cpu_family = 'wasm32'
+cpu = 'wasm32'
+endian = 'little'

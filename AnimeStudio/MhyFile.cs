@@ -216,13 +216,13 @@ namespace AnimeStudio
         }
         private int Decompress(Span<byte> compressed, Span<byte> decompressed)
         {
-            if (isZZZ20) return OodleHelper.Decompress(compressed, decompressed);
+            if (isZZZ20) return OozHelper.Decompress(compressed, decompressed);
 
             try { return LZ4.Instance.Decompress(compressed, decompressed); }
             catch
             {
                 try { 
-                    int numWrite = OodleHelper.Decompress(compressed, decompressed);
+                    int numWrite = OozHelper.Decompress(compressed, decompressed);
                     isZZZ20 = true;
                     return numWrite;
                 }

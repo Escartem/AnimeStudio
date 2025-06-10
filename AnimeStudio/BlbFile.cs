@@ -221,7 +221,7 @@ namespace AnimeStudio
                                 if (compressedSize > 6)
                                     Decrypt(Header, compressedBytesSpan);
 
-                                var numWrite = OodleHelper.Decompress(compressedBytesSpan, uncompressedBytesSpan);
+                                var numWrite = OozHelper.Decompress(compressedBytesSpan, uncompressedBytesSpan);
                                 if (numWrite != uncompressedSize)
                                 {
                                     Logger.Warning($"Oodle decompression error, write {numWrite} bytes but expected {uncompressedSize} bytes");
