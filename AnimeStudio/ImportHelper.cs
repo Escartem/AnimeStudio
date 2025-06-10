@@ -10,7 +10,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using static AnimeStudio.BundleFile;
-using static AnimeStudio.Crypto;
+using static AnimeStudio.CryptoHelper;
 
 namespace AnimeStudio
 {
