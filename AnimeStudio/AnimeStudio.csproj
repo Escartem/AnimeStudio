@@ -28,6 +28,9 @@
 		<Content Include="..\AnimeStudio.Libraries\oodle.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
+		<Content Include="..\AnimeStudio.Oodle\lib\x64\$(Configuration)\ooz.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 	
 </Project>

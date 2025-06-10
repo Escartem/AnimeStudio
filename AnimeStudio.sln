@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimeStudio", "AnimeStudio\AnimeStudio.csproj", "{422FEC21-EF60-4F29-AA56-95DFDA23C913}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B6748219-A0E7-46BB-AE38-5343961CB36A} = {B6748219-A0E7-46BB-AE38-5343961CB36A}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimeStudio.PInvoke", "AnimeStudio.PInvoke\AnimeStudio.PInvoke.csproj", "{0B2BE613-3049-4021-85D1-21C325F729F4}"
 EndProject
@@ -16,6 +19,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnimeStudio.FBXNative", "AnimeStudio.FBXNative\AnimeStudio.FBXNative.vcxproj", "{11EA25A3-ED68-40EE-A9D0-7FDE3B583027}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimeStudio.CLI", "AnimeStudio.CLI\AnimeStudio.CLI.csproj", "{D35262CD-E063-4203-A9D2-C1BB82B6C598}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnimeStudio.Oodle", "AnimeStudio.Oodle\ooz.vcxproj", "{B6748219-A0E7-46BB-AE38-5343961CB36A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,6 +110,18 @@ Global
 		{D35262CD-E063-4203-A9D2-C1BB82B6C598}.Release|x64.Build.0 = Release|Any CPU
 		{D35262CD-E063-4203-A9D2-C1BB82B6C598}.Release|x86.ActiveCfg = Release|Any CPU
 		{D35262CD-E063-4203-A9D2-C1BB82B6C598}.Release|x86.Build.0 = Release|Any CPU
+		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Debug|Any CPU.Build.0 = Debug|x64
+		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Debug|x64.ActiveCfg = Debug|x64
+		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Debug|x64.Build.0 = Debug|x64
+		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Debug|x86.ActiveCfg = Debug|Win32
+		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Debug|x86.Build.0 = Debug|Win32
+		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Release|Any CPU.ActiveCfg = Release|x64
+		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Release|Any CPU.Build.0 = Release|x64
+		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Release|x64.ActiveCfg = Release|x64
+		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Release|x64.Build.0 = Release|x64
+		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Release|x86.ActiveCfg = Release|Win32
+		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
