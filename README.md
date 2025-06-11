@@ -23,11 +23,12 @@ After the official AssetStudio by Razmoth was discontinued, bugs started to aris
 # What's changed ?
 
 This is a non-exhaustive list of modifications :
-- Merged fixes for Genshin, Star Rail and ZZZ suport
+- Removed usage of a [certain dll for a certain decryption](https://github.com/Escartem/AnimeStudio/commit/1fcfa9041e07cd0a98b4d23f1578e910256fa1f8) 👀
+- Merged fixes for Genshin, Star Rail and ZZZ suport with improvements
 - Dark mode
 - Reorganised menu bar for easier usage
 - Addes SHA256 hash for assets
-- New game selector merged with UnityCN keys list
+- New game selector merged with UnityCN keys list and updated UnityCN keys manager
 - Asset Browser improvements
     - It is now possible to use json files instead of only message pack
     - You can now relocate the sources files of a map instead of having to build a new one to adjust them, making maps no longer game install dir dependant
@@ -42,15 +43,8 @@ Compared to the original studio, the UI was slightly adjusted, but if you are fa
 
 ---
 
-# Roadmap
-
-This is a list of features that I would like to add in the future, this does not mean it will be added just planned for now :
-- Add a new provider for Asset Indexes for 5.0+
-- Use HoyoDL to have asset downloading when the game is not available
-
----
-
 Special thanks to:
+- [hrothgar](https://github.com/hrothgar234567): Help in ZZZ fixes & some dll RE
 - Perfare: The real original AssetStudio - [[project](https://github.com/perfare/AssetStudio)]
 - Razmoth: Original AssetStudio for anime games support - [[project](https://github.com/RazTools/Studio)]
 - hashblen: ZZZ fixes fork - [[project](https://github.com/hashblen/ZZZ_Studio)]
