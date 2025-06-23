@@ -614,9 +614,10 @@ namespace AnimeStudio
         public List<UAVParameter> m_UAVParams;
         public List<SamplerParameter> m_Samplers;
 
-        public static bool HasGlobalLocalKeywordIndices(SerializedType type) => type.Match("E99740711222CD922E9A6F92FF1EB07A", "450A058C218DAF000647948F2F59DA6D", "B239746E4EC6E4D6D7BA27C84178610A", "3FD560648A91A99210D5DDF2BE320536");
-        public static bool HasInstancedStructuredBuffers(SerializedType type) => type.Match("E99740711222CD922E9A6F92FF1EB07A", "B239746E4EC6E4D6D7BA27C84178610A", "3FD560648A91A99210D5DDF2BE320536");
-        public static bool HasIsAdditionalBlob(SerializedType type) => type.Match("B239746E4EC6E4D6D7BA27C84178610A");
+        public static bool HasGlobalLocalKeywordIndices(SerializedType type) => type.Match("E99740711222CD922E9A6F92FF1EB07A", "450A058C218DAF000647948F2F59DA6D", "B239746E4EC6E4D6D7BA27C84178610A", "3FD560648A91A99210D5DDF2BE320536", "66839B5040F09A101A02DDDC9E522F23", "0B07D09734C07EBABF387D3CBC8BEBF0");
+        public static bool HasInstancedStructuredBuffers(SerializedType type) => type.Match("E99740711222CD922E9A6F92FF1EB07A", "B239746E4EC6E4D6D7BA27C84178610A", "3FD560648A91A99210D5DDF2BE320536", "66839B5040F09A101A02DDDC9E522F23", "0B07D09734C07EBABF387D3CBC8BEBF0");
+        public static bool HasIsAdditionalBlob(SerializedType type) => type.Match("B239746E4EC6E4D6D7BA27C84178610A", "66839B5040F09A101A02DDDC9E522F23", "0B07D09734C07EBABF387D3CBC8BEBF0");
+        public static bool HasProgramHash(SerializedType type) => type.Match("66839B5040F09A101A02DDDC9E522F23", "0B07D09734C07EBABF387D3CBC8BEBF0");
 
         public SerializedSubProgram(ObjectReader reader)
         {
@@ -633,6 +634,13 @@ namespace AnimeStudio
                 var m_IsAdditionalBlob = reader.ReadBoolean();
                 reader.AlignStream();
             }
+
+            if (HasProgramHash(reader.serializedType))
+            {
+                var m_ProgramHash = new Hash128(reader);
+                var m_DependentBlobIndex = reader.ReadInt32();
+            }
+
             m_Channels = new ParserBindChannels(reader);
 
             if ((version[0] >= 2019 && version[0] < 2021) || (version[0] == 2021 && version[1] < 2) || HasGlobalLocalKeywordIndices(reader.serializedType)) //2019 ~2021.1
