@@ -332,19 +332,28 @@ namespace AnimeStudio.GUI
             return total;
         }
 
-        public async void LoadPaths(List<AssetFilterDataItem> filterData, params string[] paths)
+        long GetFolderSize(string path)
         {
-            long totalSize = GetTotalSize(paths);
+            return Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
+                            .Sum(file => new FileInfo(file).Length);
+        }
+
+        private bool SizeWarning(long totalSize)
+        {
             long estimatedUsedRam = (long)(totalSize * 8.5); // number deduced by loading different sets of assets and averaging the sizes
             ulong ramLeft = new ComputerInfo().AvailablePhysicalMemory;
             if (estimatedUsedRam > (long)ramLeft)
             {
                 var result = MessageBox.Show($"You are trying to load {FormatBytes(totalSize)} of data, which will make the tool use approximately {FormatBytes(estimatedUsedRam)} of ram, but you have {FormatBytes(ramLeft)} left, continue ?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                if (result == DialogResult.No)
-                {
-                    return;
-                }
+                return result == DialogResult.Yes;
             }
+            return true;
+        }
+
+        public async void LoadPaths(List<AssetFilterDataItem> filterData, params string[] paths)
+        {
+            long totalSize = GetTotalSize(paths);
+            if (!SizeWarning(totalSize)) return;
 
             ResetForm();
             assetsManager.SpecifyUnityVersion = specifyUnityVersion.Text;
@@ -389,8 +398,12 @@ namespace AnimeStudio.GUI
             openFolderDialog.InitialFolder = openDirectoryBackup;
             if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
             {
-                ResetForm();
                 openDirectoryBackup = openFolderDialog.Folder;
+
+                long totalSize = GetFolderSize(openDirectoryBackup);
+                if (!SizeWarning(totalSize)) return;
+
+                ResetForm();
                 assetsManager.SpecifyUnityVersion = specifyUnityVersion.Text;
                 assetsManager.Game = Studio.Game;
                 await Task.Run(() => assetsManager.LoadFolder(openFolderDialog.Folder));
