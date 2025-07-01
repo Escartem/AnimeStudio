@@ -20,7 +20,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnimeStudio.FBXNative", "An
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimeStudio.CLI", "AnimeStudio.CLI\AnimeStudio.CLI.csproj", "{D35262CD-E063-4203-A9D2-C1BB82B6C598}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnimeStudio.Oodle", "AnimeStudio.Oodle\ooz.vcxproj", "{B6748219-A0E7-46BB-AE38-5343961CB36A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ooz", "AnimeStudio.Oodle\ooz.vcxproj", "{B6748219-A0E7-46BB-AE38-5343961CB36A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimeStudio.Tests", "AnimeStudio.Tests\AnimeStudio.Tests.csproj", "{CE556A02-EB06-48EC-A212-4A20FAC2D43D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimeStudio.IL2CPPDecryptor", "AnimeStudio.IL2CPPDecryptor\AnimeStudio.IL2CPPDecryptor.csproj", "{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -122,6 +126,30 @@ Global
 		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Release|x64.Build.0 = Release|x64
 		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Release|x86.ActiveCfg = Release|Win32
 		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Release|x86.Build.0 = Release|Win32
+		{CE556A02-EB06-48EC-A212-4A20FAC2D43D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE556A02-EB06-48EC-A212-4A20FAC2D43D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE556A02-EB06-48EC-A212-4A20FAC2D43D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CE556A02-EB06-48EC-A212-4A20FAC2D43D}.Debug|x64.Build.0 = Debug|Any CPU
+		{CE556A02-EB06-48EC-A212-4A20FAC2D43D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CE556A02-EB06-48EC-A212-4A20FAC2D43D}.Debug|x86.Build.0 = Debug|Any CPU
+		{CE556A02-EB06-48EC-A212-4A20FAC2D43D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE556A02-EB06-48EC-A212-4A20FAC2D43D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE556A02-EB06-48EC-A212-4A20FAC2D43D}.Release|x64.ActiveCfg = Release|Any CPU
+		{CE556A02-EB06-48EC-A212-4A20FAC2D43D}.Release|x64.Build.0 = Release|Any CPU
+		{CE556A02-EB06-48EC-A212-4A20FAC2D43D}.Release|x86.ActiveCfg = Release|Any CPU
+		{CE556A02-EB06-48EC-A212-4A20FAC2D43D}.Release|x86.Build.0 = Release|Any CPU
+		{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}.Debug|x64.Build.0 = Debug|Any CPU
+		{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}.Debug|x86.Build.0 = Debug|Any CPU
+		{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}.Release|x64.ActiveCfg = Release|Any CPU
+		{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}.Release|x64.Build.0 = Release|Any CPU
+		{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}.Release|x86.ActiveCfg = Release|Any CPU
+		{785C51FA-3336-49D9-AD67-1EBBEDEE4C0C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
