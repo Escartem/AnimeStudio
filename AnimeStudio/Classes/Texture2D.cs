@@ -179,400 +179,87 @@ namespace AnimeStudio
 
     public enum TextureFormat
     {
-        //
-        // Summary:
-        //     Alpha-only texture format, 8 bit integer.
-        Alpha8 = 1,
-        //
-        // Summary:
-        //     A 16 bits/pixel texture format. Texture stores color with an alpha channel.
-        ARGB4444 = 2,
-        //
-        // Summary:
-        //     Three channel (RGB) texture format, 8-bits unsigned integer per channel.
-        RGB24 = 3,
-        //
-        // Summary:
-        //     Four channel (RGBA) texture format, 8-bits unsigned integer per channel.
-        RGBA32 = 4,
-        //
-        // Summary:
-        //     Color with alpha texture format, 8-bits per channel.
-        ARGB32 = 5,
-        //
-        // Summary:
-        //     A 16 bit color texture format.
-        RGB565 = 7,
-        //
-        // FAKE
-        R16_Alt = 8,
-        // Summary:
-        //     Single channel (R) texture format, 16-bits unsigned integer.
-        R16 = 9,
-        //
-        // Summary:
-        //     Compressed color texture format.
-        DXT1 = 10,
-        //
-        // FAKE
-        DXT3 = 11,
-        // Summary:
-        //     Compressed color with alpha channel texture format.
-        DXT5 = 12,
-        //
-        // Summary:
-        //     Color and alpha texture format, 4 bit per channel.
-        RGBA4444 = 13,
-        //
-        // Summary:
-        //     Color with alpha texture format, 8-bits per channel.
-        BGRA32 = 14,
-        //
-        // Summary:
-        //     Scalar (R) texture format, 16 bit floating point.
-        RHalf = 15,
-        //
-        // Summary:
-        //     Two color (RG) texture format, 16 bit floating point per channel.
-        RGHalf = 16,
-        //
-        // Summary:
-        //     RGB color and alpha texture format, 16 bit floating point per channel.
-        RGBAHalf = 17,
-        //
-        // Summary:
-        //     Scalar (R) texture format, 32 bit floating point.
-        RFloat = 18,
-        //
-        // Summary:
-        //     Two color (RG) texture format, 32 bit floating point per channel.
-        RGFloat = 19,
-        //
-        // Summary:
-        //     RGB color and alpha texture format, 32-bit floats per channel.
-        RGBAFloat = 20,
-        //
-        // Summary:
-        //     A format that uses the YUV color space and is often used for video encoding or
-        //     playback.
-        YUY2 = 21,
-        //
-        // Summary:
-        //     RGB HDR format, with 9 bit mantissa per channel and a 5 bit shared exponent.
-        RGB9e5Float = 22,
-        //
-        // Summary:
-        //     Compressed one channel (R) texture format.
-        BC4 = 26,
-        //
-        // Summary:
-        //     Compressed two-channel (RG) texture format.
-        BC5 = 27,
-        //
-        // Summary:
-        //     HDR compressed color texture format.
-        BC6H = 24,
-        //
-        // Summary:
-        //     High quality compressed color texture format.
-        BC7 = 25,
-        //
-        // Summary:
-        //     Compressed color texture format with Crunch compression for smaller storage sizes.
-        DXT1Crunched = 28,
-        //
-        // Summary:
-        //     Compressed color with alpha channel texture format with Crunch compression for
-        //     smaller storage sizes.
-        DXT5Crunched = 29,
-        //
-        // Summary:
-        //     PowerVR (iOS) 2 bits/pixel compressed color texture format.
-        PVRTC_RGB2 = 30,
-        //
-        // Summary:
-        //     PowerVR (iOS) 2 bits/pixel compressed with alpha channel texture format.
-        PVRTC_RGBA2 = 31,
-        //
-        // Summary:
-        //     PowerVR (iOS) 4 bits/pixel compressed color texture format.
-        PVRTC_RGB4 = 32,
-        //
-        // Summary:
-        //     PowerVR (iOS) 4 bits/pixel compressed with alpha channel texture format.
-        PVRTC_RGBA4 = 33,
-        //
-        // Summary:
-        //     ETC (GLES2.0) 4 bits/pixel compressed RGB texture format.
-        ETC_RGB4 = 34,
-        //
-        // FAKE
-        ATC_RGB4 = 35,
-        // FAKE
-        ATC_RGBA8 = 36,
-        // Summary:
-        //     ETC2 EAC (GL ES 3.0) 4 bitspixel compressed unsigned single-channel texture format.
-        EAC_R = 41,
-        //
-        // Summary:
-        //     ETC2 EAC (GL ES 3.0) 4 bitspixel compressed signed single-channel texture format.
-        EAC_R_SIGNED = 42,
-        //
-        // Summary:
-        //     ETC2 EAC (GL ES 3.0) 8 bitspixel compressed unsigned dual-channel (RG) texture
-        //     format.
-        EAC_RG = 43,
-        //
-        // Summary:
-        //     ETC2 EAC (GL ES 3.0) 8 bitspixel compressed signed dual-channel (RG) texture
-        //     format.
-        EAC_RG_SIGNED = 44,
-        //
-        // Summary:
-        //     ETC2 (GL ES 3.0) 4 bits/pixel compressed RGB texture format.
-        ETC2_RGB = 45,
-        //
-        // Summary:
-        //     ETC2 (GL ES 3.0) 4 bits/pixel RGB+1-bit alpha texture format.
-        ETC2_RGBA1 = 46,
-        //
-        // Summary:
-        //     ETC2 (GL ES 3.0) 8 bits/pixel compressed RGBA texture format.
-        ETC2_RGBA8 = 47,
-        //
-        // Summary:
-        //     ASTC (4x4 pixel block in 128 bits) compressed RGB(A) texture format.
-        ASTC_4x4 = 48,
-        //
-        // Summary:
-        //     ASTC (5x5 pixel block in 128 bits) compressed RGB(A) texture format.
-        ASTC_5x5 = 49,
-        //
-        // Summary:
-        //     ASTC (6x6 pixel block in 128 bits) compressed RGB(A) texture format.
-        ASTC_6x6 = 50,
-        //
-        // Summary:
-        //     ASTC (8x8 pixel block in 128 bits) compressed RGB(A) texture format.
-        ASTC_8x8 = 51,
-        //
-        // Summary:
-        //     ASTC (10x10 pixel block in 128 bits) compressed RGB(A) texture format.
-        ASTC_10x10 = 52,
-        //
-        // Summary:
-        //     ASTC (12x12 pixel block in 128 bits) compressed RGB(A) texture format.
-        ASTC_12x12 = 53,
-        //     Obsolete. Enum member ETC_RGB4_3DS is obsolete. Nintendo 3DS is no longer supported.
-        ETC_RGB4_3DS = -60,
-        //     Obsolete. Enum member ETC_RGB4_3DS is obsolete. Nintendo 3DS is no longer supported.
-        ETC_RGBA8_3DS = -61,
-        //
-        // Summary:
-        //     Two channel (RG) texture format, 8-bits unsigned integer per channel.
-        RG16 = 62,
-        //
-        // Summary:
-        //     Single channel (R) texture format, 8-bits unsigned integer.
-        R8 = 63,
-        //
-        // Summary:
-        //     Compressed color texture format with Crunch compression for smaller storage sizes.
-        ETC_RGB4Crunched = 64,
-        //
-        // Summary:
-        //     Compressed color with alpha channel texture format using Crunch compression for
-        //     smaller storage sizes.
-        ETC2_RGBA8Crunched = 65,
-        //
-        // Summary:
-        //     ASTC (4x4 pixel block in 128 bits) compressed RGB(A) HDR texture format.
-        ASTC_HDR_4x4 = 66,
-        //
-        // Summary:
-        //     ASTC (5x5 pixel block in 128 bits) compressed RGB(A) HDR texture format.
-        ASTC_HDR_5x5 = 67,
-        //
-        // Summary:
-        //     ASTC (6x6 pixel block in 128 bits) compressed RGB(A) HDR texture format.
-        ASTC_HDR_6x6 = 68,
-        //
-        // Summary:
-        //     ASTC (8x8 pixel block in 128 bits) compressed RGB(A) texture format.
-        ASTC_HDR_8x8 = 69,
-        //
-        // Summary:
-        //     ASTC (10x10 pixel block in 128 bits) compressed RGB(A) HDR texture format.
-        ASTC_HDR_10x10 = 70,
-        //
-        // Summary:
-        //     ASTC (12x12 pixel block in 128 bits) compressed RGB(A) HDR texture format.
-        ASTC_HDR_12x12 = 71,
-        //
-        // Summary:
-        //     Two channel (RG) texture format, 16-bits unsigned integer per channel.
-        RG32 = 72,
-        //
-        // Summary:
-        //     Three channel (RGB) texture format, 16-bits unsigned integer per channel.
-        RGB48 = 73,
-        //
-        // Summary:
-        //     Four channel (RGBA) texture format, 16-bits unsigned integer per channel.
-        RGBA64 = 74,
-        //
-        // Summary:
-        //     Single channel (R) texture format, 8-bits signed integer.
-        R8_SIGNED = 75,
-        //
-        // Summary:
-        //     Two channel (RG) texture format, 8-bits signed integer per channel.
-        RG16_SIGNED = 76,
-        //
-        // Summary:
-        //     Three channel (RGB) texture format, 8-bits signed integer per channel.
-        RGB24_SIGNED = 77,
-        //
-        // Summary:
-        //     Four channel (RGBA) texture format, 8-bits signed integer per channel.
-        RGBA32_SIGNED = 78,
-        //
-        // Summary:
-        //     Single channel (R) texture format, 16-bits signed integer.
-        R16_SIGNED = 79,
-        //
-        // Summary:
-        //     Two channel (RG) texture format, 16-bits signed integer per channel.
-        RG32_SIGNED = 80,
-        //
-        // Summary:
-        //     Three color (RGB) texture format, 16-bits signed integer per channel.
-        RGB48_SIGNED = 81,
-        //
-        // Summary:
-        //     Four channel (RGBA) texture format, 16-bits signed integer per channel.
-        RGBA64_SIGNED = 82,
-        //
-        // Summary:
-        //     Obsolete. Use TextureFormat.ASTC_4x4 instead.        
-        ASTC_RGB_4x4 = -48,
-        //
-        // Summary:
-        //     Obsolete. Use TextureFormat.ASTC_5x5 instead.        
-        ASTC_RGB_5x5 = -49,
-        //
-        // Summary:
-        //     Obsolete. Use TextureFormat.ASTC_6x6 instead.
-        ASTC_RGB_6x6 = -50,
-        //
-        // Summary:
-        //     Obsolete. Use TextureFormat.ASTC_8x8 instead.
-        ASTC_RGB_8x8 = -51,
-        //
-        // Summary:
-        //     Obsolete. Use TextureFormat.ASTC_10x10 instead.
-        ASTC_RGB_10x10 = -52,
-        //
-        // Summary:
-        //     Obsolete. Use TextureFormat.ASTC_12x12 instead.
-        ASTC_RGB_12x12 = -53,
-        //
-        // Summary:
-        //     Obsolete. Use TextureFormat.ASTC_4x4 instead.
-        ASTC_RGBA_4x4 = -54,
-        //
-        // Summary:
-        //     Obsolete. Use TextureFormat.ASTC_5x5 instead.
-        ASTC_RGBA_5x5 = -55,
-        //
-        // Summary:
-        //     Obsolete. Use TextureFormat.ASTC_6x6 instead.
-        ASTC_RGBA_6x6 = -56,
-        //
-        // Summary:
-        //     Obsolete. Use TextureFormat.ASTC_8x8 instead.
-        ASTC_RGBA_8x8 = -57,
-        //
-        // Summary:
-        //     Obsolete. Use TextureFormat.ASTC_10x10 instead.
-        ASTC_RGBA_10x10 = -58,
-        //
-        // Summary:
-        //     Obsolete. Use TextureFormat.ASTC_12x12 instead.
-        ASTC_RGBA_12x12 = -59
-    }
-    public enum TextureFormatOld
-    {
-        Alpha8 = 1,
-        ARGB4444,
-        RGB24,
-        RGBA32,
-        ARGB32,
-        ARGBFloat,
-        RGB565,
-        BGR24,
-        R16,
-        DXT1,
-        DXT3,
-        DXT5,
-        RGBA4444,
-        BGRA32,
-        RHalf,
-        RGHalf,
-        RGBAHalf,
-        RFloat,
-        RGFloat,
-        RGBAFloat,
-        YUY2,
-        RGB9e5Float,
-        RGBFloat,
-        BC6H,
-        BC7,
-        BC4,
-        BC5,
-        DXT1Crunched,
-        DXT5Crunched,
-        PVRTC_RGB2,
-        PVRTC_RGBA2,
-        PVRTC_RGB4,
-        PVRTC_RGBA4,
-        ETC_RGB4,
-        ATC_RGB4,
-        ATC_RGBA8,
-        EAC_R = 41,
-        EAC_R_SIGNED,
-        EAC_RG,
-        EAC_RG_SIGNED,
-        ETC2_RGB,
-        ETC2_RGBA1,
-        ETC2_RGBA8,
-        ASTC_RGB_4x4,
-        ASTC_RGB_5x5,
-        ASTC_RGB_6x6,
-        ASTC_RGB_8x8,
-        ASTC_RGB_10x10,
-        ASTC_RGB_12x12,
-        ASTC_RGBA_4x4,
-        ASTC_RGBA_5x5,
-        ASTC_RGBA_6x6,
-        ASTC_RGBA_8x8,
-        ASTC_RGBA_10x10,
-        ASTC_RGBA_12x12,
-        ETC_RGB4_3DS,
-        ETC_RGBA8_3DS,
-        RG16,
-        R8,
-        ETC_RGB4Crunched,
-        ETC2_RGBA8Crunched,
-        R16_Alt,
-        ASTC_HDR_4x4,
-        ASTC_HDR_5x5,
-        ASTC_HDR_6x6,
-        ASTC_HDR_8x8,
-        ASTC_HDR_10x10,
-        ASTC_HDR_12x12,
-        RG32,
-        RGB48,
-        RGBA64
+        Alpha8 = 1, // Alpha-only texture format, 8 bit integer.
+        ARGB4444 = 2, // A 16 bits/pixel texture format. Texture stores color with an alpha channel.
+        RGB24 = 3, // Three channel (RGB) texture format, 8-bits unsigned integer per channel.
+        RGBA32 = 4, // Four channel (RGBA) texture format, 8-bits unsigned integer per channel.
+        ARGB32 = 5, // Color with alpha texture format, 8-bits per channel.
+        RGB565 = 7, // A 16 bit color texture format.
+        R16_Alt = 8, // FAKE
+        R16 = 9, // Single channel (R) texture format, 16-bits unsigned integer.
+        DXT1 = 10, // Compressed color texture format.
+        DXT3 = 11, // FAKE
+        DXT5 = 12, // Compressed color with alpha channel texture format.
+        RGBA4444 = 13, // Color and alpha texture format, 4 bit per channel.
+        BGRA32 = 14, // Color with alpha texture format, 8-bits per channel.
+        RHalf = 15, // Scalar (R) texture format, 16 bit floating point.
+        RGHalf = 16, // Two color (RG) texture format, 16 bit floating point per channel.
+        RGBAHalf = 17, // RGB color and alpha texture format, 16 bit floating point per channel.
+        RFloat = 18, // Scalar (R) texture format, 32 bit floating point.
+        RGFloat = 19, // Two color (RG) texture format, 32 bit floating point per channel.
+        RGBAFloat = 20, // RGB color and alpha texture format, 32-bit floats per channel.
+        YUY2 = 21, // A format that uses the YUV color space and is often used for video encoding or playback.
+        RGB9e5Float = 22, // RGB HDR format, with 9 bit mantissa per channel and a 5 bit shared exponent.
+        BC4 = 26, // Compressed one channel (R) texture format.
+        BC5 = 27, // Compressed two-channel (RG) texture format.
+        BC6H = 24, // HDR compressed color texture format.
+        BC7 = 25, // High quality compressed color texture format.
+        DXT1Crunched = 28, // Compressed color texture format with Crunch compression for smaller storage sizes.
+        DXT5Crunched = 29, // Compressed color with alpha channel texture format with Crunch compression for smaller storage sizes.
+        PVRTC_RGB2 = 30, // PowerVR (iOS) 2 bits/pixel compressed color texture format.
+        PVRTC_RGBA2 = 31, // PowerVR (iOS) 2 bits/pixel compressed with alpha channel texture format.
+        PVRTC_RGB4 = 32, // PowerVR (iOS) 4 bits/pixel compressed color texture format.
+        PVRTC_RGBA4 = 33, // PowerVR (iOS) 4 bits/pixel compressed with alpha channel texture format.
+        ETC_RGB4 = 34, // ETC (GLES2.0) 4 bits/pixel compressed RGB texture format.
+        ATC_RGB4 = 35, // FAKE
+        ATC_RGBA8 = 36, // FAKE
+        EAC_R = 41, // ETC2 EAC (GL ES 3.0) 4 bitspixel compressed unsigned single-channel texture format.
+        EAC_R_SIGNED = 42, // ETC2 EAC (GL ES 3.0) 4 bitspixel compressed signed single-channel texture format.
+        EAC_RG = 43, // ETC2 EAC (GL ES 3.0) 8 bitspixel compressed unsigned dual-channel (RG) texture format.
+        EAC_RG_SIGNED = 44, // ETC2 EAC (GL ES 3.0) 8 bitspixel compressed signed dual-channel (RG) texture format.
+        ETC2_RGB = 45, // ETC2 (GL ES 3.0) 4 bits/pixel compressed RGB texture format.
+        ETC2_RGBA1 = 46, // ETC2 (GL ES 3.0) 4 bits/pixel RGB+1-bit alpha texture format.
+        ETC2_RGBA8 = 47, // ETC2 (GL ES 3.0) 8 bits/pixel compressed RGBA texture format.
+        ASTC_4x4 = 48, // ASTC (4x4 pixel block in 128 bits) compressed RGB(A) texture format.
+        ASTC_5x5 = 49, // ASTC (5x5 pixel block in 128 bits) compressed RGB(A) texture format.
+        ASTC_6x6 = 50, // ASTC (6x6 pixel block in 128 bits) compressed RGB(A) texture format.
+        ASTC_8x8 = 51, // ASTC (8x8 pixel block in 128 bits) compressed RGB(A) texture format.
+        ASTC_10x10 = 52, // ASTC (10x10 pixel block in 128 bits) compressed RGB(A) texture format.
+        ASTC_12x12 = 53, // ASTC (12x12 pixel block in 128 bits) compressed RGB(A) texture format.
+        ETC_RGB4_3DS = -60, // Obsolete. Enum member ETC_RGB4_3DS is obsolete. Nintendo 3DS is no longer supported.
+        ETC_RGBA8_3DS = -61, // Obsolete. Enum member ETC_RGB4_3DS is obsolete. Nintendo 3DS is no longer supported.
+        RG16 = 62, // Two channel (RG) texture format, 8-bits unsigned integer per channel.
+        R8 = 63, // Single channel (R) texture format, 8-bits unsigned integer.
+        ETC_RGB4Crunched = 64, // Compressed color texture format with Crunch compression for smaller storage sizes.
+        ETC2_RGBA8Crunched = 65, // Compressed color with alpha channel texture format using Crunch compression for smaller storage sizes.
+        ASTC_HDR_4x4 = 66, // ASTC (4x4 pixel block in 128 bits) compressed RGB(A) HDR texture format.
+        ASTC_HDR_5x5 = 67, // ASTC (5x5 pixel block in 128 bits) compressed RGB(A) HDR texture format.
+        ASTC_HDR_6x6 = 68, // ASTC (6x6 pixel block in 128 bits) compressed RGB(A) HDR texture format.
+        ASTC_HDR_8x8 = 69, // ASTC (8x8 pixel block in 128 bits) compressed RGB(A) texture format.
+        ASTC_HDR_10x10 = 70, // ASTC (10x10 pixel block in 128 bits) compressed RGB(A) HDR texture format.
+        ASTC_HDR_12x12 = 71, // ASTC (12x12 pixel block in 128 bits) compressed RGB(A) HDR texture format.
+        RG32 = 72, // Two channel (RG) texture format, 16-bits unsigned integer per channel.
+        RGB48 = 73, // Three channel (RGB) texture format, 16-bits unsigned integer per channel.
+        RGBA64 = 74, // Four channel (RGBA) texture format, 16-bits unsigned integer per channel.
+        R8_SIGNED = 75, // Single channel (R) texture format, 8-bits signed integer.
+        RG16_SIGNED = 76, // Two channel (RG) texture format, 8-bits signed integer per channel.
+        RGB24_SIGNED = 77, // Three channel (RGB) texture format, 8-bits signed integer per channel.
+        RGBA32_SIGNED = 78, // Four channel (RGBA) texture format, 8-bits signed integer per channel.
+        R16_SIGNED = 79, // Single channel (R) texture format, 16-bits signed integer.
+        RG32_SIGNED = 80, // Two channel (RG) texture format, 16-bits signed integer per channel.
+        RGB48_SIGNED = 81, // Three color (RGB) texture format, 16-bits signed integer per channel.
+        RGBA64_SIGNED = 82, // Four channel (RGBA) texture format, 16-bits signed integer per channel.
+        ASTC_RGB_4x4 = -48, // Obsolete. Use TextureFormat.ASTC_4x4 instead.
+        ASTC_RGB_5x5 = -49, // Obsolete. Use TextureFormat.ASTC_5x5 instead.
+        ASTC_RGB_6x6 = -50, // Obsolete. Use TextureFormat.ASTC_6x6 instead.
+        ASTC_RGB_8x8 = -51, // Obsolete. Use TextureFormat.ASTC_8x8 instead.
+        ASTC_RGB_10x10 = -52, // Obsolete. Use TextureFormat.ASTC_10x10 instead.
+        ASTC_RGB_12x12 = -53, // Obsolete. Use TextureFormat.ASTC_12x12 instead.
+        ASTC_RGBA_4x4 = -54, // Obsolete. Use TextureFormat.ASTC_4x4 instead.
+        ASTC_RGBA_5x5 = -55, // Obsolete. Use TextureFormat.ASTC_5x5 instead.
+        ASTC_RGBA_6x6 = -56, // Obsolete. Use TextureFormat.ASTC_6x6 instead.
+        ASTC_RGBA_8x8 = -57, // Obsolete. Use TextureFormat.ASTC_8x8 instead.
+        ASTC_RGBA_10x10 = -58, // Obsolete. Use TextureFormat.ASTC_10x10 instead.
+        ASTC_RGBA_12x12 = -59 // Obsolete. Use TextureFormat.ASTC_12x12 instead.
     }
 }
