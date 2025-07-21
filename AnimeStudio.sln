@@ -10,12 +10,17 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimeStudio.FBXWrapper", "AnimeStudio.FBXWrapper\AnimeStudio.FBXWrapper.csproj", "{E301AFEA-84E7-4BCE-8D65-A2576D8D105B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimeStudio.GUI", "AnimeStudio.GUI\AnimeStudio.GUI.csproj", "{29EAD018-1C67-497A-AB8E-727D595AD756}"
+	ProjectSection(ProjectDependencies) = postProject
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6} = {F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimeStudio.Utility", "AnimeStudio.Utility\AnimeStudio.Utility.csproj", "{65EAFFA3-01D3-4EF5-B092-8B4647E9A1FF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnimeStudio.FBXNative", "AnimeStudio.FBXNative\AnimeStudio.FBXNative.vcxproj", "{11EA25A3-ED68-40EE-A9D0-7FDE3B583027}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimeStudio.CLI", "AnimeStudio.CLI\AnimeStudio.CLI.csproj", "{D35262CD-E063-4203-A9D2-C1BB82B6C598}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnimeStudio.ACLNative2", "AnimeStudio.ACLNative2\AnimeStudio.ACLNative2.vcxproj", "{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,6 +110,18 @@ Global
 		{D35262CD-E063-4203-A9D2-C1BB82B6C598}.Release|x64.Build.0 = Release|Any CPU
 		{D35262CD-E063-4203-A9D2-C1BB82B6C598}.Release|x86.ActiveCfg = Release|Any CPU
 		{D35262CD-E063-4203-A9D2-C1BB82B6C598}.Release|x86.Build.0 = Release|Any CPU
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}.Debug|Any CPU.Build.0 = Debug|x64
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}.Debug|x64.ActiveCfg = Debug|x64
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}.Debug|x64.Build.0 = Debug|x64
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}.Debug|x86.ActiveCfg = Debug|Win32
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}.Debug|x86.Build.0 = Debug|Win32
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}.Release|Any CPU.ActiveCfg = Release|x64
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}.Release|Any CPU.Build.0 = Release|x64
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}.Release|x64.ActiveCfg = Release|x64
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}.Release|x64.Build.0 = Release|x64
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}.Release|x86.ActiveCfg = Release|Win32
+		{F49798A2-F50F-4FA3-8F66-34B20C1DDFD6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

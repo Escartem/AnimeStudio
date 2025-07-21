@@ -97,6 +97,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!--
 		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\acldb_zzz.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>x86\acldb_zzz.dll</TargetPath>
@@ -104,6 +105,11 @@
 		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\acldb_zzz.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>x64\acldb_zzz.dll</TargetPath>
+		</ContentWithTargetPath>
+		-->
+		<ContentWithTargetPath Include="..\AnimeStudio.ACLNative2\x64\$(Configuration)\AnimeStudio.ACLNative2.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>x64\AnimeStudio.ACLNative2.dll</TargetPath>
 		</ContentWithTargetPath>
 	</ItemGroup>
 

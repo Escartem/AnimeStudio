@@ -1,0 +1,957 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ACLLibrary.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\compress.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\compression_level.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\compression_settings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\convert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\fwd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\animated_track_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\clip_context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\clip_context.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\compact.scalar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\compact.transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\compress.database.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\compress.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\compress.scalar.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\compress.transform.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\compression_level.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\compression_settings.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\convert.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\convert_rotation.transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\keyframe_stripping.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\normalize.scalar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\normalize.transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\optimize_looping.scalar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\optimize_looping.transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\pre_process.common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\pre_process.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\pre_process.scalar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\pre_process.transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\quantize.scalar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\quantize.transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\rigid_shell_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\sample_streams.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\segment.transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\segment_context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\track.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\track_array.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\track_bit_rate_database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\track_error.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\track_list_context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\track_range.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\track_range_impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\track_stream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\transform_bit_rate_permutations.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\transform_clip_adapters.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\write_compression_stats_impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\write_range_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\write_segment_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\write_stats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\write_stream_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\write_sub_track_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\write_track_data_impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\impl\write_track_metadata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\output_stats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\pre_process.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\track.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\track_array.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\track_error.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\transform_error_metrics.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\transform_pose_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\additive_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\algorithm_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\ansi_allocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\bitset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\bit_manip_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\buffer_tag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\compressed_database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\compressed_tracks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\compressed_tracks_version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\enum_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\error.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\error_result.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\floating_point_exceptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\fwd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\hash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\iallocator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\impl\atomic.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\impl\bit_cast.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\impl\compiler_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\impl\compressed_database.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\impl\compressed_headers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\impl\compressed_tracks.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\impl\debug_track_writer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\impl\interpolation_utils.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\impl\time_utils.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\impl\track_desc.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\impl\track_formats.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\impl\variable_bit_rates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\interpolation_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\iterator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\memory_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\ptr_offset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\quality_tiers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\range_reduction_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\sample_looping_policy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\sample_rounding_policy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\scope_profiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\string.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\time_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\track_desc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\track_formats.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\track_traits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\track_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\track_writer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\unique_ptr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\variable_bit_rates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\database\database.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\database\database_settings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\database\database_streamer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\database\impl\database.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\database\impl\database_context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\database\impl\database_streamer.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\database\impl\debug_database_streamer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\database\null_database_streamer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\decompress.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\decompression_settings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\fwd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\impl\animated_track_cache.transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\impl\constant_track_cache.transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\impl\decompress.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\impl\decompression.scalar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\impl\decompression.transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\impl\decompression.universal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\impl\decompression_context.transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\impl\decompression_context_selector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\impl\decompression_version_selector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\impl\track_cache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\fwd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\io\clip_reader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\io\clip_reader_error.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\io\clip_writer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\io\fwd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\quatf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\quat_packing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\qvvf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\scalar_packing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\vector4f.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\vector4_packing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\camera_utilsd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\camera_utilsf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\constants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\fwd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\bit_cast.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\cmath.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\compiler_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\detect_arch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\detect_compiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\detect_cpp_version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\detect_features.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\error.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\macros.mask4.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\macros.matrix.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\macros.vector4.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\mask_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\matrix_affine_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\matrix_cast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\matrix_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\memory_utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\quat_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\qvs_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\qvv_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\qv_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\scalar_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\type_args.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\type_args.neon.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\type_args.neon64.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\type_args.other.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\type_args.vectorcall.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\type_args.x64_clang.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\type_args.x64_gcc.impl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\impl\vector_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\macros.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\mask4d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\mask4f.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\mask4i.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\mask4q.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\math.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\matrix3x3d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\matrix3x3f.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\matrix3x4d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\matrix3x4f.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\matrix4x4d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\matrix4x4f.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\packing\quatd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\packing\quatf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\quatd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\quatf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\qvd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\qvf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\qvsd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\qvsf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\qvvd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\qvvf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\scalard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\scalarf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\type_traits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\vector4d.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\vector4f.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rtm\version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\impl\decompression.hoyo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\impl\decompression_context.hoyo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\async.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\async_logger-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\async_logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\cfg\argv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\cfg\env.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\cfg\helpers-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\cfg\helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\common-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\backtracer-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\backtracer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\circular_q.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\console_globals.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\file_helper-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\file_helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\fmt_helper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\log_msg-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\log_msg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\log_msg_buffer-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\log_msg_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\mpmc_blocking_q.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\null_mutex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\os-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\os.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\periodic_worker-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\periodic_worker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\registry-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\registry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\synchronous_factory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\tcp_client-windows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\tcp_client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\thread_pool-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\thread_pool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\udp_client-windows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\udp_client.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\details\windows_include.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bin_to_hex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\args.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\chrono.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\color.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\compile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\core.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\format-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\format.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\os.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\ostream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\printf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\ranges.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\std.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\bundled\xchar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\chrono.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\compile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\fmt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\ostr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\ranges.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\std.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fmt\xchar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\formatter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\fwd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\logger-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\mdc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\pattern_formatter-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\pattern_formatter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\android_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\ansicolor_sink-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\ansicolor_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\base_sink-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\base_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\basic_file_sink-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\basic_file_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\callback_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\daily_file_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\dist_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\dup_filter_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\hourly_file_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\kafka_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\mongo_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\msvc_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\null_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\ostream_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\qt_sinks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\ringbuffer_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\rotating_file_sink-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\rotating_file_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\sink-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\stdout_color_sinks-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\stdout_color_sinks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\stdout_sinks-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\stdout_sinks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\syslog_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\systemd_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\tcp_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\udp_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\wincolor_sink-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\wincolor_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\sinks\win_eventlog_sink.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\spdlog-inl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\spdlog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\stopwatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\tweakme.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="spdlog\version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ACLLibrary.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
