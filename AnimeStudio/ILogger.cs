@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace AnimeStudio
@@ -32,7 +34,33 @@ namespace AnimeStudio
     {
         public void Log(LoggerEvent loggerEvent, string message)
         {
-            Console.WriteLine("[{0}] {1}", loggerEvent, message);
+            ConsoleColor color = ConsoleColor.White;
+            bool bold = false;
+            bool underline = false;
+
+            switch (loggerEvent)
+            {
+                case LoggerEvent.Verbose: color = ConsoleColor.Gray; break;
+                case LoggerEvent.Debug: color = ConsoleColor.Green; break;
+                case LoggerEvent.Info: color = ConsoleColor.Cyan; bold = true; break;
+                case LoggerEvent.Warning: color = ConsoleColor.Yellow; underline = true; break;
+                case LoggerEvent.Error: color = ConsoleColor.Red; bold = true; break;
+            }
+
+            string style = "";
+            string reset = "\u001b[0m";
+            if (bold) style += "\u001b[1m";
+            if (underline) style += "\u001b[4m";
+
+            string timestamp = DateTime.Now.ToString("HH:mm:ss");
+            var caller = new StackTrace().GetFrame(2)?.GetMethod()?.ReflectedType?.Name;
+            if (!string.IsNullOrEmpty(caller)) message = $"[{caller}] {message}";
+
+            Console.ForegroundColor = color;
+            Console.WriteLine($"{style}[{timestamp}] {loggerEvent.ToString().ToUpper()}: {message}{reset}");
+            Console.ResetColor();
+
+            //Console.WriteLine("[{0}] {1}", loggerEvent, message);
         }
     }
 
