@@ -1,0 +1,132 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="AnimeStudio.GUI.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="displayAll" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="enablePreview" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="displayInfo" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="openAfterExport" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="assetGroupOption" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="convertTexture" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="convertAudio" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="convertType" Type="AnimeStudio.ImageFormat" Scope="User">
+      <Value Profile="(Default)">Png</Value>
+    </Setting>
+    <Setting Name="eulerFilter" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="filterPrecision" Type="System.Decimal" Scope="User">
+      <Value Profile="(Default)">0.25</Value>
+    </Setting>
+    <Setting Name="exportAllNodes" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="exportSkins" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="exportAnimations" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="boneSize" Type="System.Decimal" Scope="User">
+      <Value Profile="(Default)">10</Value>
+    </Setting>
+    <Setting Name="fbxVersion" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">3</Value>
+    </Setting>
+    <Setting Name="fbxFormat" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="scaleFactor" Type="System.Decimal" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="exportBlendShape" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="castToBone" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="restoreExtensionName" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="key" Type="System.Byte" Scope="User">
+      <Value Profile="(Default)">147</Value>
+    </Setting>
+    <Setting Name="enableConsole" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="encrypted" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="selectedGame" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="enableResolveDependencies" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="assetMapType" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">1</Value>
+    </Setting>
+    <Setting Name="collectAnimations" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="skipContainer" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="minimalAssetMap" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="modelsOnly" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="enableModelPreview" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="selectedCABMapName" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="enableFileLogging" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">True</Value>
+    </Setting>
+    <Setting Name="uvs" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{"UV0":{"Item1":true,"Item2":0},"UV1":{"Item1":true,"Item2":1},"UV2":{"Item1":false,"Item2":0},"UV3":{"Item1":false,"Item2":0},"UV4":{"Item1":false,"Item2":0},"UV5":{"Item1":false,"Item2":0},"UV6":{"Item1":false,"Item2":0},"UV7":{"Item1":false,"Item2":0}}</Value>
+    </Setting>
+    <Setting Name="allowDuplicates" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="loggerEventType" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">30</Value>
+    </Setting>
+    <Setting Name="types" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{"Animation":{"Item1":true,"Item2":false},"AnimationClip":{"Item1":true,"Item2":true},"Animator":{"Item1":true,"Item2":true},"AnimatorController":{"Item1":true,"Item2":false},"AnimatorOverrideController":{"Item1":true,"Item2":false},"AssetBundle":{"Item1":true,"Item2":false},"AudioClip":{"Item1":true,"Item2":true},"Avatar":{"Item1":true,"Item2":false},"Font":{"Item1":true,"Item2":true},"GameObject":{"Item1":true,"Item2":false},"IndexObject":{"Item1":true,"Item2":false},"Material":{"Item1":true,"Item2":true},"Mesh":{"Item1":true,"Item2":true},"MeshFilter":{"Item1":true,"Item2":false},"MeshRenderer":{"Item1":true,"Item2":false},"MiHoYoBinData":{"Item1":true,"Item2":true},"MonoBehaviour":{"Item1":true,"Item2":true},"MonoScript":{"Item1":true,"Item2":false},"MovieTexture":{"Item1":true,"Item2":true},"PlayerSettings":{"Item1":true,"Item2":false},"RectTransform":{"Item1":true,"Item2":false},"Shader":{"Item1":true,"Item2":true},"SkinnedMeshRenderer":{"Item1":true,"Item2":false},"Sprite":{"Item1":true,"Item2":true},"SpriteAtlas":{"Item1":true,"Item2":false},"TextAsset":{"Item1":true,"Item2":true},"Texture2D":{"Item1":true,"Item2":true},"Transform":{"Item1":true,"Item2":false},"VideoClip":{"Item1":true,"Item2":true},"ResourceManager":{"Item1":true,"Item2":false}}</Value>
+    </Setting>
+    <Setting Name="texs" Type="System.String" Scope="User">
+      <Value Profile="(Default)">{}</Value>
+    </Setting>
+    <Setting Name="exportMaterials" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="guiTheme" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">0</Value>
+    </Setting>
+    <Setting Name="lastUnityCNKey" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="enableHDR" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>

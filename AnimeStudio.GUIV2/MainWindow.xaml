@@ -1,0 +1,192 @@
+﻿<Window
+        x:Class="AnimeStudio.GUIV2.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:xcad="https://github.com/Dirkster99/AvalonDock" xmlns:local="clr-namespace:AnimeStudio.GUIV2"
+    mc:Ignorable="d"
+        Title="AnimeStudio" Height="550" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        AllowDrop="True">
+    <DockPanel>
+        <!-- Menu Bar -->
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Click="LoadFile_Click" Header="Load file"/>
+                <MenuItem Click="LoadFolder_Click" Header="Load folder"/>
+                <Separator/>
+                <MenuItem Click="ExtractFile_Click" Header="Extract file"/>
+                <MenuItem Click="ExtractFolder_Click" Header="Extract folder"/>
+                <Separator/>
+                <MenuItem Click="Reset_Click" Header="Reset"/>
+                <MenuItem Click="Abort_Click" Header="Abort"/>
+                <Separator/>
+                <MenuItem Click="Exit_Click" Header="Exit"/>
+            </MenuItem>
+            <MenuItem Header="_Options">
+                <MenuItem Header="Game" IsEnabled="False"/>
+                <MenuItem Click="SelectGame_Click" Header="Select Game"/>
+                <MenuItem Header="Specify Unity version"/>
+                <MenuItem Header="Edit UnityCN Keys"/>
+                <Separator/>
+                <MenuItem Header="Asset loading" IsEnabled="False"/>
+                <MenuItem Header="Resolve dependencies" IsCheckable="True" IsChecked="True"/>
+                <MenuItem Header="Allow duplicates" IsCheckable="True"/>
+                <MenuItem Header="Skip container recovery" IsCheckable="True"/>
+                <Separator/>
+                <MenuItem Header="General" IsEnabled="False"/>
+                <MenuItem Header="Export options"/>
+                <MenuItem Header="App Theme"/>
+                <Separator/>
+                <MenuItem Header="Misc." IsEnabled="False"/>
+                <MenuItem Header="Advanced"/>
+                <MenuItem Header="Debug"/>
+            </MenuItem>
+            <MenuItem Header="_Export">
+                <MenuItem Header="General" IsEnabled="False"/>
+                <MenuItem Header="All assets"/>
+                <MenuItem Header="Selected assets"/>
+                <MenuItem Header="Filtered assets"/>
+                <Separator/>
+                <MenuItem Header="Format specific" IsEnabled="False"/>
+                <MenuItem Header="Raw"/>
+                <MenuItem Header="Dump"/>
+                <MenuItem Header="JSON"/>
+                <Separator/>
+                <MenuItem Header="Assets structure" IsEnabled="False"/>
+                <MenuItem Header="Asset list to XML"/>
+                <MenuItem Header="Scene hierarchy"/>
+                <Separator/>
+                <MenuItem Header="Models" IsEnabled="False"/>
+                <MenuItem Header="Include AnimationClips" IsCheckable="True"/>
+                <MenuItem Header="Models - Objects" IsEnabled="False"/>
+                <MenuItem Header="Merge (only selected)" IsCheckable="True"/>
+                <MenuItem Header="Export all"/>
+                <MenuItem Header="Export selected"/>
+                <MenuItem Header="Models - Nodes" IsEnabled="False"/>
+                <MenuItem Header="Export selected"/>
+            </MenuItem>
+            <MenuItem Header="Filter _Type">
+                <MenuItem Header="All" IsCheckable="True" IsChecked="True"/>
+            </MenuItem>
+            <MenuItem Header="_Maps">
+                <MenuItem Header="Asset Map" IsEnabled="False"/>
+                <MenuItem Header="Build"/>
+                <MenuItem Header="Map Type"/>
+                <MenuItem Header="Open Asset Browser"/>
+                <Separator/>
+                <MenuItem Header="CAB Map" IsEnabled="False"/>
+                <MenuItem Header="Build"/>
+                <MenuItem Header="Load"/>
+                <MenuItem Header="Delete"/>
+                <Separator/>
+                <MenuItem Header="Asset Map and CAB Map" IsEnabled="False"/>
+                <MenuItem Header="Build Both"/>
+                <Separator/>
+                <MenuItem Header="Asset Index" IsEnabled="False"/>
+                <MenuItem Header="Load from GitHub"/>
+                <MenuItem Header="Load from file"/>
+            </MenuItem>
+            <MenuItem Header="_About"/>
+        </Menu>
+
+        <!-- Status Bar -->
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock x:Name="statusText" Text="Ready to go"/>
+            </StatusBarItem>
+        </StatusBar>
+
+        <!-- Main AvalonDock Content -->
+        <xcad:DockingManager x:Name="dockManager">
+            <xcad:LayoutRoot>
+                <xcad:LayoutPanel Orientation="Horizontal">
+                    <!-- Left Panel with dummy tabs -->
+                    <xcad:LayoutDocumentPaneGroup Orientation="Vertical" DockWidth="2*">
+                        <xcad:LayoutDocumentPane>
+                            <xcad:LayoutDocument Title="Scene Hierarchy" CanClose="True">
+                                <TreeView x:Name="sceneHierarchy">
+                                    <TreeView.Resources>
+                                        <!-- Template for FileTreeItem -->
+                                        <HierarchicalDataTemplate DataType="{x:Type local:FileTreeItem}" 
+                                  ItemsSource="{Binding Children}">
+                                            <TextBlock Text="{Binding Name}"/>
+                                        </HierarchicalDataTemplate>
+
+                                        <!-- Template for AssetsFileTreeItem -->
+                                        <HierarchicalDataTemplate DataType="{x:Type local:AssetsFileTreeItem}" 
+                                  ItemsSource="{Binding Children}">
+                                            <TextBlock Text="{Binding Name}"/>
+                                        </HierarchicalDataTemplate>
+
+                                        <!-- Template for GameObjectTreeItem -->
+                                        <HierarchicalDataTemplate DataType="{x:Type local:GameObjectTreeItem}" 
+                                  ItemsSource="{Binding Children}">
+                                            <TextBlock Text="{Binding Name}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HasModel}" Value="True">
+                                                                <Setter Property="Background" Value="LightBlue"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </HierarchicalDataTemplate>
+                                    </TreeView.Resources>
+                                </TreeView>
+                            </xcad:LayoutDocument>
+                            <xcad:LayoutDocument Title="Asset List" CanClose="True">
+                                <DataGrid ItemsSource="{x:Static local:Studio.visibleAssets}"
+                                          AutoGenerateColumns="False"
+                                          EnableRowVirtualization="True"
+                                          VirtualizingPanel.IsVirtualizing="True"
+                                          VirtualizingPanel.VirtualizationMode="Recycling"
+                                          CanUserAddRows="False"
+                                          CanUserDeleteRows="False"
+                                          SelectionMode="Extended"
+                                          SelectionUnit="FullRow"
+                                          HeadersVisibility="Column"
+                                          IsReadOnly="True"
+                                          ColumnWidth="Auto"
+                                          ClipboardCopyMode="IncludeHeader"
+                                          >
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Name" Binding="{Binding Text}" />
+                                        <DataGridTextColumn Header="Container" Binding="{Binding Container}" />
+                                        <DataGridTextColumn Header="Type" Binding="{Binding TypeString}" />
+                                        <DataGridTextColumn Header="PathID" Binding="{Binding PathID}" />
+                                        <DataGridTextColumn Header="Size" Binding="{Binding FullSize}" />
+                                        <DataGridTextColumn Header="SHA256" Binding="{Binding SHA256Hash}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+
+                            </xcad:LayoutDocument>
+                        </xcad:LayoutDocumentPane>
+                    </xcad:LayoutDocumentPaneGroup>
+
+                    <!-- Right Panel with dummy tabs -->
+                    <xcad:LayoutDocumentPaneGroup Orientation="Vertical" DockWidth="3*">
+                        <xcad:LayoutDocumentPane>
+                            <xcad:LayoutDocument Title="Dummy Right 1" CanClose="False">
+                                <TextBlock Text="This will be Preview" 
+                                          FontSize="16" 
+                                          HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                            </xcad:LayoutDocument>
+                            <xcad:LayoutDocument Title="Dummy Right 2" CanClose="False">
+                                <TextBlock Text="This will be Dump" 
+                                          FontSize="16" 
+                                          HorizontalAlignment="Center" 
+                                          VerticalAlignment="Center"/>
+                            </xcad:LayoutDocument>
+                        </xcad:LayoutDocumentPane>
+                    </xcad:LayoutDocumentPaneGroup>
+                </xcad:LayoutPanel>
+            </xcad:LayoutRoot>
+        </xcad:DockingManager>
+    </DockPanel>
+</Window>
