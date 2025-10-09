@@ -1,0 +1,258 @@
+﻿<UserControl x:Class="AnimeStudio.GUIV2.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AnimeStudio.GUIV2.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             xmlns:ui="http://schemas.modernwpf.com/2019">
+
+    <UserControl.Resources>
+        <!-- TreeView Item Style -->
+        <Style x:Key="TreeViewItemStyle" TargetType="TreeViewItem">
+            <Setter Property="Foreground" Value="#DCDCDC"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TreeViewItem">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition/>
+                            </Grid.RowDefinitions>
+                            <Border x:Name="Bd" 
+                                    Background="Transparent" 
+                                    BorderThickness="0"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter x:Name="PART_Header" 
+                                                ContentSource="Header"/>
+                            </Border>
+                            <ItemsPresenter x:Name="ItemsHost" Grid.Row="1"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#3F3F46"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#2D2D30"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- TextBox Style -->
+        <Style x:Key="SettingsTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="Foreground" Value="#DCDCDC"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <!-- ComboBox Style -->
+        <Style x:Key="SettingsComboBox" TargetType="ComboBox">
+            <Setter Property="Background" Value="#2D2D30"/>
+            <Setter Property="Foreground" Value="#DCDCDC"/>
+            <Setter Property="BorderBrush" Value="#3F3F46"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Height" Value="26"/>
+        </Style>
+
+        <!-- CheckBox Style -->
+        <Style x:Key="SettingsCheckBox" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#DCDCDC"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Button Style -->
+        <Style x:Key="SettingsButton" TargetType="Button">
+            <Setter Property="Background" Value="#0E639C"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,6"/>
+            <Setter Property="MinWidth" Value="80"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#1177BB"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#0D5689"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CancelButton" TargetType="Button" BasedOn="{StaticResource SettingsButton}">
+            <Setter Property="Background" Value="#3F3F46"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#4F4F56"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#2F2F36"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <ui:SimpleStackPanel Background="#1E1E1E">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Panel - TreeView -->
+            <Border Grid.Column="0" Background="#252526" BorderBrush="#3F3F46" BorderThickness="0,0,1,0">
+                <TreeView x:Name="CategoryTreeView" 
+                      Background="Transparent" 
+                      BorderThickness="0"
+                      ItemContainerStyle="{StaticResource TreeViewItemStyle}"
+                      SelectedItemChanged="CategoryTreeView_SelectedItemChanged">
+                    <TreeViewItem Header="General" IsSelected="True"/>
+                    <TreeViewItem Header="Appearance"/>
+                    <TreeViewItem Header="Editor"/>
+                    <TreeViewItem Header="Advanced"/>
+                </TreeView>
+            </Border>
+
+            <!-- Right Panel - Settings Content -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Settings Content Area -->
+                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="20" Background="#1a1a1a">
+                    <StackPanel x:Name="SettingsPanel">
+                        <!-- Category Title -->
+                        <TextBlock x:Name="CategoryTitle" 
+                               Text="General" 
+                               FontSize="20" 
+                               FontWeight="SemiBold"
+                               Foreground="#DCDCDC" 
+                               Margin="0,0,0,20"/>
+
+                        <!-- Toggle Setting Example -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Enable auto-save" 
+                                   Foreground="#DCDCDC" 
+                                   VerticalAlignment="Center"/>
+                            <CheckBox Grid.Column="1" 
+                                  IsChecked="True" 
+                                  Style="{StaticResource SettingsCheckBox}"/>
+                        </Grid>
+
+                        <!-- Text Input Example -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Default project path:" 
+                                   Foreground="#DCDCDC" 
+                                   VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" 
+                                 Text="C:\Projects" 
+                                 Style="{StaticResource SettingsTextBox}"
+                                 MaxWidth="400"
+                                 HorizontalAlignment="Left"/>
+                        </Grid>
+
+                        <!-- Dropdown Example -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Theme:" 
+                                   Foreground="#DCDCDC" 
+                                   VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" 
+                                  Style="{StaticResource SettingsComboBox}"
+                                  SelectedIndex="0"
+                                  Width="200"
+                                  HorizontalAlignment="Left">
+                                <ComboBoxItem Content="Dark"/>
+                                <ComboBoxItem Content="Light"/>
+                                <ComboBoxItem Content="System"/>
+                            </ComboBox>
+                        </Grid>
+
+                        <!-- Another Toggle -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Show line numbers" 
+                                   Foreground="#DCDCDC" 
+                                   VerticalAlignment="Center"/>
+                            <CheckBox Grid.Column="1" 
+                                  IsChecked="False" 
+                                  Style="{StaticResource SettingsCheckBox}"/>
+                        </Grid>
+
+                        <!-- Number Input Example -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="Font size:" 
+                                   Foreground="#DCDCDC" 
+                                   VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" 
+                                 Text="12" 
+                                 Style="{StaticResource SettingsTextBox}"
+                                 Width="100"
+                                 HorizontalAlignment="Left"/>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Bottom Button Panel -->
+                <Border Grid.Row="1" 
+                    Background="#2D2D30" 
+                    BorderBrush="#3F3F46" 
+                    BorderThickness="0,1,0,0"
+                    Padding="20,12">
+                    <StackPanel Orientation="Horizontal" 
+                            HorizontalAlignment="Right">
+                        <Button Content="Apply" 
+                            Style="{StaticResource SettingsButton}"
+                            Margin="0,0,10,0"
+                            Click="ApplyButton_Click"/>
+                        <Button Content="Cancel" 
+                            Style="{StaticResource CancelButton}"
+                            Click="CancelButton_Click"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </ui:SimpleStackPanel>
+
+</UserControl>

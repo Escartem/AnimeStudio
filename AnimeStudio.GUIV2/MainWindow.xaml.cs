@@ -1,6 +1,14 @@
 ﻿using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using AnimeStudio.GUIV2.Views;
+using AvalonDock.Layout;
+using AvalonDock.Layout.Serialization;
+using ControlzEx.Theming;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 
@@ -11,10 +19,20 @@ namespace AnimeStudio.GUIV2
         public static MainWindow Instance { get; private set; }
         private string openDirectoryBackup = string.Empty;
         private string saveDirectoryBackup = string.Empty;
+        //public ObservableCollection<object> sceneHierarchy { get; set; } = new ObservableCollection<object>();
+
+        // views
+        string layoutPath = "layout.config";
+        Dictionary<string, UserControl> _views = new();
 
         public MainWindow()
         {
+            //ThemeManager.Current.GetTheme();
+
             InitializeComponent();
+            DataContext = this;
+
+            //LoadLayout();
 
             Title = $"AnimeStudio v{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}";
 
@@ -69,14 +87,86 @@ namespace AnimeStudio.GUIV2
             TypeFlags.SetTypes(JsonConvert.DeserializeObject<Dictionary<ClassIDType, (bool, bool)>>(Properties.Settings.Default.types));
         }
 
+        // views
+
+        void LoadLayout()
+        {
+            if (!File.Exists("layout.config")) return;
+
+            var serializer = new XmlLayoutSerializer(dockManager);
+            serializer.LayoutSerializationCallback += (s, e) =>
+            {
+                e.Content = GetOrCreateView(e.Model.ContentId);
+            };
+
+            using var reader = new StreamReader("layout.config");
+            serializer.Deserialize(reader);
+        }
+
+        void SaveLayout()
+        {
+            var serializer = new XmlLayoutSerializer(dockManager);
+            using var writer = new StreamWriter("layout.config");
+            serializer.Serialize(writer);
+        }
+
+        void OpenView(string id)
+        {
+            var doc = dockManager.Layout.Descendents()
+                .OfType<LayoutDocument>()
+                .FirstOrDefault(d => d.ContentId == id);
+
+            if (doc != null) { doc.IsSelected = true; return; }
+
+            var view = GetOrCreateView(id);
+            doc = new LayoutDocument { Content = view, ContentId = id, Title = id };
+
+            // find or create a document pane
+            var pane = dockManager.Layout.Descendents()
+                .OfType<LayoutDocumentPane>()
+                .FirstOrDefault();
+
+            if (pane == null)
+            {
+                pane = new LayoutDocumentPane();
+                dockManager.Layout.RootPanel.Children.Add(pane);
+            }
+
+            pane.Children.Add(doc);
+            doc.IsSelected = true;
+        }
+
+        UserControl GetOrCreateView(string id)
+        {
+            if (_views.TryGetValue(id, out var v)) return v;
+
+            v = id switch
+            {
+                "AssetList" => new AssetListView(),
+                "SceneHierarchy" => new SceneHierarchyView(),
+                "Settings" => new SettingsView(),
+            };
+            _views[id] = v;
+            return v;
+        }
+
+        // bindings
+
+        private void Menu_OpenAssetList_Click(object sender, RoutedEventArgs e) => OpenView("AssetList");
+        private void Menu_OpenSceneHierarchy_Click(object sender, RoutedEventArgs e) => OpenView("SceneHierarchy");
+        private void Menu_OpenSettings_Click(object sender, RoutedEventArgs e) => OpenView("Settings");
+
+
+        // helpers
+
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            
+
         }
 
         private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-
+            SaveLayout();
         }
 
         public void UpdateStatus(string message)
@@ -111,11 +201,14 @@ namespace AnimeStudio.GUIV2
                 return;
             }
 
-            (var productName, var treeNodeCollection) = await Task.Run(Studio.BuildAssetData);
+            var productName = await Task.Run(Studio.BuildAssetData);
 
-            sceneHierarchy.Items.Clear();
+            //sceneHierarchyView.Items.Clear();
 
-            sceneHierarchy.ItemsSource = treeNodeCollection;
+            //sceneHierarchyView.ItemsSource = treeNodeCollection;
+
+            //sceneHierarchy = treeNodeCollection;
+            //sceneHierarchy.
         }
         #endregion
 

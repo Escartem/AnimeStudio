@@ -2,6 +2,7 @@
 using System.Data;
 using System.Windows;
 
+
 namespace AnimeStudio.GUIV2
 {
     /// <summary>
@@ -9,6 +10,6 @@ namespace AnimeStudio.GUIV2
     /// </summary>
     public partial class App : Application
     {
-    }
 
+    }
 }

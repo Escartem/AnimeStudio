@@ -17,8 +17,9 @@ namespace AnimeStudio.GUIV2
         public static AssetsManager assetsManager = new AssetsManager();
         public static List<AssetItem> exportableAssets = new List<AssetItem>();
         public static ObservableCollection<AssetItem> visibleAssets { get; } = new();
+        public static ObservableCollection<ITreeNode> sceneHierarchy { get; } = new();
 
-        public static (string, ObservableCollection<object>) BuildAssetData()
+        public static string BuildAssetData()
         {
             //StatusStripUpdate("Building asset list...");
 
@@ -40,7 +41,7 @@ namespace AnimeStudio.GUIV2
                     {
                         Logger.Info("Building asset list has been cancelled !!");
                         //return;
-                        return (string.Empty, new ObservableCollection<object>());
+                        return string.Empty;
                     }
 
                     var assetItem = new AssetItem(asset);
@@ -151,7 +152,7 @@ namespace AnimeStudio.GUIV2
                 if (assetsManager.tokenSource.IsCancellationRequested)
                 {
                     Logger.Info("Processing asset names has been cancelled !!");
-                    return (string.Empty, new ObservableCollection<object>());
+                    return string.Empty;
                 }
                 if (pptr.TryGet<MiHoYoBinData>(out var obj))
                 {
@@ -173,7 +174,7 @@ namespace AnimeStudio.GUIV2
                     if (assetsManager.tokenSource.IsCancellationRequested)
                     {
                         Logger.Info("Processing containers been cancelled !!");
-                        return (string.Empty, new ObservableCollection<object>());
+                        return string.Empty;
                     }
                     if (pptr.TryGet(out var obj))
                     {
@@ -200,7 +201,7 @@ namespace AnimeStudio.GUIV2
 
             //StatusStripUpdate("Building tree structure...");
 
-            var treeNodeCollection = new ObservableCollection<object>();
+            var treeNodeCollection = new ObservableCollection<ITreeNode>();
             var treeNodeDictionary = new Dictionary<GameObject, GameObjectTreeItem>();
             int j = 0;
             Progress.Reset();
@@ -219,7 +220,7 @@ namespace AnimeStudio.GUIV2
                         if (assetsManager.tokenSource.IsCancellationRequested)
                         {
                             Logger.Info("Building tree structure been cancelled !!");
-                            return (string.Empty, new ObservableCollection<object>());
+                            return string.Empty;
                         }
 
                         var assetItem = new AssetItem(obj);
@@ -274,7 +275,7 @@ namespace AnimeStudio.GUIV2
                             }
 
                             GameObjectTreeItem parentNode = null;
-                            ObservableCollection<GameObjectTreeItem> parentCollection = assetsFileNode.Children;
+                            ObservableCollection<ITreeNode> parentCollection = assetsFileNode.Children;
 
                             if (m_GameObject.m_Transform != null)
                             {
@@ -320,7 +321,14 @@ namespace AnimeStudio.GUIV2
             treeNodeDictionary.Clear();
             objectAssetItemDic.Clear();
 
-            return (productName, treeNodeCollection);
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                sceneHierarchy.Clear();
+                foreach (var item in treeNodeCollection)
+                    sceneHierarchy.Add(item);
+            });
+
+            return productName;
         }
     }
 }

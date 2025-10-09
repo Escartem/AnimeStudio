@@ -8,12 +8,20 @@
     mc:Ignorable="d"
         Title="AnimeStudio" Height="550" Width="1000"
         WindowStartupLocation="CenterScreen"
-        AllowDrop="True">
+        AllowDrop="True"
+    xmlns:ui="http://schemas.modernwpf.com/2019"
+    ui:WindowHelper.UseModernWindowStyle="True"
+    Background="#1E1E1E">
+
     <DockPanel>
         <!-- Menu Bar -->
-        <Menu DockPanel.Dock="Top">
+        <Menu DockPanel.Dock="Top" Foreground="White">
             <MenuItem Header="_File">
-                <MenuItem Click="LoadFile_Click" Header="Load file"/>
+                <MenuItem Click="LoadFile_Click" Header="Load file(s)">
+                    <MenuItem.Icon>
+                        <ContentControl Content="{StaticResource LoadFilesIcon}" Focusable="False"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Click="LoadFolder_Click" Header="Load folder"/>
                 <Separator/>
                 <MenuItem Click="ExtractFile_Click" Header="Extract file"/>
@@ -22,7 +30,35 @@
                 <MenuItem Click="Reset_Click" Header="Reset"/>
                 <MenuItem Click="Abort_Click" Header="Abort"/>
                 <Separator/>
-                <MenuItem Click="Exit_Click" Header="Exit"/>
+                <MenuItem Click="Exit_Click" Header="Exit">
+                    <MenuItem.Icon>
+                        <ContentControl Content="{StaticResource ExitIcon}" Focusable="False"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_Views">
+                <MenuItem
+                Header="Asset List"
+                Click="Menu_OpenAssetList_Click"
+            >
+                    <MenuItem.Icon>
+                        <ContentControl Content="{StaticResource AssetListIcon}" Focusable="False"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem
+                Header="Scene Hierarchy"
+                Click="Menu_OpenSceneHierarchy_Click">
+                    <MenuItem.Icon>
+                        <ContentControl Content="{StaticResource SceneHierarchyIcon}" Focusable="False"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem
+                Header="Settings"
+                Click="Menu_OpenSettings_Click">
+                    <MenuItem.Icon>
+                        <ContentControl Content="{StaticResource SettingsIcon}" Focusable="False"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="_Options">
                 <MenuItem Header="Game" IsEnabled="False"/>
@@ -102,91 +138,9 @@
         <xcad:DockingManager x:Name="dockManager">
             <xcad:LayoutRoot>
                 <xcad:LayoutPanel Orientation="Horizontal">
-                    <!-- Left Panel with dummy tabs -->
-                    <xcad:LayoutDocumentPaneGroup Orientation="Vertical" DockWidth="2*">
-                        <xcad:LayoutDocumentPane>
-                            <xcad:LayoutDocument Title="Scene Hierarchy" CanClose="True">
-                                <TreeView x:Name="sceneHierarchy">
-                                    <TreeView.Resources>
-                                        <!-- Template for FileTreeItem -->
-                                        <HierarchicalDataTemplate DataType="{x:Type local:FileTreeItem}" 
-                                  ItemsSource="{Binding Children}">
-                                            <TextBlock Text="{Binding Name}"/>
-                                        </HierarchicalDataTemplate>
-
-                                        <!-- Template for AssetsFileTreeItem -->
-                                        <HierarchicalDataTemplate DataType="{x:Type local:AssetsFileTreeItem}" 
-                                  ItemsSource="{Binding Children}">
-                                            <TextBlock Text="{Binding Name}"/>
-                                        </HierarchicalDataTemplate>
-
-                                        <!-- Template for GameObjectTreeItem -->
-                                        <HierarchicalDataTemplate DataType="{x:Type local:GameObjectTreeItem}" 
-                                  ItemsSource="{Binding Children}">
-                                            <TextBlock Text="{Binding Name}">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Background" Value="Transparent"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding HasModel}" Value="True">
-                                                                <Setter Property="Background" Value="LightBlue"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                        </HierarchicalDataTemplate>
-                                    </TreeView.Resources>
-                                </TreeView>
-                            </xcad:LayoutDocument>
-                            <xcad:LayoutDocument Title="Asset List" CanClose="True">
-                                <DataGrid ItemsSource="{x:Static local:Studio.visibleAssets}"
-                                          AutoGenerateColumns="False"
-                                          EnableRowVirtualization="True"
-                                          VirtualizingPanel.IsVirtualizing="True"
-                                          VirtualizingPanel.VirtualizationMode="Recycling"
-                                          CanUserAddRows="False"
-                                          CanUserDeleteRows="False"
-                                          SelectionMode="Extended"
-                                          SelectionUnit="FullRow"
-                                          HeadersVisibility="Column"
-                                          IsReadOnly="True"
-                                          ColumnWidth="Auto"
-                                          ClipboardCopyMode="IncludeHeader"
-                                          >
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Name" Binding="{Binding Text}" />
-                                        <DataGridTextColumn Header="Container" Binding="{Binding Container}" />
-                                        <DataGridTextColumn Header="Type" Binding="{Binding TypeString}" />
-                                        <DataGridTextColumn Header="PathID" Binding="{Binding PathID}" />
-                                        <DataGridTextColumn Header="Size" Binding="{Binding FullSize}" />
-                                        <DataGridTextColumn Header="SHA256" Binding="{Binding SHA256Hash}" />
-                                    </DataGrid.Columns>
-                                </DataGrid>
-
-                            </xcad:LayoutDocument>
-                        </xcad:LayoutDocumentPane>
-                    </xcad:LayoutDocumentPaneGroup>
-
-                    <!-- Right Panel with dummy tabs -->
-                    <xcad:LayoutDocumentPaneGroup Orientation="Vertical" DockWidth="3*">
-                        <xcad:LayoutDocumentPane>
-                            <xcad:LayoutDocument Title="Dummy Right 1" CanClose="False">
-                                <TextBlock Text="This will be Preview" 
-                                          FontSize="16" 
-                                          HorizontalAlignment="Center" 
-                                          VerticalAlignment="Center"/>
-                            </xcad:LayoutDocument>
-                            <xcad:LayoutDocument Title="Dummy Right 2" CanClose="False">
-                                <TextBlock Text="This will be Dump" 
-                                          FontSize="16" 
-                                          HorizontalAlignment="Center" 
-                                          VerticalAlignment="Center"/>
-                            </xcad:LayoutDocument>
-                        </xcad:LayoutDocumentPane>
-                    </xcad:LayoutDocumentPaneGroup>
                 </xcad:LayoutPanel>
             </xcad:LayoutRoot>
         </xcad:DockingManager>
     </DockPanel>
+
 </Window>
