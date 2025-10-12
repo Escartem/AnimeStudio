@@ -201,6 +201,7 @@ namespace AnimeStudio.GUI
         {
             logger = new GUILogger(StatusStripUpdate);
             ConsoleHelper.AllocConsole();
+            ConsoleHelper.EnableAnsi();
             ConsoleHelper.SetConsoleTitle("Debug Console");
             var handle = ConsoleHelper.GetConsoleWindow();
             if (enableConsole.Checked)
