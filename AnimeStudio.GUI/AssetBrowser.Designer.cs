@@ -153,7 +153,6 @@ namespace AnimeStudio.GUI
             assetDataGridView.Size = new System.Drawing.Size(854, 502);
             assetDataGridView.TabIndex = 2;
             assetDataGridView.VirtualMode = true;
-            assetDataGridView.CellContentClick += assetDataGridView_CellContentClick;
             assetDataGridView.CellValueNeeded += AssetDataGridView_CellValueNeeded;
             assetDataGridView.ColumnHeaderMouseClick += AssetListView_ColumnHeaderMouseClick;
             // 
@@ -350,7 +349,6 @@ namespace AnimeStudio.GUI
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Asset Browser";
             FormClosing += AssetBrowser_FormClosing;
-            Load += AssetBrowser_Load;
             tableLayoutPanel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)assetDataGridView).EndInit();
             tableLayoutPanel1.ResumeLayout(false);

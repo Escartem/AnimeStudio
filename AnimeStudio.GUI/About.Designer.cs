@@ -199,7 +199,7 @@ namespace AnimeStudio.GUI
             tableLayoutPanel2.Location = new Point(7, 181);
             tableLayoutPanel2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tableLayoutPanel2.Name = "tableLayoutPanel2";
-            tableLayoutPanel2.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            tableLayoutPanel2.Padding = new System.Windows.Forms.Padding(2);
             tableLayoutPanel2.RowCount = 4;
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
@@ -409,7 +409,7 @@ namespace AnimeStudio.GUI
             tableLayoutPanel1.Location = new Point(7, 76);
             tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            tableLayoutPanel1.Padding = new System.Windows.Forms.Padding(2);
             tableLayoutPanel1.RowCount = 4;
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33334F));
             tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 33.33333F));
@@ -576,7 +576,7 @@ namespace AnimeStudio.GUI
             tabPage2.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new System.Windows.Forms.Padding(4, 3, 4, 3);
-            tabPage2.Size = new Size(424, 361);
+            tabPage2.Size = new Size(424, 395);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "License";
             tabPage2.UseVisualStyleBackColor = true;
@@ -591,7 +591,7 @@ namespace AnimeStudio.GUI
             licenseRichTextBox.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             licenseRichTextBox.Name = "licenseRichTextBox";
             licenseRichTextBox.ReadOnly = true;
-            licenseRichTextBox.Size = new Size(416, 355);
+            licenseRichTextBox.Size = new Size(416, 389);
             licenseRichTextBox.TabIndex = 0;
             licenseRichTextBox.Text = "MIT License";
             licenseRichTextBox.ZoomFactor = 1.1F;

@@ -698,14 +698,6 @@ namespace AnimeStudio.GUI
             popup.ShowDialog(this);
         }
 
-        private void AssetBrowser_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void assetDataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
+       
     }
 }
