@@ -308,7 +308,7 @@ namespace AnimeStudio.GUI
             loadMapTwoBtn.Size = new System.Drawing.Size(278, 22);
             loadMapTwoBtn.TabIndex = 0;
             loadMapTwoBtn.Text = "Load second map";
-            loadMapTwoBtn.UseVisualStyleBackColor = true;
+            loadMapTwoBtn.UseVisualStyleBackColor = false;
             loadMapTwoBtn.Click += loadMapTwoBtn_Click;
             // 
             // clearMapTwoBtn
@@ -321,7 +321,7 @@ namespace AnimeStudio.GUI
             clearMapTwoBtn.Size = new System.Drawing.Size(278, 22);
             clearMapTwoBtn.TabIndex = 1;
             clearMapTwoBtn.Text = "Clear second map";
-            clearMapTwoBtn.UseVisualStyleBackColor = true;
+            clearMapTwoBtn.UseVisualStyleBackColor = false;
             clearMapTwoBtn.Click += clearMapTwoBtn_Click;
             // 
             // secondMapFilter
