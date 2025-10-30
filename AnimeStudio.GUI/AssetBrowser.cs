@@ -679,6 +679,7 @@ namespace AnimeStudio.GUI
             Button ok = new Button
             {
                 Dock = DockStyle.Fill,
+                UseVisualStyleBackColor = false,
                 Text = "OK"
             };
 
