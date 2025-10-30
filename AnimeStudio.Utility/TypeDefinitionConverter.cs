@@ -84,7 +84,7 @@ namespace AnimeStudio
             }
             catch (Exception ex)
             {
-                throw new Exception(string.Format("Exception while processing {0} {1}, error {2}", fieldDefinition.FieldType.FullName, fieldDefinition.FullName, ex.Message));
+                return false;
             }
         }
 

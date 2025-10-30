@@ -186,9 +186,16 @@ namespace AnimeStudio
         {
             var m_Node = m_Nodes[i];
             var varTypeStr = m_Node.m_Type;
-            Logger.Verbose($"Reading {m_Node.m_Name} of type {varTypeStr}");
+            
             object value;
             var align = (m_Node.m_MetaFlag & 0x4000) != 0;
+            Logger.Verbose($"Reading {m_Node.m_Name} of type {varTypeStr} at {reader.Position - 4200} with align {align} and {reader.Remaining} left");
+
+            if (reader.Remaining <= 0)
+            {
+                return 0;
+            }
+
             switch (varTypeStr)
             {
                 case "SInt8":
@@ -277,6 +284,11 @@ namespace AnimeStudio
                             i += vector.Count - 1;
                             var size = reader.ReadInt32();
                             var list = new List<object>();
+                            if (size > reader.Remaining)
+                            {
+                                value = list;
+                                break;
+                            }
                             for (int j = 0; j < size; j++)
                             {
                                 int tmp = 3;
