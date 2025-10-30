@@ -841,11 +841,11 @@ namespace AnimeStudio
             if (Game.Type.IsZZZGroup())
             {
                 Logger.Info($"Found {avatars.Count} Avatars");
-
                 foreach (var avatar in avatars)
                 {
                     var rootName = avatar.Name;
                     Logger.Verbose($"Attempting to process SeparateMesh for {rootName}");
+
 
                     if (avatar.m_Transform != null)
                     {
@@ -854,33 +854,92 @@ namespace AnimeStudio
                             if (childPtr.TryGet(out var child) && child.m_GameObject.TryGet(out var childGO))
                             {
                                 var childName = childGO.Name;
-                                var meshName = "SeparateMesh_" + rootName + "_" + childName;
-                                if (separateMeshes.TryGetValue(meshName, out var meshPPtr))
+                                foreach (var i in childGO.m_Components)
                                 {
-                                    Logger.Verbose($"Trying to attach {meshName} to {childName}");
-                                    if (childGO.m_SkinnedMeshRenderer != null && childGO.m_SkinnedMeshRenderer.m_Mesh.IsNull)
+                                    if (i.TryGet<MonoBehaviour>(out var comp))
                                     {
-                                        Logger.Info($"Attached {meshName} to {childName}");
-                                        childGO.m_SkinnedMeshRenderer.m_Mesh = meshPPtr;
-                                    }
-                                    else if (childGO.m_MeshFilter != null && childGO.m_MeshFilter.m_Mesh.IsNull)
-                                    {
-                                        Logger.Info($"Attached {meshName} to {childName}");
-                                        childGO.m_MeshFilter.m_Mesh = meshPPtr;
-                                    }
-                                }
-                                else if (separateMeshes.TryGetValue(childName, out meshPPtr))
-                                {
-                                    Logger.Verbose($"Trying to attach {childName} to {childName}");
-                                    if (childGO.m_SkinnedMeshRenderer != null && childGO.m_SkinnedMeshRenderer.m_Mesh.IsNull)
-                                    {
-                                        Logger.Info($"Attached {childName} to {childName}");
-                                        childGO.m_SkinnedMeshRenderer.m_Mesh = meshPPtr;
-                                    }
-                                    else if (childGO.m_MeshFilter != null && childGO.m_MeshFilter.m_Mesh.IsNull)
-                                    {
-                                        Logger.Info($"Attached {childName} to {childName}");
-                                        childGO.m_MeshFilter.m_Mesh = meshPPtr;
+                                        if(comp.Name == "NapLodController")
+                                        {
+                                            // Safely decode raw bytes to string
+                                            var raw = comp.GetRawData();
+                                            string Path = raw != null ? System.Text.Encoding.UTF8.GetString(raw) : string.Empty;
+                                            if (string.IsNullOrEmpty(Path))
+                                                continue;
+
+                                            int assetIndex = Path.IndexOf("Assets", StringComparison.Ordinal);
+
+                                            string trimmed;
+                                            if (assetIndex != -1)
+                                            {
+                                                // Return the substring starting from the found index
+                                                trimmed = Path.Substring(assetIndex);
+                                            }
+                                            else if (Path.Length > 40)
+                                            {
+                                                // only take substring if long enough
+                                                trimmed = Path.Substring(40);
+                                            }
+                                            else
+                                            {
+                                                // too short to be useful
+                                                Logger.Verbose($"NapLodController path too short ({Path.Length}), skipping");
+                                                continue;
+                                            }
+
+                                            trimmed = trimmed?.Trim();
+                                            if (string.IsNullOrEmpty(trimmed))
+                                                continue;
+
+                                            // ensure ".mesh" exists before taking substring
+                                            int meshIndex = trimmed.IndexOf(".mesh", StringComparison.OrdinalIgnoreCase);
+                                            if (meshIndex <= 0)
+                                            {
+                                                Logger.Verbose($".mesh not found in '{trimmed}', skipping");
+                                                continue;
+                                            }
+
+                                            trimmed = trimmed.Substring(0, meshIndex);
+
+                                            // safely get last token after '/', if present
+                                            int lastSlash = trimmed.LastIndexOf('/');
+                                            if (lastSlash >= 0 && lastSlash < trimmed.Length - 1)
+                                                trimmed = trimmed.Substring(lastSlash + 1);
+
+                                            trimmed = trimmed.Trim();
+                                            if (string.IsNullOrEmpty(trimmed))
+                                                continue;
+
+
+                                            if (separateMeshes.TryGetValue(trimmed, out var meshPPtr))
+                                            {
+                                                Logger.Verbose($"Trying to attach {trimmed} to {childName}");
+                                                if (childGO.m_SkinnedMeshRenderer != null && childGO.m_SkinnedMeshRenderer.m_Mesh.IsNull)
+                                                {
+                                                    Logger.Info($"Attached {trimmed} to {childName}");
+                                                    childGO.m_SkinnedMeshRenderer.m_Mesh = meshPPtr;
+                                                }
+                                                else if (childGO.m_MeshFilter != null && childGO.m_MeshFilter.m_Mesh.IsNull)
+                                                {
+                                                    Logger.Info($"Attached {trimmed} to {childName}");
+                                                    childGO.m_MeshFilter.m_Mesh = meshPPtr;
+                                                }
+                                            }
+                                            else if (separateMeshes.TryGetValue(childName, out meshPPtr))
+                                            {
+                                                Logger.Verbose($"Trying to attach {childName} to {childName}");
+                                                if (childGO.m_SkinnedMeshRenderer != null && childGO.m_SkinnedMeshRenderer.m_Mesh.IsNull)
+                                                {
+                                                    Logger.Info($"Attached {childName} to {childName}");
+                                                    childGO.m_SkinnedMeshRenderer.m_Mesh = meshPPtr;
+                                                }
+                                                else if (childGO.m_MeshFilter != null && childGO.m_MeshFilter.m_Mesh.IsNull)
+                                                {
+                                                    Logger.Info($"Attached {childName} to {childName}");
+                                                    childGO.m_MeshFilter.m_Mesh = meshPPtr;
+                                                }
+                                            }
+
+                                        }
                                     }
                                 }
                             }
