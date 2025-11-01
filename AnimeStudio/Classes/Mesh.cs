@@ -960,6 +960,9 @@ namespace AnimeStudio
                                         {
                                             m_Skin[i].weight[j] = componentsFloatArray[i * m_Channel.dimension + j];
                                         }
+
+                                        m_Skin[i].weight[0] = 1.0f - m_Skin[i].weight.Sum();
+
                                     }
                                     break;
                                 case 13: //kShaderChannelBlendIndices
@@ -973,6 +976,8 @@ namespace AnimeStudio
                                         {
                                             m_Skin[i].boneIndex[j] = componentsIntArray[i * m_Channel.dimension + j];
                                         }
+
+                                        m_Skin[i].weight[0] = 1.0f - m_Skin[i].weight.Sum();
                                     }
                                     break;
                             }
