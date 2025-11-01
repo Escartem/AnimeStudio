@@ -1053,7 +1053,7 @@ namespace AnimeStudio
                             try
                             {
                                 var programCodeSpan = m_ProgramCode.AsSpan();
-                                var g = Compiler.Disassemble(programCodeSpan.GetPinnableReference(), programCodeSpan.Length, DisasmFlags.None, "");
+                                var g = Compiler.Disassemble(programCodeSpan.GetPinnableReference(), new PointerUSize((ulong)programCodeSpan.Length), DisasmFlags.None, "");
 
                                 sb.Append($"// hash: {ComputeHash64(programCodeSpan):x8}\n");
                                 sb.Append(g.AsString());
@@ -1105,7 +1105,7 @@ namespace AnimeStudio
 
                                 try
                                 {
-                                    var g = Compiler.Disassemble(buffSpan.GetPinnableReference(), buffSpan.Length, DisasmFlags.None, "");
+                                    var g = Compiler.Disassemble(buffSpan.GetPinnableReference(), new PointerUSize((ulong)buffSpan.Length), DisasmFlags.None, "");
                                     sb.Append(g.AsString());
                                 }
                                 catch (Exception ex)

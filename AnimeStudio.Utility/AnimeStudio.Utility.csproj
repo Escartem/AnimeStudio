@@ -12,8 +12,8 @@
 
   <ItemGroup>
     <PackageReference Include="Kyaru.Texture2DDecoder.Windows" Version="0.1.0" />
-    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
-    <PackageReference Include="Vortice.D3DCompiler" Version="3.4.3-beta" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.6" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.6.2" />
   </ItemGroup>
 
   <ItemGroup>

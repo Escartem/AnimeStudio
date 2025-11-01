@@ -8,9 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0-preview.5.23280.8" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.10" />
   </ItemGroup>
 
   <ItemGroup>

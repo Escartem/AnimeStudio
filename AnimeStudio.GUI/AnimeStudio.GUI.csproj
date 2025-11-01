@@ -124,12 +124,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="OpenTK" Version="4.8.0" />
-		<PackageReference Include="System.Drawing.Common" Version="9.0.4" />
-		<Reference Include="OpenTK.WinForms">
-			<HintPath>..\AnimeStudio.Libraries\OpenTK.WinForms.dll</HintPath>
-		</Reference>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="OpenTK" Version="4.9.4" />
+		<PackageReference Include="OpenTK.GLControl" Version="4.0.2" />
+		<PackageReference Include="System.Drawing.Common" Version="9.0.10" />
 	</ItemGroup>
 
 	<ItemGroup>
