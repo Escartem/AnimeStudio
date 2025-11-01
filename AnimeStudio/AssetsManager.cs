@@ -689,7 +689,7 @@ namespace AnimeStudio
                             ClassIDType.Transform when ClassIDType.Transform.CanParse() => new Transform(objectReader),
                             ClassIDType.VideoClip when ClassIDType.VideoClip.CanParse() => new VideoClip(objectReader),
                             ClassIDType.ResourceManager when ClassIDType.ResourceManager.CanParse() => new ResourceManager(objectReader),
-                            ClassIDType.NapAssetBundleIndex when ClassIDType.NapAssetBundleIndex.CanParse() => new NapAssetBundleIndex(objectReader),
+                            ClassIDType.NapAssetBundleIndexAsset when ClassIDType.NapAssetBundleIndexAsset.CanParse() => new NapAssetBundleIndexAsset(objectReader),
                             _ => new Object(objectReader),
                         };
                         assetsFile.AddObject(obj);

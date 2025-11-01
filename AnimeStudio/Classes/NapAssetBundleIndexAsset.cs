@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 
 namespace AnimeStudio
 {
-    public sealed class NapAssetBundleIndex : NamedObject
+    public sealed class NapAssetBundleIndexAsset : NamedObject
     {
         public List<IndexAssetRef> m_AssetArray;
         public List<IndexBundleRef> m_BundleArray;
         public List<IndexBlockRef> m_BlockArray;
         public List<uint> m_ChildrenIndexArray;
 
-        public NapAssetBundleIndex(ObjectReader reader) : base(reader)
+        public NapAssetBundleIndexAsset(ObjectReader reader) : base(reader)
         {
             var m_AssetArraySize = reader.ReadInt32();
             m_AssetArray = new List<IndexAssetRef>(m_AssetArraySize);

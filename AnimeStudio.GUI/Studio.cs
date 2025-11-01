@@ -371,7 +371,7 @@ namespace AnimeStudio.GUI
                         case Sprite _ when ClassIDType.Sprite.CanExport():
                         case Material _ when ClassIDType.Material.CanExport():
                         case MiHoYoBinData _ when ClassIDType.MiHoYoBinData.CanExport():
-                        case NapAssetBundleIndex _ when ClassIDType.NapAssetBundleIndex.CanExport():
+                        case NapAssetBundleIndexAsset _ when ClassIDType.NapAssetBundleIndexAsset.CanExport():
                         case Shader _ when ClassIDType.Shader.CanExport():
                         case Animator _ when ClassIDType.Animator.CanExport():
                         case MonoBehaviour _ when ClassIDType.MonoBehaviour.CanExport():
