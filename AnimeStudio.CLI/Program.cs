@@ -19,6 +19,14 @@ namespace AnimeStudio.CLI
             {
                 var game = GameManager.GetGame(o.GameName);
 
+                // See https://github.com/Eleiyas/Z3-Asset-Map 
+                var paths = File.Exists("./Maps/GeneratedAssetMap.json")
+                    ? JsonConvert.DeserializeObject<Dictionary<ulong, string>>(File.ReadAllText("./Maps/GeneratedAssetMap.json"))
+                    : new Dictionary<ulong, string>();
+
+                Studio.Paths = paths;
+                AssetsHelper.Paths = paths;
+
                 if (game == null)
                 {
                     Console.WriteLine("Invalid Game !!");
@@ -183,6 +191,12 @@ namespace AnimeStudio.CLI
                         exportableAssets.Clear();
                         assetsManager.Clear();
                     }
+                }
+                if (Properties.Settings.Default.scrapeMonos)
+                {
+                    File.WriteAllLines("./Maps/PathStrings_Sorted.txt", PathStrings.Distinct().OrderBy(p => p));
+                    File.WriteAllLines("./Maps/VOStrings_Sorted.txt", VOStrings.Distinct().OrderBy(p => p));
+                    File.WriteAllLines("./Maps/EventStrings_Sorted.txt", EventStrings.Distinct().OrderBy(p => p));
                 }
             }
             catch (Exception e)

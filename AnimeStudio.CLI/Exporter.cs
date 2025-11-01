@@ -1,9 +1,12 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using System.Buffers.Binary;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AnimeStudio.CLI
 {
@@ -92,18 +95,136 @@ namespace AnimeStudio.CLI
 
         public static bool ExportMonoBehaviour(AssetItem item, string exportPath)
         {
-            if (!TryExportFile(exportPath, item, ".json", out var exportFullPath))
-                return false;
+            var option = new Options();
             var m_MonoBehaviour = (MonoBehaviour)item.Asset;
-            var type = m_MonoBehaviour.ToType();
-            if (type == null)
+
+            string[] EXTENSIONS = new[]
             {
-                var m_Type = Studio.MonoBehaviourToTypeTree(m_MonoBehaviour);
-                type = m_MonoBehaviour.ToType(m_Type);
+            // IMAGES
+            ".png", ".tga", ".jpg", ".jpeg", ".dds", ".psd", ".bmp",
+            // MATERIALS
+            ".mat", ".exr", ".physicMaterial", ".compute", ".cube", ".shader",
+            // ANIMATIONS / MODELS
+            ".fbx", ".obj", ".anim", ".mesh",
+            // UNITY FILES
+            ".unity", ".prefab", ".asset",
+            // SPINE FILES
+            ".atlas", ".skel", ".spine",
+            // DATA FILES
+            ".bytes", ".json", ".txt", ".dat", ".cs", ".otf", ".srt", ".csv", ".html",
+            // AUDIO / VIDEO
+            ".pck", ".bnk", ".mp4", ".usm", ".mov",
+            // OTHER
+            ".CustomPropertyUI", ".patch", ".playable", ".diff", ".log",
+            };
+
+            string extPattern = string.Join("|", EXTENSIONS.Select(e => Regex.Escape(e.TrimStart('.'))));
+            string folderPattern = $@"(?:Assets|UI|IconRole|Data|Scenes|OriginalResRepos)(?:/[^\s"",/.]+)*";
+            string filePattern = $@"(?:Assets|UI|IconRole|Data|Scenes|OriginalResRepos)/[^\s"",]+?\.(?:{extPattern})";
+            string voPattern = @"(?:VO|Breath|Tips)_[^""\s;]+";
+            string eventPattern = @"(?:Ev|Play|Stop|StateGroup|State|VO|SFX)_[a-zA-Z0-9/_-\{\}]{2,}";
+
+            var folderRegex = new Regex(folderPattern, RegexOptions.IgnoreCase);
+            var fileRegex = new Regex(filePattern, RegexOptions.IgnoreCase);
+            var voRegex = new Regex(voPattern, RegexOptions.IgnoreCase);
+            var eventRegex = new Regex(eventPattern, RegexOptions.IgnoreCase);
+            var removeExtRegex = new Regex(@"\.(?:" + extPattern + ")$", RegexOptions.IgnoreCase);
+
+            if (Properties.Settings.Default.scrapeMonos)
+            {
+                var s = m_MonoBehaviour.GetRawData();
+                var cleanedBytes = new List<byte>(s.Length);
+                for (int i = 0; i < s.Length; i++)
+                {
+                    if (s[i] == 0x00)
+                    {
+                        bool precededByNull = (i > 0) && (s[i - 1] == 0x00);
+                        bool followedByNull = (i < s.Length - 1) && (s[i + 1] == 0x00);
+
+                        if (precededByNull || followedByNull)
+                        {
+                            cleanedBytes.Add(s[i]);
+                        }
+                    }
+                    else
+                    {
+                        cleanedBytes.Add(s[i]);
+                    }
+                }
+                var s_cleaned = cleanedBytes.ToArray();
+
+                var idx = Search(s_cleaned, 0);
+
+                while (idx != -1)
+                {
+                    try
+                    {
+                        int len = BinaryPrimitives.ReadInt32LittleEndian(s_cleaned.AsSpan(idx - 4));
+                        string str = Encoding.UTF8.GetString(s_cleaned.AsSpan(idx, len));
+
+                        foreach (Match match in folderRegex.Matches(str))
+                        {
+                            Studio.PathStrings.Add(match.Value.Trim());
+                        }
+
+                        foreach (Match match in fileRegex.Matches(str))
+                        {
+                            string subMatch = match.Value.Trim();
+
+                            if (subMatch.StartsWith("UI"))
+                                subMatch = $"Assets/NapResources/{subMatch}";
+                            else if (subMatch.StartsWith("IconRole"))
+                                subMatch = $"Assets/NapResources/UI/Sprite/A1DynamicLoad/{subMatch}";
+                            else if (subMatch.StartsWith("Data"))
+                                subMatch = $"Assets/NapResources/{subMatch}";
+
+                            subMatch = removeExtRegex.Replace(subMatch, "");
+                            Studio.PathStrings.Add(subMatch);
+                        }
+
+                        foreach (Match match in voRegex.Matches(str))
+                        {
+                            Studio.VOStrings.Add(match.Value.Trim());
+                        }
+                        foreach (Match match in eventRegex.Matches(str))
+                        {
+                            Studio.EventStrings.Add(match.Value.Trim());
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error processing MonoBehaviour segment: {ex.Message}");
+                    }
+
+                    idx = Search(s_cleaned, idx + 4);
+                }
             }
-            var str = JsonConvert.SerializeObject(type, Formatting.Indented);
-            File.WriteAllText(exportFullPath, str);
-            return true;
+            else
+            {
+                if (!TryExportFile(exportPath, item, ".json", out var exportFullPath))
+                    return false;
+                var type = m_MonoBehaviour.ToType();
+                if (type == null)
+                {
+                    var m_Type = Studio.MonoBehaviourToTypeTree(m_MonoBehaviour);
+                    type = m_MonoBehaviour.ToType(m_Type);
+                }
+                var str = JsonConvert.SerializeObject(type, Formatting.Indented);
+                File.WriteAllText(exportFullPath, str);
+            }
+
+             return true;
+        }
+
+        private static int Search(byte[] bytes, int startIndex)
+        {
+            string[] keys = { "Assets", "UI", "IconRole", "Data", "Scenes", "State_", "VO_", "Play_", "Stop_", "SFX_" };
+            foreach (var key in keys)
+            {
+                int idx = bytes.Search(key, startIndex);
+                if (idx != -1) return idx;
+            }
+            return -1;
         }
 
         public static bool ExportMiHoYoBinData(AssetItem item, string exportPath)

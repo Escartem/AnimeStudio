@@ -259,6 +259,13 @@ namespace AnimeStudio
                 blocksStream.CopyTo(file.stream, node.size);
                 file.stream.Position = 0;
             }
+            //Workaround for broken CAB export ZZZ 2.0+
+            /*
+            for (int i = 0; i < fileList.Count; i++)
+            {
+                File.WriteAllBytes(fileList[i].fileName, ((MemoryStream)fileList[i].stream).ToArray());
+            }
+            */
         }
 
         #region Scramble

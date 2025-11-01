@@ -30,6 +30,11 @@ namespace AnimeStudio.CLI
         public static AssemblyLoader assemblyLoader = new AssemblyLoader();
         public static List<AssetItem> exportableAssets = new List<AssetItem>();
 
+        public static Dictionary<ulong, string> Paths {  get; set; } = new Dictionary<ulong, string>();
+        public static List<string> PathStrings { get; set; } = new List<string>();
+        public static List<string> VOStrings { get; set; } = new List<string>();
+        public static List<string> EventStrings { get; set; } = new List<string>();
+
         public static int ExtractFolder(string path, string savePath)
         {
             int extractedCount = 0;
@@ -310,12 +315,27 @@ namespace AnimeStudio.CLI
                 case AssetBundle m_AssetBundle:
                     foreach (var m_Container in m_AssetBundle.m_Container)
                     {
+                        string container = m_Container.Key;
+
+                        if (ulong.TryParse(container, out var hash) && Paths.TryGetValue(hash, out var path))
+                        {
+                            container = path;
+                        }
+                        else if (hash == 0) //Allows HSR or other games with actual containers to extract byContainer, without needing my JSON, or other external files.
+                        {
+                            container = m_Container.Key;
+                        }
+                        else
+                        {
+                            container = null;
+                        }
+
                         var preloadIndex = m_Container.Value.preloadIndex;
                         var preloadSize = m_Container.Value.preloadSize;
                         var preloadEnd = preloadIndex + preloadSize;
                         for (int k = preloadIndex; k < preloadEnd; k++)
                         {
-                            containers.Add((m_AssetBundle.m_PreloadTable[k], m_Container.Key));
+                            containers.Add((m_AssetBundle.m_PreloadTable[k], container));
                         }
                     }
 
