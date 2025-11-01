@@ -1,4 +1,6 @@
 ﻿using System;
+using OpenTK;
+using OpenTK.GLControl;
 
 namespace AnimeStudio.GUI
 {
@@ -172,7 +174,7 @@ namespace AnimeStudio.GUI
             FMODpauseButton = new System.Windows.Forms.Button();
             FMODplayButton = new System.Windows.Forms.Button();
             fontPreviewBox = new System.Windows.Forms.RichTextBox();
-            glControl = new OpenTK.WinForms.GLControl();
+            glControl = new OpenTK.GLControl.GLControl();
             textPreviewBox = new System.Windows.Forms.TextBox();
             classTextBox = new System.Windows.Forms.TextBox();
             tabPage5 = new System.Windows.Forms.TabPage();
@@ -1589,7 +1591,7 @@ namespace AnimeStudio.GUI
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.TextBox classTextBox;
         private System.Windows.Forms.Label FMODcopyright;
-        private OpenTK.WinForms.GLControl glControl;
+        private OpenTK.GLControl.GLControl glControl;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem showOriginalFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exportAnimatorwithselectedAnimationClipMenuItem;

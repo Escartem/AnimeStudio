@@ -9,10 +9,10 @@
 	<ItemGroup>
 		<PackageReference Include="Kyaru.Texture2DDecoder" Version="0.17.0" />
 		<PackageReference Include="Kyaru.Texture2DDecoder.Windows" Version="0.1.0" />
-		<PackageReference Include="MessagePack" Version="2.6.100-alpha" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="ZstdSharp.Port" Version="0.7.2" />
-		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta15" />
+		<PackageReference Include="MessagePack" Version="3.1.4" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="ZstdSharp.Port" Version="0.8.6" />
+		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7" />
 	</ItemGroup>
 
 	<ItemGroup>
