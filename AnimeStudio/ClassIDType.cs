@@ -310,7 +310,7 @@ namespace AnimeStudio
         AudioMixerLiveUpdateBool = 100009,
         Polygon2D = 100010,
         //void = 100011,
-        NapAssetBundleIndex = 6776977,
+        NapAssetBundleIndexAsset = 6776977,
         TilemapCollider2D = 19719996,
         AssetImporterLog = 41386430,
         VFXRenderer = 73398921,
