@@ -21,7 +21,6 @@ namespace AnimeStudio.GUI
             new[] { GameType.ZZZ, GameType.ZZZ_CB1, GameType.ZZZ_CB2 },
             new[] { GameType.HNA_CB1 },
             new[] { GameType.TOT },
-            new[] { GameType.GGZ_117, GameType.GGZ_124 }, 
         };
 
         static readonly Game[] UnityGames = GameManager.GetGames().Where(x => x.Category == GameCategory.Unity).ToArray();
@@ -50,7 +49,7 @@ namespace AnimeStudio.GUI
             switch (gameTypeCombo.SelectedIndex)
             {
                 case 0:
-                    gameCombo.Items.AddRange(["Genshin Impact", "Honkai Impact 3rd", "Honkai: Star Rail", "Zenless Zone Zero", "Nexus Anima", "Tears of Themis", "Guns Girl Z"]);
+                    gameCombo.Items.AddRange(["Genshin Impact", "Honkai Impact 3rd", "Honkai: Star Rail", "Zenless Zone Zero", "Nexus Anima", "Tears of Themis"]);
                     break;
                 case 1:
                     gameCombo.Items.AddRange(OtherGames.Select(g => g.DisplayName).ToArray());

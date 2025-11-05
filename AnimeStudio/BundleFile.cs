@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Buffers;
-using System.Security.Cryptography;
 
 namespace AnimeStudio
 {
@@ -617,32 +616,6 @@ namespace AnimeStudio
                                 var uncompressedBytesSpan = uncompressedBytes.AsSpan(0, uncompressedSize);
 
                                 reader.Read(compressedBytesSpan);
-
-                                if (Game.Type.IsGGZ_117())
-                                {
-                                    var cipher = Aes.Create();
-                                    cipher.Key = "LPC@a*&^b19b61l/"u8.ToArray();
-                                    var dec = cipher.DecryptCbc(compressedBytesSpan, new byte[16]);
-                                    compressedBytesSpan = compressedBytesSpan[..dec.Length];
-                                    dec.CopyTo(compressedBytesSpan);
-                                }
-
-                                if (Game.Type.IsGGZ_124())
-                                {
-                                    var cipher = Aes.Create();
-                                    cipher.Key = new byte[16] { 0x72, 0xe6, 0x5d, 0xac, 0xa5, 0xb7, 0x9b, 0x2a, 0x42, 0x8e, 0x7f, 0x64, 0xc1, 0xa4, 0x0a, 0x9e };
-                                    var tmp = compressedBytesSpan.Slice(compressedBytesSpan.Length - 16, 16).ToArray();
-                                    byte[] ivKey = new byte[16] { 0x8C, 0xA1, 0x89, 0xD, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0xF, 0xB0, 0x54, 0xBB, 0x16 };
-                                    byte[] iv = new byte[16];
-                                    for (int j = 0; j < 16; j++)
-                                    {
-                                        iv[j] = (byte)(tmp[j] ^ ivKey[j]);
-                                    }
-                                    compressedBytesSpan = compressedBytesSpan.Slice(0, compressedBytesSpan.Length - 16);
-                                    var dec = cipher.DecryptCbc(compressedBytesSpan, iv);
-                                    compressedBytesSpan = compressedBytesSpan[..dec.Length];
-                                    dec.CopyTo(compressedBytesSpan);
-                                }
 
                                 if (Game.Type.IsHNACB1())
                                 {
