@@ -21,6 +21,7 @@ namespace AnimeStudio
         private static readonly byte[] blb3Magic = { 0x42, 0x6C, 0x62, 0x03 };
         private static readonly byte[] narakaMagic = { 0x15, 0x1E, 0x1C, 0x0D, 0x0D, 0x23, 0x21 };
         private static readonly byte[] gunfireMagic = { 0x7C, 0x6D, 0x79, 0x72, 0x27, 0x7A, 0x73, 0x78, 0x3F };
+        private static readonly byte[] hygMagic = { 0xC3, 0x9C, 0xC3, 0xA3, 0xC3, 0x8A, 0x00 };
 
 
         public FileReader(string path) : this(path, File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) { }
@@ -101,6 +102,11 @@ namespace AnimeStudio
                         magic = ReadBytes(7);
                         Position = 0;
                         Logger.Verbose($"Parsed signature is {Convert.ToHexString(magic)}");
+                        if (hygMagic.SequenceEqual(magic))
+                        {
+                            return FileType.HygFile;
+                        }
+                        Logger.Verbose($"Parsed signature does not match with expected signature {Convert.ToHexString(hygMagic)}");
                         if (narakaMagic.SequenceEqual(magic))
                         {
                             return FileType.BundleFile;
@@ -236,7 +242,7 @@ namespace AnimeStudio
                         break;
                 }
             }
-            if (reader.FileType == FileType.BundleFile && game.Type.IsBlockFile() || reader.FileType == FileType.ENCRFile || reader.FileType == FileType.Blb2File || reader.FileType == FileType.Blb3File)
+            if (reader.FileType == FileType.BundleFile && game.Type.IsBlockFile() || reader.FileType == FileType.ENCRFile || reader.FileType == FileType.Blb2File || reader.FileType == FileType.Blb3File || reader.FileType == FileType.HygFile)
             {
                 Logger.Verbose("File might have multiple bundles !!");
                 try

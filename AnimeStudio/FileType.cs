@@ -20,6 +20,7 @@ namespace AnimeStudio
         Blb2File,
         Blb3File,
         ENCRFile,
-        BlockFile
+        BlockFile,
+        HygFile,
     }
 }

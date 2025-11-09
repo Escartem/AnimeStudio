@@ -53,6 +53,11 @@ namespace AnimeStudio
             {
                 m_WrapMode = reader.ReadInt32();
             }
+            if (reader.Game.Type.IsHYGCB1())
+            {
+                var m_UseGlobalTrilinearSetting = reader.ReadInt32();
+                reader.AlignStream();
+            }
         }
     }
 
@@ -118,6 +123,10 @@ namespace AnimeStudio
             }
             if (version[0] > 2018 || (version[0] == 2018 && version[1] >= 2)) //2018.2 and up
             {
+                if (reader.Game.Type.IsHYGCB1())
+                {
+                    reader.AlignStream();
+                }
                 var m_StreamingMipmaps = reader.ReadBoolean();
             }
             reader.AlignStream();
@@ -132,6 +141,10 @@ namespace AnimeStudio
             if (reader.Game.Type.IsZZZ())
             {
                 var m_IsCompressed = reader.ReadBoolean();
+                reader.AlignStream();
+            }
+            if (reader.Game.Type.IsHYGCB1())
+            {
                 reader.AlignStream();
             }
             var m_ImageCount = reader.ReadInt32();

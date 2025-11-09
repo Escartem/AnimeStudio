@@ -11,6 +11,10 @@ namespace AnimeStudio
         public MeshRenderer(ObjectReader reader) : base(reader)
         {
             m_AdditionalVertexStreams = new PPtr<Mesh>(reader);
+            if (reader.Game.Type.IsHYGCB1())
+            {
+                var m_EnlightenVertexStream = new PPtr<Mesh>(reader);
+            }
         }
     }
 }
