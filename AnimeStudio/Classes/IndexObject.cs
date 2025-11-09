@@ -30,8 +30,7 @@ namespace AnimeStudio
                 string name = "";
                 if (reader.Game.Type.IsHYGCB1())
                 {
-                    reader.ReadBytes(4);
-                    name = reader.Position.ToString("X8");
+                    name = reader.ReadUInt32().ToHexString();
                 }
                 else
                 {
