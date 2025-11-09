@@ -329,7 +329,7 @@ namespace AnimeStudio
 
         public static bool IsMhyGroup(this GameType type) => type switch
         {
-            GameType.GI or GameType.GI_Pack or GameType.GI_CB1 or GameType.GI_CB2 or GameType.GI_CB3 or GameType.GI_CB3Pre or GameType.BH3 or GameType.BH3Pre or GameType.BH3PrePre or GameType.SR_CB2 or GameType.SR or GameType.ZZZ_CB1 or GameType.ZZZ_CB2 or GameType.ZZZ or GameType.TOT => true,
+            GameType.GI or GameType.GI_Pack or GameType.GI_CB1 or GameType.GI_CB2 or GameType.GI_CB3 or GameType.GI_CB3Pre or GameType.BH3 or GameType.BH3Pre or GameType.BH3PrePre or GameType.SR_CB2 or GameType.SR or GameType.ZZZ_CB1 or GameType.ZZZ_CB2 or GameType.ZZZ or GameType.HYG_CB1 or GameType.TOT => true,
             _ => false,
         };
     }
