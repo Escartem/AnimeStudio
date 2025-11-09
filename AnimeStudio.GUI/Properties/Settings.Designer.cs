@@ -529,5 +529,17 @@ namespace AnimeStudio.GUI.Properties {
                 this["enableHDR"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool useBundleContainerName {
+            get {
+                return ((bool)(this["useBundleContainerName"]));
+            }
+            set {
+                this["useBundleContainerName"] = value;
+            }
+        }
     }
 }

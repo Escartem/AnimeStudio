@@ -274,6 +274,7 @@ namespace AnimeStudio.GUI
             var containers = new List<(PPtr<Object>, string)>();
             Progress.Reset();
             Logger.Info($"Loading {objectCount} objects from {assetsManager.assetsFileList.Count} files.");
+            var assetBundleName = "";
 
             var fastAssetItemFilterData = new HashSet<AssetFilterDataItem>(assetsManager.FilterData.Items, new AssetFilterDataItemEqualityComparer());
             foreach (var assetsFile in assetsManager.assetsFileList)
@@ -322,6 +323,7 @@ namespace AnimeStudio.GUI
                             exportable = ClassIDType.PlayerSettings.CanExport();
                             break;
                         case AssetBundle m_AssetBundle:
+                            assetBundleName = m_AssetBundle.Name;
                             if (!SkipContainer)
                             {
                                 foreach (var m_Container in m_AssetBundle.m_Container)
@@ -330,7 +332,7 @@ namespace AnimeStudio.GUI
                                     var preloadSize = m_Container.Value.preloadSize;
                                     var preloadEnd = preloadIndex + preloadSize;
 
-                                    switch(preloadIndex)
+                                    switch (preloadIndex)
                                     {
                                         case int n when n < 0:
                                             Logger.Warning($"preloadIndex {preloadIndex} is out of preloadTable range");
@@ -338,6 +340,11 @@ namespace AnimeStudio.GUI
                                         default:
                                             for (int k = preloadIndex; k < preloadEnd; k++)
                                             {
+                                                string containerName = m_Container.Key;
+                                                if (int.TryParse(m_Container.Key, out _) && Properties.Settings.Default.useBundleContainerName)
+                                                {
+                                                    containerName = assetBundleName;
+                                                }
                                                 containers.Add((m_AssetBundle.m_PreloadTable[k], m_Container.Key));
                                             }
                                             break;
@@ -402,7 +409,7 @@ namespace AnimeStudio.GUI
                     if (int.TryParse(name, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var hash))
                     {
                         assetItem.Text = name;
-                        assetItem.Container = hash.ToString();
+                        assetItem.Container = Properties.Settings.Default.useBundleContainerName ? assetBundleName : hash.ToString();
                     }
                     else assetItem.Text = $"BinFile #{assetItem.m_PathID}";
                 }
