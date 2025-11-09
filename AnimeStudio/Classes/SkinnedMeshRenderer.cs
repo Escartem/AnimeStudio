@@ -18,7 +18,16 @@ namespace AnimeStudio
         {
             int m_Quality = reader.ReadInt32();
             var m_UpdateWhenOffscreen = reader.ReadBoolean();
-            var m_SkinNormals = reader.ReadBoolean(); //3.1.0 and below
+            if (!reader.Game.Type.IsHYGCB1())
+            {
+                var m_SkinNormals = reader.ReadBoolean(); //3.1.0 and below
+            }
+            if (reader.Game.Type.IsHYGCB1())
+            {
+                var m_UpdateBoundsWhenOffscreen = reader.ReadBoolean();
+                var m_SkinnedMotionVectors = reader.ReadBoolean();
+                var m_CanSkipSkinning = reader.ReadBoolean();
+            }
             reader.AlignStream();
 
             if (version[0] == 2 && version[1] < 6) //2.6 down
@@ -45,7 +54,7 @@ namespace AnimeStudio
                 m_BlendShapeWeights = reader.ReadSingleArray();
             }
 
-            if (reader.Game.Type.IsGIGroup() || reader.Game.Type.IsZZZ())
+            if (reader.Game.Type.IsGIGroup() || reader.Game.Type.IsZZZ() || reader.Game.Type.IsHYGCB1())
             {
                 m_RootBone = new PPtr<Transform>(reader);
                 m_AABB = new AABB(reader);

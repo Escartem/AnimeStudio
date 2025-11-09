@@ -616,6 +616,10 @@ namespace AnimeStudio
                     }
                     var m_KeepVertices = reader.ReadBoolean();
                     var m_KeepIndices = reader.ReadBoolean();
+                    if (reader.Game.Type.IsHYGCB1())
+                    {
+                        var m_FullPrecisionVertexPosition = reader.ReadBoolean();
+                    }
                     if (reader.Game.Type.IsBH3() && HasVertexColorSkinning(reader.serializedType)) 
                     {
                         var m_VertexColorSkinning = reader.ReadBoolean();
@@ -631,6 +635,11 @@ namespace AnimeStudio
                 if (reader.Game.Type.IsGISubGroup() || (reader.Game.Type.IsBH3() && HasVertexColorSkinning(reader.serializedType)))
                 {
                     var m_PackSkinDataToUV2UV3 = reader.ReadBoolean();
+                    reader.AlignStream();
+                }
+                if (reader.Game.Type.IsHYGCB1())
+                {
+                    var m_UseForSoftBody = reader.ReadBoolean();
                     reader.AlignStream();
                 }
 

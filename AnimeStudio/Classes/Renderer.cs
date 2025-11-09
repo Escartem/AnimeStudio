@@ -118,6 +118,10 @@ namespace AnimeStudio
                     {
                         var m_RayTraceProcedural = reader.ReadByte();
                     }
+                    if (reader.Game.Type.IsHYGCB1())
+                    {
+                        var m_UseOverrideAABBForCulling = reader.ReadByte();
+                    }
                     if (reader.Game.Type.IsGI() || reader.Game.Type.IsGICB3() || reader.Game.Type.IsGICB3Pre())
                     {
                         var m_MeshShowQuality = reader.ReadByte();
@@ -165,6 +169,10 @@ namespace AnimeStudio
             {
                 var m_ViewDistanceRatio = reader.ReadSingle();
                 var m_ShaderLODDistanceRatio = reader.ReadSingle();
+            }
+            if (reader.Game.Type.IsHYGCB1())
+            {
+                var m_ViewDistanceRatio = reader.ReadSingle();
             }
             var m_MaterialsSize = reader.ReadInt32();
             m_Materials = new List<PPtr<Material>>();
