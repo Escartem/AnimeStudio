@@ -24,7 +24,11 @@ namespace AnimeStudio
 
         public MiHoYoBinData(ObjectReader reader) : base(reader)
         {
-            RawData = reader.ReadUInt8Array();
+            int length = reader.ReadInt32();
+            int remaining = (int)(reader.byteSize - (reader.Position - reader.byteStart));
+            if (length <= 0 || length > remaining)
+                length = remaining;
+            RawData = reader.ReadBytes(length);
         }
 
         public string AsString => Type switch

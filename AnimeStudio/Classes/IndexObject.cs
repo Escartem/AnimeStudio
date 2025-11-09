@@ -27,7 +27,17 @@ namespace AnimeStudio
             AssetMap = new List<KeyValuePair<string, Index>>();
             for (int i = 0; i < Count; i++)
             {
-                AssetMap.Add(new KeyValuePair<string, Index>(reader.ReadAlignedString(), new Index(reader)));
+                string name = "";
+                if (reader.Game.Type.IsHYGCB1())
+                {
+                    reader.ReadBytes(4);
+                    name = reader.Position.ToString("X8");
+                }
+                else
+                {
+                    name = reader.ReadAlignedString();
+                }
+                AssetMap.Add(new KeyValuePair<string, Index>(name, new Index(reader)));
             }
         }
     } 
