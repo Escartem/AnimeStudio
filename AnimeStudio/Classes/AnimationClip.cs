@@ -1371,6 +1371,10 @@ namespace AnimeStudio
             {
                 m_ConstantClip = new ConstantClip(reader);
             }
+            if (reader.Game.Type.IsArknightsEndfieldCB3())
+            {
+                var m_CompressedCurveCount = reader.ReadUInt32();
+            }
             if (reader.Game.Type.IsGIGroup() || reader.Game.Type.IsBH3Group() || reader.Game.Type.IsZZZCB1() || reader.Game.Type.IsZZZ())
             {
                 m_ACLClip = new MHYACLClip();
