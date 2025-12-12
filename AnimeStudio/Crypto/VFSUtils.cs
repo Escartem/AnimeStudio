@@ -4,7 +4,6 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace AnimeStudio.Crypto
 {
@@ -192,16 +191,21 @@ namespace AnimeStudio.Crypto
                 dec.CopyTo(buffer);
             } else
             {
-                var encBuf = new List<byte>();
-                
-                var nRounds = Math.Floor((double)buffer.Length / 16);
-                for (int i = 0; i < Math.Min(256, nRounds); i += 1)
-                    encBuf.Add(buffer[i * 16]);
+                var numBlocksFloor = buffer.Length / 16;
+                var step = (int)(256 / numBlocksFloor);
 
-                var decBuf = VFSAES.Decrypt(encBuf.ToArray());
+                if (numBlocksFloor > 256)
+                    step = 1;
 
-                for (int i = 0; i < decBuf.Length; i++)
-                    buffer[i * 16] = decBuf[i];
+                Span<byte> decBuffer = new byte[256];
+
+                for (int i = 0; i < Math.Min(numBlocksFloor, 256); i++)
+                    buffer.Slice(i * 16, step).CopyTo(decBuffer.Slice((int)(i * step), step));
+
+                decBuffer = VFSAES.Decrypt(decBuffer.ToArray());
+
+                for (int i = 0; i < Math.Min(numBlocksFloor, 256); i++)
+                    decBuffer.Slice(i * step, step).CopyTo(buffer.Slice((int)(i * 16), step));
             }
         }
 

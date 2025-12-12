@@ -79,7 +79,7 @@ namespace AnimeStudio
             if (((int)m_Header.flags & 0x3F) != 0)
             {
                 // compressed + encrypted
-                blocksInfoBytes = VFSAES.Decrypt(blocksInfoBytes);
+                VFSUtils.DecryptBlock(blocksInfoBytes);
 
                 var uncompressedSize = m_Header.uncompressedBlocksInfoSize;
                 var blocksInfoBytesSpan = blocksInfoBytes.AsSpan(0, blocksInfoBytes.Length);
@@ -136,9 +136,13 @@ namespace AnimeStudio
                 var compressionType = (int)blockInfo.flags; // no mask
                 Logger.Verbose($"Block compression type {compressionType}");
 
-                // assuming it's always 5 ?
                 switch (compressionType)
                 {
+                    case 0:
+                        var size = (int)blockInfo.uncompressedSize;
+                        var buffer = reader.ReadBytes(size);
+                        blocksStream.Write(buffer);
+                        break;
                     case 5:
                         var compressedSize = (int)blockInfo.compressedSize;
                         var uncompressedSize = (int)blockInfo.uncompressedSize;
@@ -155,8 +159,6 @@ namespace AnimeStudio
 
                             VFSUtils.DecryptBlock(compressedBytesSpan);
 
-                            File.WriteAllBytes("temp.bin", compressedBytesSpan.ToArray());
-
                             // LZ4Inv this time
                             var numWrite = LZ4Inv.Instance.Decompress(compressedBytesSpan, uncompressedBytesSpan);
                             if (numWrite != uncompressedSize)
@@ -164,10 +166,10 @@ namespace AnimeStudio
                                 Logger.Warning($"Lz4 decompression error, write {numWrite} bytes but expected {uncompressedSize} bytes");
                             }
                         }
-                        //catch (Exception e)
-                        //{
-                        //    Logger.Error($"Lz4 decompression error : {e.Message}");
-                        //}
+                        catch (Exception e)
+                        {
+                            Logger.Error($"Lz4 decompression error : {e.Message}");
+                        }
                         finally
                         {
                             blocksStream.Write(uncompressedBytesSpan);
