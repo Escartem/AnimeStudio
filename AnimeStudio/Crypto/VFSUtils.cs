@@ -39,32 +39,32 @@ namespace AnimeStudio.Crypto
 
             // values
             var flags1 = reader.ReadUInt32();
-            uint uncompressedBlocksInfoSize1 = reader.ReadUInt16();
-            uint compressedBlocksInfoSize1 = reader.ReadUInt16();
+            var uncompressedBlocksInfoSize1 = reader.ReadUInt16();
+            var compressedBlocksInfoSize1 = reader.ReadUInt16();
             reader.ReadUInt32(); // unknown
-            uint uncompressedBlocksInfoSize2 = reader.ReadUInt16();
+            var uncompressedBlocksInfoSize2 = reader.ReadUInt16();
             var encFlags = reader.ReadUInt32();
-            ulong size1 = reader.ReadUInt32();
-            uint compressedBlocksInfoSize2 = reader.ReadUInt16();
+            var size1 = reader.ReadUInt32();
+            var compressedBlocksInfoSize2 = reader.ReadUInt16();
             var flags2 = reader.ReadUInt32();
-            ulong size2 = reader.ReadUInt32();
+            var size2 = reader.ReadUInt32();
 
             // descramble
-            uint compressedBlocksInfoSize = BitConcat(16, compressedBlocksInfoSize1 ^ compressedBlocksInfoSize2 ^ 0xE114, compressedBlocksInfoSize2);
+            var compressedBlocksInfoSize = BitConcat((ushort)(compressedBlocksInfoSize1 ^ compressedBlocksInfoSize2 ^ 0xE114), compressedBlocksInfoSize2);
             compressedBlocksInfoSize = BitOperations.RotateLeft(compressedBlocksInfoSize, 3) ^ 0x5ADA4ABA;
 
-            uint uncompressedBlocksInfoSize = BitConcat(16, uncompressedBlocksInfoSize1 ^ uncompressedBlocksInfoSize2 ^ 0xE114, uncompressedBlocksInfoSize2);
+            var uncompressedBlocksInfoSize = BitConcat((ushort)(uncompressedBlocksInfoSize1 ^ uncompressedBlocksInfoSize2 ^ 0xE114), uncompressedBlocksInfoSize2);
             uncompressedBlocksInfoSize = BitOperations.RotateLeft(uncompressedBlocksInfoSize, 3) ^ 0x5ADA4ABA;
 
-            ulong size = BitConcat64(32, size1 ^ size2 ^ 0x342D983F, size2);
+            var size = BitConcat(size1 ^ size2 ^ 0x342D983F, size2);
             size = (BitOperations.RotateLeft(size, 3)) ^ 0x5B4FA98A430D0E62UL;
 
             encFlags ^= flags2;
             var flags = flags1 ^ flags2 ^ 0x98B806A4;
 
             //
-            Header.compressedBlocksInfoSize = (uint)compressedBlocksInfoSize;
-            Header.uncompressedBlocksInfoSize = (uint)uncompressedBlocksInfoSize;
+            Header.compressedBlocksInfoSize = compressedBlocksInfoSize;
+            Header.uncompressedBlocksInfoSize = uncompressedBlocksInfoSize;
             Header.size = (uint)size;
             Header.flags = (ArchiveFlags)flags;
             Header.encFlags = encFlags;
@@ -76,10 +76,10 @@ namespace AnimeStudio.Crypto
         {
             var encCount = reader.ReadUInt32() ^ 0xF6825038;
 
-            var low = encCount & 0xFFFF;
-            var high = (encCount >> 16) & 0xFFFF;
+            var low = (ushort)encCount;
+            var high = (ushort)(encCount >> 16);
 
-            var blocksCount = BitConcat(16, low ^ high, low);
+            var blocksCount = BitConcat((ushort)(low ^ high), low);
             blocksCount = BitOperations.RotateLeft(blocksCount, 3) ^ 0x5F23A227;
 
             Logger.Verbose($"Blocks Count: {blocksCount}");
@@ -88,22 +88,22 @@ namespace AnimeStudio.Crypto
 
             for (int i = 0; i < blocksCount; i++)
             {
-                ushort encFlags = (ushort)(reader.ReadUInt16() ^ 0xAFEBU);
+                var encFlags = (ushort)(reader.ReadUInt16() ^ 0xAFEBU);
                 var a = reader.ReadUInt16();
                 var b = reader.ReadUInt16();
                 var c = reader.ReadUInt16();
                 var d = reader.ReadUInt16();
 
-                uint a0 = (ushort)(encFlags & 0xFF);
-                uint a1 = (ushort)((encFlags >> 8) & 0xFF);
+                var a0 = (byte)encFlags;
+                var a1 = (byte)(encFlags >> 8);
 
-                ushort flags = (ushort)BitConcat(8, a0 ^ a1, a0);
-                flags = (ushort)(b ^ RotateLeft16(flags, 3) ^ 0xB7AF);
+                var flags = BitConcat((byte)(a0 ^ a1), a0);
+                flags = (ushort)(b ^ RotateLeft(flags, 3) ^ 0xB7AF);
 
-                var uncompressedSize = BitConcat(16, (uint)(c ^ b ^ 0xE114), b);
+                var uncompressedSize = BitConcat((ushort)(c ^ b ^ 0xE114), b);
                 uncompressedSize = BitOperations.RotateLeft(uncompressedSize, 3) ^ 0x5ADA4ABA;
 
-                var compressedSize = BitConcat(16, (uint)(d ^ a ^ 0xE114), a);
+                var compressedSize = BitConcat((ushort)(d ^ a ^ 0xE114), a);
                 compressedSize = BitOperations.RotateLeft(compressedSize, 3) ^ 0x5ADA4ABA;
 
                 blocks.Add(new BundleFile.StorageBlock
@@ -123,10 +123,10 @@ namespace AnimeStudio.Crypto
         {
             var encCount = reader.ReadUInt32() ^ 0xA9535111;
 
-            var low = encCount & 0xFFFF;
-            var high = (encCount >> 16) & 0xFFFF;
+            var low = (ushort)encCount;
+            var high = (ushort)(encCount >> 16);
 
-            var nodesCount = BitConcat(16, low ^ high, low);
+            var nodesCount = BitConcat((ushort)(low ^ high), low);
             nodesCount = BitOperations.RotateLeft(nodesCount, 3) ^ 0xAF807AFC;
 
             Logger.Verbose($"Nodes Count: {nodesCount}");
@@ -158,17 +158,17 @@ namespace AnimeStudio.Crypto
                 var d = reader.ReadUInt32() ^ 0xE4A15748;
                 var e = reader.ReadUInt32();
                 
-                var d0 = d & 0xFFFF;
-                var d1 = (d >> 16) & 0xFFFF;
+                var d0 = (ushort)d;
+                var d1 = (ushort)(d >> 16);
 
-                var flags = (uint)BitConcat(16, d1 ^ d0, d0);
+                var flags = BitConcat((ushort)(d1 ^ d0), d0);
                 flags = BitOperations.RotateLeft(flags, 3) ^ 0x54D7A374 ^ b;
 
-                ulong offset = BitConcat64(32, c ^ a ^ 0x342D983F, a);
-                offset = RotateLeft64(offset, 3) ^ 0x5B4FA98A430D0E62UL;
+                ulong offset = BitConcat(c ^ a ^ 0x342D983F, a);
+                offset = BitOperations.RotateLeft(offset, 3) ^ 0x5B4FA98A430D0E62UL;
 
-                ulong size = BitConcat64(32, e ^ b ^ 0x342D983F, b);
-                size = RotateLeft64(size, 3) ^ 0x5B4FA98A430D0E62UL;
+                ulong size = BitConcat(e ^ b ^ 0x342D983F, b);
+                size = BitOperations.RotateLeft(size, 3) ^ 0x5B4FA98A430D0E62UL;
 
                 nodes.Add(new BundleFile.Node
                 {
@@ -205,34 +205,22 @@ namespace AnimeStudio.Crypto
             }
         }
 
-        // managing both 32 and 64 in one function was too annoying lol
-        private static uint BitConcat(int bits, params uint[] ns)
+        private static ushort BitConcat(byte a, byte b)
         {
-            uint mask = (bits == 32) ? 0xFFFFFFFFu : ((1u << bits) - 1u);
-            uint res = 0;
-            int count = ns.Length;
-
-            for (int i = 0; i < count; i++)
-                res |= (ns[i] & mask) << (bits * (count - i - 1));
-
-            return res;
+            return (ushort)(((ushort)a << 8) | (ushort)b);
         }
 
-        private static ulong BitConcat64(int bits, params ulong[] ns)
+        private static uint BitConcat(ushort a, ushort b)
         {
-            ulong mask = (bits == 64) ? ulong.MaxValue : ((1UL << bits) - 1UL);
-            ulong res = 0;
-            int count = ns.Length;
-
-            for (int i = 0; i < count; i++)
-                res |= (ns[i] & mask) << (bits * (count - i - 1));
-
-            return res;
+            return ((uint)a << 16) | (uint)b;
         }
 
-        private static ushort RotateLeft16(ushort value, int count) => (ushort)((value << count) | (value >> (16 - count)));
+        private static ulong BitConcat(uint a, uint b)
+        {
+            return ((ulong)a << 32) | (ulong)b;
+        }
 
-        private static ulong RotateLeft64(ulong value, int count) => (value << count) | (value >> (64 - count));
+        private static ushort RotateLeft(ushort value, int count) => (ushort)((value << count) | (value >> (16 - count)));
     }
 
     public static class VFSAES
