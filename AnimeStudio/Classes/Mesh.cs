@@ -874,6 +874,30 @@ namespace AnimeStudio
             GetTriangles();
         }
 
+        private static float[] Decode_2_10_10_10(float packedFloat)
+        {
+            uint packed = (uint)BitConverter.SingleToInt32Bits(packedFloat);
+
+            int x = (int)(packed << 22) >> 22;   // sign extend 10-bit
+            int y = (int)(packed << 12) >> 22;
+            int z = (int)(packed << 2) >> 22;
+
+            const float scale = 1f / 511f; // 2^9 - 1
+
+            return new float[] { x * scale, y * scale, z * scale };
+        }
+
+        private static float[] Decode_2_10_10_10(float[] packedFloats)
+        {
+            var unpacked = new float[packedFloats.Length * 3];
+            for ( int i = 0; i < packedFloats.Length; i++)
+            {
+                var unpackedFloat = Decode_2_10_10_10(packedFloats[i]);
+                unpackedFloat.CopyTo(unpacked, i * 3);
+            }
+            return unpacked;
+        }
+
         private void ReadVertexData()
         {
             m_VertexCount = (int)m_VertexData.m_VertexCount;
@@ -931,7 +955,14 @@ namespace AnimeStudio
                                     m_Vertices = componentsFloatArray;
                                     break;
                                 case 1: //kShaderChannelNormal
-                                    m_Normals = componentsFloatArray;
+                                    if (componentsFloatArray != null && componentsFloatArray.Length == m_VertexCount)
+                                    {
+                                        m_Normals = Decode_2_10_10_10(componentsFloatArray);
+                                    }
+                                    else
+                                    {
+                                        m_Normals = componentsFloatArray;
+                                    }
                                     break;
                                 case 2: //kShaderChannelTangent
                                     m_Tangents = componentsFloatArray;
