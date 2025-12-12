@@ -619,7 +619,7 @@ namespace AnimeStudio
                     if (reader.Game.Type.IsArknightsEndfieldCB3())
                     {
                         var m_CollisionMeshOnly = reader.ReadBoolean();
-                        var m_CollisionMeshBaked = reader.ReadBoolean();
+                        m_CollisionMeshBaked = reader.ReadBoolean();
                         var m_CollisionMeshConvex = reader.ReadBoolean();
                     }
                     if (reader.Game.Type.IsHYGCB1())
