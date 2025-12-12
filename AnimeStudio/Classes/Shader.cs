@@ -55,6 +55,47 @@ namespace AnimeStudio
             bindPoint = reader.ReadInt32();
         }
     }
+    
+    public class DescriptorSetParam
+    {
+        public int m_NameIndex;
+        public int m_SetId;
+        public int m_MaxBindingIndex;
+        public List<SetBinding> m_SetBindings;
+
+        public DescriptorSetParam(EndianBinaryReader reader)
+        {
+            m_NameIndex = reader.ReadInt32();
+            m_SetId = reader.ReadInt32();
+            m_MaxBindingIndex = reader.ReadInt32();
+
+            var numSetBindings = reader.ReadInt32();
+            m_SetBindings = new List<SetBinding>();
+            for (int i = 0; i < numSetBindings; i++)
+            {
+                m_SetBindings.Add(new SetBinding(reader));
+            }
+        }
+    }
+
+    public class SetBinding
+    {
+        public int m_NameIndex;
+        public int m_BindingIndex;
+        public int m_DescriptorType;
+        public uint m_PackedBinding;
+        public uint m_PackedInfo;
+
+        public SetBinding(EndianBinaryReader reader)
+        {
+            m_NameIndex = reader.ReadInt32();
+            m_BindingIndex = reader.ReadInt32();
+            m_DescriptorType = reader.ReadInt32();
+            m_PackedBinding = reader.ReadUInt32();
+            m_PackedInfo = reader.ReadUInt32();
+        }
+    }
+
     public enum TextureDimension
     {
         Unknown = -1,
@@ -536,6 +577,7 @@ namespace AnimeStudio
         public List<BufferBinding> m_ConstantBufferBindings;
         public List<UAVParameter> m_UAVParams;
         public List<SamplerParameter> m_Samplers;
+        public List<DescriptorSetParam> m_DescriptorSetParams;
 
         public SerializedProgramParameters(ObjectReader reader)
         {
@@ -593,6 +635,16 @@ namespace AnimeStudio
             for (int i = 0; i < numSamplers; i++)
             {
                 m_Samplers.Add(new SamplerParameter(reader));
+            }
+
+            if (reader.Game.Type.IsArknightsEndfieldCB3())
+            {
+                int numDescriptorSetParams = reader.ReadInt32();
+                m_DescriptorSetParams = new List<DescriptorSetParam>();
+                for (int i = 0; i < numDescriptorSetParams; i++)
+                {
+                    m_DescriptorSetParams.Add(new DescriptorSetParam(reader));
+                }
             }
         }
     }

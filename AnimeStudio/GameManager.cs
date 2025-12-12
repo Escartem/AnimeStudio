@@ -59,7 +59,8 @@ namespace AnimeStudio
             Games.Add(index++, new Game(GameType.CodenameJump, "Codename Jump"));
             Games.Add(index++, new Game(GameType.GirlsFrontline, "Girls Frontline"));
             Games.Add(index++, new Game(GameType.Reverse1999, "Reverse: 1999"));
-            Games.Add(index++, new Game(GameType.ArknightsEndfield, "Arknights Endfield"));
+            Games.Add(index++, new Game(GameType.ArknightsEndfieldCB3, "Arknights Endfield CBT3"));
+            Games.Add(index++, new Game(GameType.ArknightsEndfield, "Arknights Endfield CBT2"));
             Games.Add(index++, new Game(GameType.Arknights, "Arknights"));
             Games.Add(index++, new Game(GameType.JJKPhantomParade, "JJK Phantom Parade"));
             Games.Add(index++, new Game(GameType.MuvLuvDimensions, "Muv-Luv Dimensions"));
@@ -218,6 +219,7 @@ namespace AnimeStudio
         CodenameJump,
         GirlsFrontline,
         Reverse1999,
+        ArknightsEndfieldCB3,
         ArknightsEndfield,
         Arknights,
         JJKPhantomParade,
@@ -286,6 +288,7 @@ namespace AnimeStudio
         public static bool IsNaraka(this GameType type) => type == GameType.Naraka;
         public static bool IsOPFP(this GameType type) => type == GameType.OPFP;
         public static bool IsNetEase(this GameType type) => type == GameType.NetEase;
+        public static bool IsArknightsEndfieldCB3(this GameType type) => type == GameType.ArknightsEndfieldCB3;
         public static bool IsArknightsEndfield(this GameType type) => type == GameType.ArknightsEndfield;
         public static bool IsArknights(this GameType type) => type == GameType.Arknights;
         public static bool IsLoveAndDeepspace(this GameType type) => type == GameType.LoveAndDeepspace;

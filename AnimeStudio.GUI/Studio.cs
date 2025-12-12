@@ -345,7 +345,13 @@ namespace AnimeStudio.GUI
                                                 {
                                                     containerName = assetBundleName;
                                                 }
-                                                containers.Add((m_AssetBundle.m_PreloadTable[k], m_Container.Key));
+                                                try
+                                                {
+                                                    containers.Add((m_AssetBundle.m_PreloadTable[k], m_Container.Key));
+                                                } catch
+                                                {
+                                                    Logger.Info($"Failed to add container {m_Container.Key}");
+                                                }
                                             }
                                             break;
                                     }

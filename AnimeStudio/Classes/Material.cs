@@ -21,7 +21,7 @@ namespace AnimeStudio
             {
                 reader.ReadBytes(4);
             }
-            if (reader.Game.Type.IsArknightsEndfield())
+            if (reader.Game.Type.IsArknightsEndfield() || reader.Game.Type.IsArknightsEndfieldCB3())
             {
                 var m_UVSetIndex = reader.ReadInt32();
             }

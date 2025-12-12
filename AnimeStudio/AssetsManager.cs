@@ -471,6 +471,9 @@ namespace AnimeStudio
                         case FileType.HygFile:
                             LoadHygFile(subReader, reader.FullPath, offset, false);
                             break;
+                        case FileType.VFSFile:
+                            LoadVFSFile(subReader, reader.FullPath, offset, false);
+                            break;
                     }
                 }    
             }
@@ -630,6 +633,45 @@ namespace AnimeStudio
             catch (Exception e)
             {
                 var str = $"Error while reading Hyg file {reader.FullPath}";
+                if (originalPath != null)
+                {
+                    str += $" from {Path.GetFileName(originalPath)}";
+                }
+                Logger.Error(str, e);
+            }
+            finally
+            {
+                reader.Dispose();
+            }
+        }
+
+        private void LoadVFSFile(FileReader reader, string originalPath = null, long originalOffset = 0, bool log = true)
+        {
+            if (log)
+            {
+                Logger.Info("Loading " + reader.FullPath);
+            }
+            try
+            {
+                var vfsFile = new VFSFile(reader, reader.FullPath);
+                foreach (var file in vfsFile.fileList)
+                {
+                    var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), file.fileName);
+                    var cabReader = new FileReader(dummyPath, file.stream);
+                    if (cabReader.FileType == FileType.AssetsFile)
+                    {
+                        LoadAssetsFromMemory(cabReader, originalPath ?? reader.FullPath, vfsFile.m_Header.unityRevision, originalOffset);
+                    }
+                    else
+                    {
+                        Logger.Verbose("Caching resource stream");
+                        resourceFileReaders.TryAdd(file.fileName, cabReader);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                var str = $"Error while reading VFS file {reader.FullPath}";
                 if (originalPath != null)
                 {
                     str += $" from {Path.GetFileName(originalPath)}";

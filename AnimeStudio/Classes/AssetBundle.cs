@@ -27,6 +27,11 @@ namespace AnimeStudio
 
         public AssetBundle(ObjectReader reader) : base(reader)
         {
+            if (reader.Game.Type.IsArknightsEndfieldCB3())
+            {
+                var m_PathFlags = reader.ReadInt32();
+            }
+
             var m_PreloadTableSize = reader.ReadInt32();
             m_PreloadTable = new List<PPtr<Object>>();
             for (int i = 0; i < m_PreloadTableSize; i++)

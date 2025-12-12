@@ -22,5 +22,6 @@ namespace AnimeStudio
         ENCRFile,
         BlockFile,
         HygFile,
+        VFSFile,
     }
 }

@@ -58,6 +58,7 @@ namespace AnimeStudio
             public uint compressedBlocksInfoSize;
             public uint uncompressedBlocksInfoSize;
             public ArchiveFlags flags;
+            public uint encFlags;
 
             public override string ToString()
             {
