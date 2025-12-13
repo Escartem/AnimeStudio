@@ -21,7 +21,7 @@ namespace AnimeStudio
             {
                 reader.ReadBytes(4);
             }
-            if (reader.Game.Type.IsArknightsEndfield() || reader.Game.Type.IsArknightsEndfieldCB3())
+            if (reader.Game.Type.IsArknightsEndfieldGroup())
             {
                 var m_UVSetIndex = reader.ReadInt32();
             }
@@ -72,6 +72,11 @@ namespace AnimeStudio
             for (int i = 0; i < m_ColorsSize; i++)
             {
                 m_Colors.Add(new(reader.ReadAlignedString(), reader.ReadColor4()));
+            }
+
+            if (reader.Game.Type.IsArknightsEndfieldCB3())
+            {
+                var m_SubsurfaceProfile = new PPtr<NamedObject>(reader);
             }
         }
     }
