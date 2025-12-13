@@ -54,12 +54,17 @@ namespace AnimeStudio
                 m_BlendShapeWeights = reader.ReadSingleArray();
             }
 
-            if (reader.Game.Type.IsGIGroup() || reader.Game.Type.IsZZZ() || reader.Game.Type.IsHYGCB1())
+            if (reader.Game.Type.IsGIGroup() || reader.Game.Type.IsZZZ() || reader.Game.Type.IsHYGCB1() || reader.Game.Type.IsArknightsEndfieldCB3())
             {
                 m_RootBone = new PPtr<Transform>(reader);
                 m_AABB = new AABB(reader);
                 m_DirtyAABB = reader.ReadBoolean();
                 reader.AlignStream();
+            }
+
+            if (reader.Game.Type.IsArknightsEndfieldCB3())
+            {
+                var m_SkinningRoot = new PPtr<Transform>(reader);
             }
         }
     }

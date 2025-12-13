@@ -1647,8 +1647,6 @@ namespace AnimeStudio
                 //r3z = r3z * r0y;
 
 
-                //float length = r2x * r2x + r2y * r2y + r2z * r2z;
-
 
                 // 计算result[i * 3]的值
                 result[i * 3] = r2x;

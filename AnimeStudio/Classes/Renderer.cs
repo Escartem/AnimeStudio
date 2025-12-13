@@ -100,7 +100,7 @@ namespace AnimeStudio
                     if (version[0] >= 2021) //2021.1 and up
                     {
                         var m_StaticShadowCaster = reader.ReadByte();
-                        if (reader.Game.Type.IsArknightsEndfield())
+                        if (reader.Game.Type.IsArknightsEndfieldGroup())
                         {
                             var m_RealtimeShadowCaster = reader.ReadByte();
                             var m_SubMeshRenderMode = reader.ReadByte();
@@ -126,6 +126,10 @@ namespace AnimeStudio
                     {
                         var m_MeshShowQuality = reader.ReadByte();
                     }
+                    if (reader.Game.Type.IsArknightsEndfieldCB3())
+                    {
+                        var m_RenderFoliageOccluder = reader.ReadByte();
+                    }
                     reader.AlignStream();
                 }
                 else
@@ -135,6 +139,11 @@ namespace AnimeStudio
                     var m_CastShadows = reader.ReadByte();
                     var m_ReceiveShadows = reader.ReadBoolean();
                     reader.AlignStream();
+                }
+
+                if (reader.Game.Type.IsArknightsEndfieldCB3())
+                {
+                    var m_PlatformSpecificCastShadows = reader.ReadUInt32();
                 }
 
                 if (version[0] >= 2018 || (reader.Game.Type.IsBH3() && isNewHeader)) //2018 and up
@@ -206,24 +215,26 @@ namespace AnimeStudio
 
             if (!reader.Game.Type.IsSR() || !HasPrope(reader.serializedType))
             {
-            if (version[0] > 5 || (version[0] == 5 && version[1] >= 4)) //5.4 and up
-            {
-                var m_ProbeAnchor = new PPtr<Transform>(reader);
-                var m_LightProbeVolumeOverride = new PPtr<GameObject>(reader);
-            }
-            else if (version[0] > 3 || (version[0] == 3 && version[1] >= 5)) //3.5 - 5.3
-            {
-                var m_UseLightProbes = reader.ReadBoolean();
-                reader.AlignStream();
-
-                if (version[0] >= 5)//5.0 and up
+                if (version[0] > 5 || (version[0] == 5 && version[1] >= 4)) //5.4 and up
                 {
-                    var m_ReflectionProbeUsage = reader.ReadInt32();
+                    var m_ProbeAnchor = new PPtr<Transform>(reader);
+                    var m_LightProbeVolumeOverride = new PPtr<GameObject>(reader);
                 }
+                else if (version[0] > 3 || (version[0] == 3 && version[1] >= 5)) //3.5 - 5.3
+                {
+                    var m_UseLightProbes = reader.ReadBoolean();
+                    reader.AlignStream();
 
-                var m_LightProbeAnchor = new PPtr<Transform>(reader); //5.0 and up m_ProbeAnchor
+                    if (version[0] >= 5)//5.0 and up
+                    {
+                        var m_ReflectionProbeUsage = reader.ReadInt32();
+                    }
+
+                    var m_LightProbeAnchor = new PPtr<Transform>(reader); //5.0 and up m_ProbeAnchor
+                }
             }
-            }
+
+            var m_ShadowProxyMesh = new PPtr<Mesh>(reader);
 
             if (version[0] > 4 || (version[0] == 4 && version[1] >= 3)) //4.3 and up
             {
@@ -237,6 +248,7 @@ namespace AnimeStudio
                 }
 
                 //SInt16 m_SortingLayer 5.6 and up
+                var m_SortingLayer2 = reader.ReadInt16();
                 var m_SortingOrder = reader.ReadInt16();
                 reader.AlignStream();
                 if (reader.Game.Type.IsGIGroup() || reader.Game.Type.IsBH3())
@@ -253,7 +265,6 @@ namespace AnimeStudio
                     }
                     reader.AlignStream();
                 }
-
                 if (reader.Game.Type.IsZZZ())
                 {
                     var m_NeedHizCulling = reader.ReadBoolean();
@@ -264,6 +275,17 @@ namespace AnimeStudio
                     {
                         var m_CullingDistance = reader.ReadSingle();
                     }
+                }
+                if (reader.Game.Type.IsArknightsEndfieldCB3())
+                {
+                    var m_EnableCharacterOutline = reader.ReadBoolean();
+                    var m_EnablePerRendererLighting = reader.ReadBoolean();
+                    reader.AlignStream();
+                    var m_PerRendererLightingOffset = reader.ReadVector3();
+                    var m_PerRendererLightingAnchor = new PPtr<Transform>(reader);
+                    var m_LightModeMask = reader.ReadUInt32();
+                    var m_RendererSortingFudge = reader.ReadSingle();
+                    reader.AlignStream();
                 }
             }
         }
