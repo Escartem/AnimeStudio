@@ -209,21 +209,9 @@ namespace AnimeStudio.Crypto
             }
         }
 
-        private static ushort BitConcat(byte a, byte b)
-        {
-            return (ushort)(((ushort)a << 8) | (ushort)b);
-        }
-
-        private static uint BitConcat(ushort a, ushort b)
-        {
-            return ((uint)a << 16) | (uint)b;
-        }
-
-        private static ulong BitConcat(uint a, uint b)
-        {
-            return ((ulong)a << 32) | (ulong)b;
-        }
-
+        private static ushort BitConcat(byte a, byte b) => (ushort)(((ushort)a << 8) | (ushort)b);
+        private static uint BitConcat(ushort a, ushort b) => ((uint)a << 16) | (uint)b;
+        private static ulong BitConcat(uint a, uint b) => ((ulong)a << 32) | (ulong)b;
         private static ushort RotateLeft(ushort value, int count) => (ushort)((value << count) | (value >> (16 - count)));
     }
 

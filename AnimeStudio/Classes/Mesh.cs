@@ -1626,35 +1626,10 @@ namespace AnimeStudio
                 r2y = r3y * r0y;
                 r2z = r3z * r0y;
 
-
-
-                //float old_r3x = r3x;
-                //r3x = r3y * r0y - r2z;
-                //r3y = r3z * r0y - r2x;
-                //r3z = old_r3x * r0y - r2y;
-
-                //r0y = r3x * r2x + r3y * r2y + r3z * r2z;
-
-                //r3x = r3x - r0y;
-                //r3y = r3y - r0y;
-                //r3z = r3z - r0y;
-
-                //r0y = r3x * r3x + r3y * r3y + r3z * r3z;
-                //r0y = 1.0f / (float)Math.Sqrt(r0y);
-
-                //r3x = r3x * r0y;
-                //r3y = r3y * r0y;
-                //r3z = r3z * r0y;
-
-
-
                 // 计算result[i * 3]的值
                 result[i * 3] = r2x;
                 result[i * 3 + 1] = r2y;
                 result[i * 3 + 2] = r2z;
-                //result[i * 3] = 0;
-                //result[i * 3 + 1] = 0;
-                //result[i * 3 + 2] = 1;
             }
             return result;
         }
