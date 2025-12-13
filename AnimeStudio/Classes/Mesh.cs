@@ -919,7 +919,7 @@ namespace AnimeStudio
 
                         int[] componentsIntArray = null;
                         float[] componentsFloatArray = null;
-                        if (reader.Game.Type.IsArknightsEndfieldGroup() && chn == 1)
+                        if (reader.Game.Type.IsArknightsEndfieldGroup() && chn == 1 && m_Channel.dimension == 1)
                         {
                             //componentsFloatArray = MeshHelper.BytesToFloatArray(componentBytes, vertexFormat);
                             componentsFloatArray = MeshHelper.DecompressEndfieldNormal(componentBytes, vertexFormat);
