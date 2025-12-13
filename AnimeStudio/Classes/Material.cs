@@ -76,7 +76,7 @@ namespace AnimeStudio
 
             if (reader.Game.Type.IsArknightsEndfieldCB3())
             {
-                var m_SubsurfaceProfile = new PPtr<NamedObject>(reader);
+                var m_SubsurfaceProfile = new PPtr<HGSubsurfaceProfile>(reader);
             }
         }
     }
