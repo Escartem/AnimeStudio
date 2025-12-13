@@ -305,7 +305,6 @@ namespace AnimeStudio.GUI
                 {
                     c = 4;
                 }
-                Logger.Info($"normals: {m_Mesh.m_Normals.Length}; vc: {m_Mesh.m_VertexCount}");
                 for (int v = 0; v < m_Mesh.m_VertexCount; v++)
                 {
                     sb.AppendFormat("vn {0} {1} {2}\r\n", -m_Mesh.m_Normals[v * c], m_Mesh.m_Normals[v * c + 1], m_Mesh.m_Normals[v * c + 2]);
