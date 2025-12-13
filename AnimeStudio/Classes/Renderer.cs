@@ -234,7 +234,7 @@ namespace AnimeStudio
                 }
             }
 
-            if (reader.Game.Type.IsArknightsEndfieldCB3)
+            if (reader.Game.Type.IsArknightsEndfieldCB3())
             {
                 var m_ShadowProxyMesh = new PPtr<Mesh>(reader);
             }
