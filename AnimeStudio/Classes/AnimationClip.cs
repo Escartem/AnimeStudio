@@ -1090,7 +1090,7 @@ namespace AnimeStudio
         public float m_BeginTime;
         public float[] m_SampleArray;
         public int m_ACLType;
-        public List<uint> m_ACLArray;
+        public byte[] m_ACLArray;
         public float m_PositionFactor;
         public float m_EulerFactor;
         public float m_ScaleFactor;
@@ -1111,14 +1111,11 @@ namespace AnimeStudio
             m_SampleArray = reader.ReadSingleArray();
             if (reader.Game.Type.IsArknightsEndfieldCB3())
             {
+                // TODO move this to ACLDenseClip?!?!?
                 m_ACLType = reader.ReadInt32();
                 
-                var aclArrayCount = reader.ReadInt32();
-                m_ACLArray = new List<uint>();
-                for (int i = 0; i < aclArrayCount; i++)
-                {
-                    m_ACLArray.Add(reader.ReadByte());
-                }
+                m_ACLArray = reader.ReadUInt8Array();
+                reader.AlignStream();
 
                 m_PositionFactor = reader.ReadUInt32();
                 m_EulerFactor = reader.ReadUInt32();
@@ -1173,7 +1170,7 @@ namespace AnimeStudio
         public ACLDenseClip(ObjectReader reader) : base(reader)
         {
             m_ACLType = reader.ReadInt32();
-            if (reader.Game.Type.IsArknightsEndfield() || reader.Game.Type.IsArknightsEndfieldCB3())
+            if (reader.Game.Type.IsArknightsEndfieldGroup())
             {
                 m_ACLArray = reader.ReadUInt8Array();
                 reader.AlignStream();
@@ -1745,59 +1742,39 @@ namespace AnimeStudio
     public class AnimClipAclCompressedBuffer
     {
         public int Version;
-        public List<uint> TransformBufferData;
-        public List<uint> RootMotionBufferData;
-        public List<uint> FloatBufferData;
-        public List<uint> TransformSubTrackMasks;
-        public List<uint> TransformSubTrackConstantMasks;
-        public uint OutputTrackCount;
-        public uint RootPosIndex;
-        public uint RootRotIndex;
-        public uint RootScaleIndex;
-        public uint RootTrackCount;
-        public uint FloatCurveCount;
-        public List<uint> m_DefaultIndexs;
-        public List<uint> m_ConstantIndexs;
-        public List<uint> m_ConstantValues;
+        public byte[] TransformBufferData;
+        public byte[] RootMotionBufferData;
+        public byte[] FloatBufferData;
+        public byte[] TransformSubTrackMasks;
+        public byte[] TransformSubTrackConstantMasks;
+        public ushort OutputTrackCount;
+        public ushort RootPosIndex;
+        public ushort RootRotIndex;
+        public ushort RootScaleIndex;
+        public ushort RootTrackCount;
+        public ushort FloatCurveCount;
+        public ushort[] m_DefaultIndexs;
+        public ushort[] m_ConstantIndexs;
+        public float[] m_ConstantValues;
 
         public AnimClipAclCompressedBuffer(EndianBinaryReader reader)
         {
             Version = reader.ReadInt32();
 
-            var transformBufferDataCount = reader.ReadInt32();
-            TransformBufferData = new List<uint>();
-            for (int i = 0; i < transformBufferDataCount; i++)
-            {
-                TransformBufferData.Add(reader.ReadByte());
-            }
+            TransformBufferData = reader.ReadUInt8Array();
+            reader.AlignStream();
 
-            var rootMotionBufferDataCount = reader.ReadInt32();
-            RootMotionBufferData = new List<uint>();
-            for (int i = 0; i < rootMotionBufferDataCount; i++)
-            {
-                RootMotionBufferData.Add(reader.ReadByte());
-            }
+            RootMotionBufferData = reader.ReadUInt8Array();
+            reader.AlignStream();
 
-            var floatBufferDataCount = reader.ReadInt32();
-            FloatBufferData = new List<uint>();
-            for (int i = 0; i < floatBufferDataCount; i++)
-            {
-                FloatBufferData.Add(reader.ReadByte());
-            }
+            FloatBufferData = reader.ReadUInt8Array();
+            reader.AlignStream();
 
-            var transformSubTrackMasksCount = reader.ReadInt32();
-            TransformSubTrackMasks = new List<uint>();
-            for (int i = 0; i < transformSubTrackMasksCount; i++)
-            {
-                TransformSubTrackMasks.Add(reader.ReadByte());
-            }
+            TransformSubTrackMasks = reader.ReadUInt8Array();
+            reader.AlignStream();
 
-            var transformSubTrackConstantMasksCount = reader.ReadInt32();
-            TransformSubTrackConstantMasks = new List<uint>();
-            for (int i = 0; i < transformSubTrackConstantMasksCount; i++)
-            {
-                TransformSubTrackConstantMasks.Add(reader.ReadByte());
-            }
+            TransformSubTrackConstantMasks = reader.ReadUInt8Array();
+            reader.AlignStream();
 
             OutputTrackCount = reader.ReadUInt16();
             RootPosIndex = reader.ReadUInt16();
@@ -1806,26 +1783,14 @@ namespace AnimeStudio
             RootTrackCount = reader.ReadUInt16();
             FloatCurveCount = reader.ReadUInt16();
 
-            var defaultIndexsCount = reader.ReadInt32();
-            m_DefaultIndexs = new List<uint>();
-            for (int i = 0; i < defaultIndexsCount; i++)
-            {
-                m_DefaultIndexs.Add(reader.ReadUInt16());
-            }
+            m_DefaultIndexs = reader.ReadUInt16Array();
+            reader.AlignStream();
 
-            var constantIndexsCount = reader.ReadInt32();
-            m_ConstantIndexs = new List<uint>();
-            for (int i = 0; i < constantIndexsCount; i++)
-            {
-                m_ConstantIndexs.Add(reader.ReadUInt16());
-            }
+            m_ConstantIndexs = reader.ReadUInt16Array();
+            reader.AlignStream();
 
-            var constantValuesCount = reader.ReadInt32();
-            m_ConstantValues = new List<uint>();
-            for (int i = 0; i < constantValuesCount; i++)
-            {
-                m_ConstantValues.Add(reader.ReadUInt16());
-            }
+            m_ConstantValues = reader.ReadSingleArray();
+            reader.AlignStream();
         }
     }
 
@@ -2075,7 +2040,7 @@ namespace AnimeStudio
 
             m_SampleRate = reader.ReadSingle();
             m_WrapMode = reader.ReadInt32();
-            if (reader.Game.Type.IsArknightsEndfield() || reader.Game.Type.IsArknightsEndfieldCB3())
+            if (reader.Game.Type.IsArknightsEndfieldGroup())
             {
                 var m_aclType = reader.ReadInt32();
             }
@@ -2144,6 +2109,7 @@ namespace AnimeStudio
                 var m_ClipTag = reader.ReadUInt16();
                 var m_TransitionRotateMode = reader.ReadByte();
                 var m_TransitionRotateDirType = reader.ReadByte();
+                reader.AlignStream();
                 var m_TotalSize = reader.ReadUInt32();
                 var m_TransitionRotateCurveIndex = reader.ReadUInt16();
             }
