@@ -1089,16 +1089,6 @@ namespace AnimeStudio
         public float m_SampleRate;
         public float m_BeginTime;
         public float[] m_SampleArray;
-        public int m_ACLType;
-        public byte[] m_ACLArray;
-        public float m_PositionFactor;
-        public float m_EulerFactor;
-        public float m_ScaleFactor;
-        public float m_FloatFactor;
-        public uint m_nPositionCurves;
-        public uint m_nRotationCurves;
-        public uint m_nEulerCurves;
-        public uint m_nScaleCurves;
 
         public DenseClip() { }
 
@@ -1109,23 +1099,6 @@ namespace AnimeStudio
             m_SampleRate = reader.ReadSingle();
             m_BeginTime = reader.ReadSingle();
             m_SampleArray = reader.ReadSingleArray();
-            if (reader.Game.Type.IsArknightsEndfieldCB3())
-            {
-                // TODO move this to ACLDenseClip?!?!?
-                m_ACLType = reader.ReadInt32();
-                
-                m_ACLArray = reader.ReadUInt8Array();
-                reader.AlignStream();
-
-                m_PositionFactor = reader.ReadUInt32();
-                m_EulerFactor = reader.ReadUInt32();
-                m_ScaleFactor = reader.ReadUInt32();
-                m_FloatFactor = reader.ReadUInt32();
-                m_nPositionCurves = reader.ReadUInt32();
-                m_nRotationCurves = reader.ReadUInt32();
-                m_nEulerCurves = reader.ReadUInt32();
-                m_nScaleCurves = reader.ReadUInt32();
-            }
         }
         public static DenseClip ParseGI(ObjectReader reader)
         {
@@ -1351,7 +1324,7 @@ namespace AnimeStudio
         {
             var version = reader.version;
             m_StreamedClip = new StreamedClip(reader);
-            if (reader.Game.Type.IsArknightsEndfield() || reader.Game.Type.IsExAstris())
+            if (reader.Game.Type.IsArknightsEndfieldGroup() || reader.Game.Type.IsExAstris())
             {
                 m_DenseClip = new ACLDenseClip(reader);
             }
