@@ -151,7 +151,7 @@ namespace AnimeStudio
                     LoadAssetsFile(reader);
                     break;
                 case FileType.BundleFile:
-                    LoadBundleFile(reader);
+                    LoadGameBlockFile(reader);
                     break;
                 case FileType.WebFile:
                     LoadWebFile(reader);
@@ -166,13 +166,11 @@ namespace AnimeStudio
                     LoadZipFile(reader);
                     break;
                 case FileType.BlockFile:
+                case FileType.BlkFile:
                     LoadBlockFile(reader);
                     break;
-                case FileType.BlkFile:
-                    LoadBlkFile(reader);
-                    break;
                 case FileType.MhyFile:
-                    LoadMhyFile(reader);
+                    LoadGameBlockFile(reader);
                     break;
             }
         }
@@ -265,49 +263,6 @@ namespace AnimeStudio
                 Logger.Info($"Skipping {originalPath} ({reader.FileName})");
         }
 
-        private void LoadBundleFile(FileReader reader, string originalPath = null, long originalOffset = 0, bool log = true)
-        {
-            if (log)
-            {
-                Logger.Info("Loading " + reader.FullPath);
-            }
-            try
-            {
-                var bundleFile = new BundleFile(reader, Game);
-                foreach (var file in bundleFile.fileList)
-                {
-                    var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), file.fileName);
-                    var subReader = new FileReader(dummyPath, file.stream);
-                    if (subReader.FileType == FileType.AssetsFile)
-                    {
-                        LoadAssetsFromMemory(subReader, originalPath ?? reader.FullPath, bundleFile.m_Header.unityRevision, originalOffset);
-                    }
-                    else
-                    {
-                        Logger.Verbose("Caching resource stream");
-                        resourceFileReaders.TryAdd(file.fileName, subReader); //TODO
-                    }
-                }
-            }
-            catch (InvalidCastException)
-            {
-                Logger.Error($"Game type mismatch, Expected {nameof(Mr0k)} but got {Game.Name} ({Game.GetType().Name}) !!");
-            }
-            catch (Exception e)
-            {
-                var str = $"Error while reading bundle file {reader.FullPath}";
-                if (originalPath != null)
-                {
-                    str += $" from {Path.GetFileName(originalPath)}";
-                }
-                Logger.Error(str, e);
-            }
-            finally
-            {
-                reader.Dispose();
-            }
-        }
-
         private void LoadWebFile(FileReader reader)
         {
             Logger.Info("Loading " + reader.FullPath);
@@ -324,7 +279,7 @@ namespace AnimeStudio
                             LoadAssetsFromMemory(subReader, reader.FullPath);
                             break;
                         case FileType.BundleFile:
-                            LoadBundleFile(subReader, reader.FullPath);
+                            LoadGameBlockFile(subReader, reader.FullPath);
                             break;
                         case FileType.WebFile:
                             LoadWebFile(subReader);
@@ -448,34 +403,34 @@ namespace AnimeStudio
             Logger.Info("Loading " + reader.FullPath);
             try
             {
-                using var stream = new OffsetStream(reader.BaseStream, 0);
-                foreach (var offset in stream.GetOffsets(reader.FullPath))
-                {
-                    var name = offset.ToString("X8");
-                    Logger.Debug($"Loading Block {name}");
+                dynamic stream;
 
-                    var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), name);
-                    var subReader = new FileReader(dummyPath, stream, true);
-                    switch (subReader.FileType)
+                switch (reader.FileType)
+                {
+                    case FileType.BlkFile:
+                        stream = BlkUtils.Decrypt(reader, (Blk)Game);
+                        break;
+                    default:
+                        stream = new OffsetStream(reader.BaseStream, 0);
+                        break;
+                }
+
+                Progress.Reset();
+                using (stream)
+                {
+                    var total = stream.Length;
+                    foreach (var offset in stream.GetOffsets(reader.FullPath))
                     {
-                        case FileType.ENCRFile:
-                        case FileType.BundleFile:
-                            LoadBundleFile(subReader, reader.FullPath, offset, false);
-                            break;
-                        case FileType.Blb3File:
-                            LoadBlb3File(subReader, reader.FullPath, offset, false);
-                            break;
-                        case FileType.MhyFile:
-                            LoadMhyFile(subReader, reader.FullPath, offset, false);
-                            break;
-                        case FileType.HygFile:
-                            LoadHygFile(subReader, reader.FullPath, offset, false);
-                            break;
-                        case FileType.VFSFile:
-                            LoadVFSFile(subReader, reader.FullPath, offset, false);
-                            break;
+                        var name = offset.ToString("X8");
+                        Logger.Verbose($"Loading Block {name}");
+
+                        var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), name);
+                        var subReader = new FileReader(dummyPath, stream, true);
+                        LoadGameBlockFile(subReader, reader.FullPath, offset, false);
+                        Progress.Report((int)offset, (int)total);
                     }
-                }    
+                }
+                
             }
             catch (Exception e)
             {
@@ -486,192 +441,82 @@ namespace AnimeStudio
                 reader.Dispose();
             }
         }
-        private void LoadBlkFile(FileReader reader)
+        private void LoadGameBlockFile(FileReader reader, string originalPath = null, long originalOffset = 0, bool log = true)
         {
-            Logger.Info("Loading " + reader.FullPath);
+            if (log)
+            {
+                Logger.Info("Loading " + reader.FullPath);
+            }
             try
             {
-                using var stream = BlkUtils.Decrypt(reader, (Blk)Game);
-                foreach (var offset in stream.GetOffsets(reader.FullPath))
-                {
-                    var name = offset.ToString("X8");
-                    Logger.Debug($"Loading Block {name}");
+                dynamic file = null;
 
-                    var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), name);
-                    var subReader = new FileReader(dummyPath, stream, true);
-                    switch (subReader.FileType)
+                switch (reader.FileType)
+                {
+                    case FileType.ENCRFile:
+                    case FileType.BundleFile:
+                        file = new BundleFile(reader, Game);
+                        break;
+                    case FileType.Blb3File:
+                        file = new Blb3File(reader, reader.FullPath);
+                        break;
+                    case FileType.MhyFile:
+                        file = new MhyFile(reader, (Mhy)Game);
+                        break;
+                    case FileType.HygFile:
+                        file = new HygFile(reader, reader.FullPath);
+                        break;
+                    case FileType.VFSFile:
+                        file = new VFSFile(reader, reader.FullPath);
+                        break;
+                }
+
+                if (file == null)
+                    throw new Exception("Unsupported game block file type");
+
+                Logger.Verbose($"file total size: {file.m_Header.size:X8}");
+                foreach (var innerFile in file.fileList)
+                {
+                    var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), innerFile.fileName);
+                    var cabReader = new FileReader(dummyPath, innerFile.stream);
+                    if (cabReader.FileType == FileType.AssetsFile)
                     {
-                        case FileType.BundleFile:
-                            LoadBundleFile(subReader, reader.FullPath, offset, false);
-                            break;
-                        case FileType.MhyFile:
-                            LoadMhyFile(subReader, reader.FullPath, offset, false);
-                            break;
+                        LoadAssetsFromMemory(cabReader, originalPath ?? reader.FullPath, file.m_Header.unityRevision, originalOffset);
+                    }
+                    else
+                    {
+                        Logger.Verbose("Caching resource stream");
+                        resourceFileReaders.TryAdd(innerFile.fileName, cabReader); //TODO
                     }
                 }
             }
             catch (InvalidCastException)
             {
-                Logger.Error($"Game type mismatch, Expected {nameof(Blk)} but got {Game.Name} ({Game.GetType().Name}) !!");
+                string name = "";
+                switch (reader.FileType)
+                {
+                    case FileType.ENCRFile:
+                    case FileType.BundleFile:
+                        name = nameof(Mr0k);
+                        break;
+                    case FileType.Blb3File:
+                        name = nameof(Blb3File);
+                        break;
+                    case FileType.MhyFile:
+                        name = nameof(Mhy);
+                        break;
+                    case FileType.HygFile:
+                        name = nameof(HygFile);
+                        break;
+                    case FileType.VFSFile:
+                        name = nameof(VFSFile);
+                        break;
+                }
+                Logger.Error($"Game type mismatch, Expected {name} but got {Game.Name} ({Game.GetType().Name}) !!");
             }
             catch (Exception e)
             {
-                Logger.Error($"Error while reading blk file {reader.FileName}", e);
-            }
-            finally
-            {
-                reader.Dispose();
-            }
-        }
-        private void LoadMhyFile(FileReader reader, string originalPath = null, long originalOffset = 0, bool log = true)
-        {
-            if (log)
-            {
-                Logger.Info("Loading " + reader.FullPath);
-            }
-            try
-            {
-                var mhyFile = new MhyFile(reader, (Mhy)Game);
-                Logger.Verbose($"mhy total size: {mhyFile.m_Header.size:X8}");
-                foreach (var file in mhyFile.fileList)
-                {
-                    var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), file.fileName);
-                    var cabReader = new FileReader(dummyPath, file.stream);
-                    if (cabReader.FileType == FileType.AssetsFile)
-                    {
-                        LoadAssetsFromMemory(cabReader, originalPath ?? reader.FullPath, mhyFile.m_Header.unityRevision, originalOffset);
-                    }
-                    else
-                    {
-                        Logger.Verbose("Caching resource stream");
-                        resourceFileReaders.TryAdd(file.fileName, cabReader); //TODO
-                    }
-                }
-            }
-            catch (InvalidCastException)
-            {
-                Logger.Error($"Game type mismatch, Expected {nameof(Mhy)} but got {Game.Name} ({Game.GetType().Name}) !!");
-            }
-            catch (Exception e)
-            {
-                var str = $"Error while reading mhy file {reader.FullPath}";
-                if (originalPath != null)
-                {
-                    str += $" from {Path.GetFileName(originalPath)}";
-                }
-                Logger.Error(str, e);
-            }
-            finally
-            {
-                reader.Dispose();
-            }
-        }
-        
-        private void LoadBlb3File(FileReader reader, string originalPath = null, long originalOffset = 0, bool log = true)
-        {
-            if (log)
-            {
-                Logger.Info("Loading " + reader.FullPath);
-            }
-            try
-            {
-                var blbFile = new Blb3File(reader, reader.FullPath);
-                foreach (var file in blbFile.fileList)
-                {
-                    var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), file.fileName);
-                    var cabReader = new FileReader(dummyPath, file.stream);
-                    if (cabReader.FileType == FileType.AssetsFile)
-                    {
-                        LoadAssetsFromMemory(cabReader, originalPath ?? reader.FullPath, blbFile.m_Header.unityRevision, originalOffset);
-                    }
-                    else
-                    {
-                        Logger.Verbose("Caching resource stream");
-                        resourceFileReaders.TryAdd(file.fileName, cabReader); //TODO
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                var str = $"Error while reading Blb file {reader.FullPath}";
-                if (originalPath != null)
-                {
-                    str += $" from {Path.GetFileName(originalPath)}";
-                }
-                Logger.Error(str, e);
-            }
-            finally
-            {
-                reader.Dispose();
-            }
-        }
-
-        private void LoadHygFile(FileReader reader, string originalPath = null, long originalOffset = 0, bool log = true)
-        {
-            if (log)
-            {
-                Logger.Info("Loading " + reader.FullPath);
-            }
-            try
-            {
-                var hygFile = new HygFile(reader, reader.FullPath);
-                foreach (var file in hygFile.fileList)
-                {
-                    var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), file.fileName);
-                    var cabReader = new FileReader(dummyPath, file.stream);
-                    if (cabReader.FileType == FileType.AssetsFile)
-                    {
-                        LoadAssetsFromMemory(cabReader, originalPath ?? reader.FullPath, hygFile.m_Header.unityRevision, originalOffset);
-                    }
-                    else
-                    {
-                        Logger.Verbose("Caching resource stream");
-                        resourceFileReaders.TryAdd(file.fileName, cabReader);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                var str = $"Error while reading Hyg file {reader.FullPath}";
-                if (originalPath != null)
-                {
-                    str += $" from {Path.GetFileName(originalPath)}";
-                }
-                Logger.Error(str, e);
-            }
-            finally
-            {
-                reader.Dispose();
-            }
-        }
-
-        private void LoadVFSFile(FileReader reader, string originalPath = null, long originalOffset = 0, bool log = true)
-        {
-            if (log)
-            {
-                Logger.Info("Loading " + reader.FullPath);
-            }
-            try
-            {
-                var vfsFile = new VFSFile(reader, reader.FullPath);
-                foreach (var file in vfsFile.fileList)
-                {
-                    var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), file.fileName);
-                    var cabReader = new FileReader(dummyPath, file.stream);
-                    if (cabReader.FileType == FileType.AssetsFile)
-                    {
-                        LoadAssetsFromMemory(cabReader, originalPath ?? reader.FullPath, vfsFile.m_Header.unityRevision, originalOffset);
-                    }
-                    else
-                    {
-                        Logger.Verbose("Caching resource stream");
-                        resourceFileReaders.TryAdd(file.fileName, cabReader);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                var str = $"Error while reading VFS file {reader.FullPath}";
+                var str = $"Error while reading file {reader.FullPath}";
                 if (originalPath != null)
                 {
                     str += $" from {Path.GetFileName(originalPath)}";

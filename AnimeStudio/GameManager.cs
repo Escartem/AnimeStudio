@@ -40,8 +40,8 @@ namespace AnimeStudio
             Games.Add(index++, new Mhy(GameType.ZZZ, "Live", GIMhyShiftRow, GIMhyKey, GIMhyMul, null, GISBox, null, 0uL));
             Games.Add(index++, new Mr0k(GameType.ZZZ_CB1, "CBT 1", Mr0kExpansionKey, initVector: Mr0kInitVector, blockKey: Mr0kBlockKey));
             Games.Add(index++, new Mhy(GameType.ZZZ_CB2, "CBT 2", GIMhyShiftRow, GIMhyKey, GIMhyMul, null, GISBox, null, 0uL));
-            Games.Add(index++, new Game(GameType.HNA_CB1, "CBT 1"));
-            Games.Add(index++, new Game(GameType.HYG_CB1, "CBT 1"));
+            Games.Add(index++, new Game(GameType.HNA_CB1, "CBT 1", GameCategory.Hoyo));
+            Games.Add(index++, new Game(GameType.HYG_CB1, "CBT 1", GameCategory.Hoyo));
             Games.Add(index++, new Mr0k(GameType.TOT, "Live", Mr0kExpansionKey, initVector: Mr0kInitVector, blockKey: Mr0kBlockKey, postKey: ToTKey));
             Games.Add(index++, new Game(GameType.Naraka, "Naraka"));
             Games.Add(index++, new Game(GameType.EnsembleStars, "Ensemble Stars"));
@@ -60,7 +60,7 @@ namespace AnimeStudio
             Games.Add(index++, new Game(GameType.GirlsFrontline, "Girls Frontline"));
             Games.Add(index++, new Game(GameType.Reverse1999, "Reverse: 1999"));
             Games.Add(index++, new Game(GameType.ArknightsEndfieldCB3, "Arknights Endfield CBT3"));
-            Games.Add(index++, new Game(GameType.ArknightsEndfield, "Arknights Endfield CBT2"));
+            Games.Add(index++, new Game(GameType.ArknightsEndfieldCB2, "Arknights Endfield CBT2"));
             Games.Add(index++, new Game(GameType.Arknights, "Arknights"));
             Games.Add(index++, new Game(GameType.JJKPhantomParade, "JJK Phantom Parade"));
             Games.Add(index++, new Game(GameType.MuvLuvDimensions, "Muv-Luv Dimensions"));
@@ -220,7 +220,7 @@ namespace AnimeStudio
         GirlsFrontline,
         Reverse1999,
         ArknightsEndfieldCB3,
-        ArknightsEndfield,
+        ArknightsEndfieldCB2,
         Arknights,
         JJKPhantomParade,
         MuvLuvDimensions,
@@ -289,7 +289,7 @@ namespace AnimeStudio
         public static bool IsOPFP(this GameType type) => type == GameType.OPFP;
         public static bool IsNetEase(this GameType type) => type == GameType.NetEase;
         public static bool IsArknightsEndfieldCB3(this GameType type) => type == GameType.ArknightsEndfieldCB3;
-        public static bool IsArknightsEndfield(this GameType type) => type == GameType.ArknightsEndfield;
+        public static bool IsArknightsEndfield(this GameType type) => type == GameType.ArknightsEndfieldCB2;
         public static bool IsArknights(this GameType type) => type == GameType.Arknights;
         public static bool IsLoveAndDeepspace(this GameType type) => type == GameType.LoveAndDeepspace;
         public static bool IsExAstris(this GameType type) => type == GameType.ExAstris;
@@ -326,7 +326,7 @@ namespace AnimeStudio
 
         public static bool IsBlockFile(this GameType type) => type switch
         {
-            GameType.BH3 or GameType.BH3Pre or GameType.ZZZ_CB2 or GameType.ZZZ or GameType.SR or GameType.GI_Pack or GameType.TOT or GameType.ArknightsEndfield => true,
+            GameType.BH3 or GameType.BH3Pre or GameType.ZZZ_CB2 or GameType.ZZZ or GameType.SR or GameType.GI_Pack or GameType.TOT or GameType.ArknightsEndfieldCB2 => true,
             _ => false,
         };
 
@@ -338,7 +338,7 @@ namespace AnimeStudio
 
         public static bool IsArknightsEndfieldGroup(this GameType type) => type switch
         {
-            GameType.ArknightsEndfield or GameType.ArknightsEndfieldCB3 => true,
+            GameType.ArknightsEndfieldCB2 or GameType.ArknightsEndfieldCB3 => true,
             _ => false,
         };
     }
