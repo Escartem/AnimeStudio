@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimeStudio.Patcher", "Anim
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnimeStudio.Ooz", "AnimeStudio.Oodle\AnimeStudio.Ooz.vcxproj", "{B6748219-A0E7-46BB-AE38-5343961CB36A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AnimeStudio.ACLNative", "AnimeStudio.ACLNative\AnimeStudio.ACLNative.vcxproj", "{4638CE04-108F-456D-82F5-8F6F1612F545}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -133,6 +135,18 @@ Global
 		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Release|x64.Build.0 = Release|x64
 		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Release|x86.ActiveCfg = Release|Win32
 		{B6748219-A0E7-46BB-AE38-5343961CB36A}.Release|x86.Build.0 = Release|Win32
+		{4638CE04-108F-456D-82F5-8F6F1612F545}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{4638CE04-108F-456D-82F5-8F6F1612F545}.Debug|Any CPU.Build.0 = Debug|x64
+		{4638CE04-108F-456D-82F5-8F6F1612F545}.Debug|x64.ActiveCfg = Debug|x64
+		{4638CE04-108F-456D-82F5-8F6F1612F545}.Debug|x64.Build.0 = Debug|x64
+		{4638CE04-108F-456D-82F5-8F6F1612F545}.Debug|x86.ActiveCfg = Debug|Win32
+		{4638CE04-108F-456D-82F5-8F6F1612F545}.Debug|x86.Build.0 = Debug|Win32
+		{4638CE04-108F-456D-82F5-8F6F1612F545}.Release|Any CPU.ActiveCfg = Release|x64
+		{4638CE04-108F-456D-82F5-8F6F1612F545}.Release|Any CPU.Build.0 = Release|x64
+		{4638CE04-108F-456D-82F5-8F6F1612F545}.Release|x64.ActiveCfg = Release|x64
+		{4638CE04-108F-456D-82F5-8F6F1612F545}.Release|x64.Build.0 = Release|x64
+		{4638CE04-108F-456D-82F5-8F6F1612F545}.Release|x86.ActiveCfg = Release|Win32
+		{4638CE04-108F-456D-82F5-8F6F1612F545}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using ACLLibs;
 
 namespace AnimeStudio
@@ -36,6 +37,12 @@ namespace AnimeStudio
                         break;
                 }
             }
+        }
+
+        public static void Process(this AnimClipAclCompressedBuffer m_AclCompressedBuffer, Game game, out float[] values, out float[] times)
+        {
+            values = Array.Empty<float>();
+            times = Array.Empty<float>();
         }
     }
 }
