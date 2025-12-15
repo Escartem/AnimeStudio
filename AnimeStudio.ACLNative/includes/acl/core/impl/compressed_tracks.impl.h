@@ -69,7 +69,8 @@ namespace acl
 
 	inline buffer_tag32 compressed_tracks::get_tag() const { return static_cast<buffer_tag32>(acl_impl::get_tracks_header(*this).tag); }
 
-	inline compressed_tracks_version16 compressed_tracks::get_version() const { return acl_impl::get_tracks_header(*this).version; }
+	inline compressed_tracks_version16 compressed_tracks::get_version() const { return get_effective_version(get_raw_version()); }
+	inline compressed_tracks_version16 compressed_tracks::get_raw_version() const { return acl_impl::get_tracks_header(*this).version; }
 
 	inline uint32_t compressed_tracks::get_num_tracks() const { return acl_impl::get_tracks_header(*this).num_tracks; }
 
@@ -83,7 +84,7 @@ namespace acl
 
 		if (looping_policy == sample_looping_policy::as_compressed)
 		{
-			if (header.version <= compressed_tracks_version16::v02_00_00)
+			if (get_version() <= compressed_tracks_version16::v02_00_00)
 				looping_policy = sample_looping_policy::clamp;	// Older versions used clamp
 			else if (header.get_is_wrap_optimized())
 				looping_policy = sample_looping_policy::wrap;
@@ -105,7 +106,7 @@ namespace acl
 
 		if (looping_policy == sample_looping_policy::as_compressed)
 		{
-			if (header.version <= compressed_tracks_version16::v02_00_00)
+			if (get_version() <= compressed_tracks_version16::v02_00_00)
 				looping_policy = sample_looping_policy::clamp;	// Older versions used clamp
 			else if (header.get_is_wrap_optimized())
 				looping_policy = sample_looping_policy::wrap;
@@ -134,7 +135,7 @@ namespace acl
 	inline sample_looping_policy compressed_tracks::get_looping_policy() const
 	{
 		const acl_impl::tracks_header& header = acl_impl::get_tracks_header(*this);
-		if (header.version <= compressed_tracks_version16::v02_00_00)
+		if (get_version() <= compressed_tracks_version16::v02_00_00)
 			return sample_looping_policy::clamp;	// Older versions used clamp
 
 		return header.get_is_wrap_optimized() ? sample_looping_policy::wrap : sample_looping_policy::clamp;
@@ -230,7 +231,7 @@ namespace acl
 		if (!metadata_header.parent_track_indices.is_valid())
 			return false;	// Metadata isn't stored
 
-		const compressed_tracks_version16 version = header.version;
+		const compressed_tracks_version16 version = get_version();
 		const uint32_t* parent_track_indices = metadata_header.get_parent_track_indices(*this);
 		const uint8_t* descriptions = metadata_header.get_track_descriptions(*this);
 
@@ -287,7 +288,7 @@ namespace acl
 		if (!is_valid_algorithm_type(header.algorithm_type))
 			return error_result("Invalid algorithm type");
 
-		if (header.version < compressed_tracks_version16::first || header.version > compressed_tracks_version16::latest)
+		if (get_version() < compressed_tracks_version16::first || get_version() > compressed_tracks_version16::latest)
 			return error_result("Invalid algorithm version");
 
 		if (check_hash)

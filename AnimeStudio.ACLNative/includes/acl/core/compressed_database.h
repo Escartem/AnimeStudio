@@ -88,6 +88,7 @@ namespace acl
 		//////////////////////////////////////////////////////////////////////////
 		// Returns the binary format version.
 		compressed_tracks_version16 get_version() const;
+		compressed_tracks_version16 get_raw_version() const;
 
 		//////////////////////////////////////////////////////////////////////////
 		// Returns the number of chunks contained in this database for the specified tier (medium or low).

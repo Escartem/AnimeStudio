@@ -74,6 +74,12 @@ namespace acl
 		v02_01_99_2 = 10,			// ACL v2.1.0-wip (converted error contribution metadata)
 		v02_01_00	= 10,			// ACL v2.1.0
 
+		// Custom versions for certain games.
+		// Will be resolved to one of the above via get_version(),
+		// and can be recovered via get_raw_version();
+		vNap		= 100,
+		vHk4e		= 101
+
 		//////////////////////////////////////////////////////////////////////////
 		// First version marker, this is equal to the first version supported: ACL 2.0.0
 		// Versions prior to ACL 2.0 are not backwards compatible.
@@ -84,6 +90,16 @@ namespace acl
 		// Always assigned to the latest version supported.
 		latest		= v02_01_00,
 	};
+
+	inline compressed_tracks_version16 get_effective_version(compressed_tracks_version16 version) const {
+		switch (version) {
+		case compressed_tracks_version16::vNap:
+			return compressed_tracks_version16::v02_01_99;
+		case compressed_tracks_version16::vHk4e:
+			return compressed_tracks_version16::v02_01_00;
+		}
+		return version;
+	}
 
 	ACL_IMPL_VERSION_NAMESPACE_END
 }

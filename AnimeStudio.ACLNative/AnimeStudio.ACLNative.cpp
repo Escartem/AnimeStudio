@@ -14,16 +14,16 @@ void DecompressedClip::Dispose() {
 	Reset();
 }
 
-void DecompressTracks(const acl::compressed_tracks* tracks, const acl::compressed_database* database, const uint8_t* bulk_data_med, const uint8_t* bulk_data_low, DecompressedClip* decompressedClip) {
+void DecompressTracksWithDatabaseAndData(const acl::compressed_tracks* tracks, const acl::compressed_database* database, const uint8_t* bulk_data_med, const uint8_t* bulk_data_low, DecompressedClip* decompressedClip) {
 
 }
 
-void DecompressTracks(const acl::compressed_tracks* tracks, DecompressedClip* decompressedClip) {
-	DecompressTracks(tracks, nullptr, nullptr, nullptr, decompressedClip);
+void DecompressTracksWithDatabase(const acl::compressed_tracks* tracks, DecompressedClip* decompressedClip) {
+	DecompressTracksWithDatabaseAndData(tracks, nullptr, nullptr, nullptr, decompressedClip);
 }
 
 void DecompressTracks(const acl::compressed_tracks* tracks, const acl::compressed_database* database, DecompressedClip* decompressedClip) {
-	DecompressTracks(tracks, database, nullptr, nullptr, decompressedClip);
+	DecompressTracksWithDatabaseAndData(tracks, database, nullptr, nullptr, decompressedClip);
 }
 
 void Dispose(DecompressedClip* decompressedClip) {
