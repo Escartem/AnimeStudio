@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace AnimeStudio
 {
@@ -1735,6 +1733,7 @@ namespace AnimeStudio
         {
             Version = reader.ReadInt32();
 
+            // All of these are ACL compressed tracks with 0xac11ac11 magic
             TransformBufferData = reader.ReadUInt8Array();
             reader.AlignStream();
 
