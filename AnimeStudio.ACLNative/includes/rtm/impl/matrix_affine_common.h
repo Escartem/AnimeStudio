@@ -49,10 +49,10 @@ namespace rtm
 		template<typename float_type>
 		struct matrix_from_quat_helper
 		{
-			using quat = typename float_traits<float_type>::quat;
-			using vector4 = typename float_traits<float_type>::vector4;
-			using matrix3x3 = typename float_traits<float_type>::matrix3x3;
-			using matrix3x4 = typename float_traits<float_type>::matrix3x4;
+			using quat = typename related_types<float_type>::quat;
+			using vector4 = typename related_types<float_type>::vector4;
+			using matrix3x3 = typename related_types<float_type>::matrix3x3;
+			using matrix3x4 = typename related_types<float_type>::matrix3x4;
 
 			RTM_DISABLE_SECURITY_COOKIE_CHECK inline RTM_SIMD_CALL operator matrix3x3() const RTM_NO_EXCEPT
 			{
@@ -112,9 +112,9 @@ namespace rtm
 		template<typename float_type>
 		struct matrix_from_scale_helper
 		{
-			using vector4 = typename float_traits<float_type>::vector4;
-			using matrix3x3 = typename float_traits<float_type>::matrix3x3;
-			using matrix3x4 = typename float_traits<float_type>::matrix3x4;
+			using vector4 = typename related_types<float_type>::vector4;
+			using matrix3x3 = typename related_types<float_type>::matrix3x3;
+			using matrix3x4 = typename related_types<float_type>::matrix3x4;
 
 			RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE RTM_SIMD_CALL operator matrix3x3() const RTM_NO_EXCEPT
 			{
@@ -142,7 +142,7 @@ namespace rtm
 			return axis == axis3::x ? x_axis : (axis == axis3::y ? y_axis : z_axis);
 		}
 
-		RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr const vector4d& RTM_SIMD_CALL matrix_get_axis(const vector4d& x_axis, const vector4d& y_axis, const vector4d& z_axis, axis3 axis)
+		RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr vector4d RTM_SIMD_CALL matrix_get_axis(vector4d_arg0 x_axis, vector4d_arg1 y_axis, vector4d_arg2 z_axis, axis3 axis)
 		{
 			return axis == axis3::x ? x_axis : (axis == axis3::y ? y_axis : z_axis);
 		}
@@ -190,20 +190,20 @@ namespace rtm
 			}
 			else
 			{
-				// Note that axis3::xyz have the same values as mix4::xyz
+				// Note that axis3::xyz have the same values as component4::xyz
 				int32_t best_axis = (int32_t)axis4::x;
 				if (y_axis_y > x_axis_x)
 					best_axis = (int32_t)axis4::y;
-				if (z_axis_z > vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), mix4(best_axis)))
+				if (z_axis_z > vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), component4(best_axis)))
 					best_axis = (int32_t)axis4::z;
 
 				const int32_t next_best_axis = (best_axis + 1) % 3;
 				const int32_t next_next_best_axis = (next_best_axis + 1) % 3;
 
 				const float mtx_pseudo_trace = 1.0F +
-					vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), mix4(best_axis)) -
-					vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_best_axis)), mix4(next_best_axis)) -
-					vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_next_best_axis)), mix4(next_next_best_axis));
+					vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), component4(best_axis)) -
+					vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_best_axis)), component4(next_best_axis)) -
+					vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_next_best_axis)), component4(next_next_best_axis));
 
 				const float inv_pseudo_trace = scalar_sqrt_reciprocal(mtx_pseudo_trace);
 				const float half_inv_pseudo_trace = inv_pseudo_trace * 0.5F;
@@ -211,14 +211,14 @@ namespace rtm
 				float quat_values[4];
 				quat_values[best_axis] = scalar_reciprocal(inv_pseudo_trace) * 0.5F;
 				quat_values[next_best_axis] = half_inv_pseudo_trace *
-					(vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), mix4(next_best_axis)) +
-						vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_best_axis)), mix4(best_axis)));
+					(vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), component4(next_best_axis)) +
+						vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_best_axis)), component4(best_axis)));
 				quat_values[next_next_best_axis] = half_inv_pseudo_trace *
-					(vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), mix4(next_next_best_axis)) +
-						vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_next_best_axis)), mix4(best_axis)));
+					(vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), component4(next_next_best_axis)) +
+						vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_next_best_axis)), component4(best_axis)));
 				quat_values[3] = half_inv_pseudo_trace *
-					(vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_best_axis)), mix4(next_next_best_axis)) -
-						vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_next_best_axis)), mix4(next_best_axis)));
+					(vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_best_axis)), component4(next_next_best_axis)) -
+						vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_next_best_axis)), component4(next_best_axis)));
 
 				return quat_normalize(quat_load(&quat_values[0]));
 			}
@@ -227,7 +227,7 @@ namespace rtm
 		//////////////////////////////////////////////////////////////////////////
 		// Converts a 3x3 matrix into a rotation quaternion.
 		//////////////////////////////////////////////////////////////////////////
-		RTM_DISABLE_SECURITY_COOKIE_CHECK inline quatd RTM_SIMD_CALL quat_from_matrix(const vector4d& x_axis, const vector4d& y_axis, const vector4d& z_axis) RTM_NO_EXCEPT
+		RTM_DISABLE_SECURITY_COOKIE_CHECK inline quatd RTM_SIMD_CALL quat_from_matrix(vector4d_arg0 x_axis, vector4d_arg1 y_axis, vector4d_arg2 z_axis) RTM_NO_EXCEPT
 		{
 			const vector4d zero = vector_zero();
 			if (vector_all_near_equal3(x_axis, zero) || vector_all_near_equal3(y_axis, zero) || vector_all_near_equal3(z_axis, zero))
@@ -261,20 +261,20 @@ namespace rtm
 			}
 			else
 			{
-				// Note that axis3::xyz have the same values as mix4::xyz
+				// Note that axis3::xyz have the same values as component4::xyz
 				int32_t best_axis = (int32_t)axis3::x;
 				if (y_axis_y > x_axis_x)
 					best_axis = (int32_t)axis3::y;
-				if (z_axis_z > vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), mix4(best_axis)))
+				if (z_axis_z > vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), component4(best_axis)))
 					best_axis = (int32_t)axis3::z;
 
 				const int32_t next_best_axis = (best_axis + 1) % 3;
 				const int32_t next_next_best_axis = (next_best_axis + 1) % 3;
 
 				const double mtx_pseudo_trace = 1.0 +
-					vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), mix4(best_axis)) -
-					vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_best_axis)), mix4(next_best_axis)) -
-					vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_next_best_axis)), mix4(next_next_best_axis));
+					vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), component4(best_axis)) -
+					vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_best_axis)), component4(next_best_axis)) -
+					vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_next_best_axis)), component4(next_next_best_axis));
 
 				const double inv_pseudo_trace = scalar_sqrt_reciprocal(mtx_pseudo_trace);
 				const double half_inv_pseudo_trace = inv_pseudo_trace * 0.5;
@@ -282,14 +282,14 @@ namespace rtm
 				double quat_values[4];
 				quat_values[best_axis] = scalar_reciprocal(inv_pseudo_trace) * 0.5;
 				quat_values[next_best_axis] = half_inv_pseudo_trace *
-					(vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), mix4(next_best_axis)) +
-						vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_best_axis)), mix4(best_axis)));
+					(vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), component4(next_best_axis)) +
+						vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_best_axis)), component4(best_axis)));
 				quat_values[next_next_best_axis] = half_inv_pseudo_trace *
-					(vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), mix4(next_next_best_axis)) +
-						vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_next_best_axis)), mix4(best_axis)));
+					(vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(best_axis)), component4(next_next_best_axis)) +
+						vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_next_best_axis)), component4(best_axis)));
 				quat_values[3] = half_inv_pseudo_trace *
-					(vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_best_axis)), mix4(next_next_best_axis)) -
-						vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_next_best_axis)), mix4(next_best_axis)));
+					(vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_best_axis)), component4(next_next_best_axis)) -
+						vector_get_component(matrix_get_axis(x_axis, y_axis, z_axis, axis3(next_next_best_axis)), component4(next_best_axis)));
 
 				return quat_normalize(quat_load(&quat_values[0]));
 			}
@@ -307,7 +307,7 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	// Converts a rotation quaternion into a 3x3 or 3x4 affine matrix.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK constexpr rtm_impl::matrix_from_quat_helper<double> RTM_SIMD_CALL matrix_from_quat(const quatd& quat) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK constexpr rtm_impl::matrix_from_quat_helper<double> RTM_SIMD_CALL matrix_from_quat(quatd_arg0 quat) RTM_NO_EXCEPT
 	{
 		return rtm_impl::matrix_from_quat_helper<double>{ quat };
 	}
@@ -323,7 +323,7 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	// Converts a rotation quaternion into a 3x3 or 3x4 affine matrix.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK constexpr rtm_impl::matrix_from_quat_helper<double> RTM_SIMD_CALL matrix_from_rotation(const quatd& quat) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK constexpr rtm_impl::matrix_from_quat_helper<double> RTM_SIMD_CALL matrix_from_rotation(quatd_arg0 quat) RTM_NO_EXCEPT
 	{
 		return rtm_impl::matrix_from_quat_helper<double>{ quat };
 	}
@@ -339,7 +339,7 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	// Converts a 3D scale vector into a 3x3 or 3x4 affine matrix.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr rtm_impl::matrix_from_scale_helper<double> RTM_SIMD_CALL matrix_from_scale(const vector4d& scale) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr rtm_impl::matrix_from_scale_helper<double> RTM_SIMD_CALL matrix_from_scale(vector4d_arg0 scale) RTM_NO_EXCEPT
 	{
 		return rtm_impl::matrix_from_scale_helper<double>{ scale };
 	}

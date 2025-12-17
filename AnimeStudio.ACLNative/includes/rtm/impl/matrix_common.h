@@ -87,7 +87,7 @@ namespace rtm
 		template<typename float_type>
 		struct matrix_setter4x4
 		{
-			using vector4 = typename float_traits<float_type>::vector4;
+			using vector4 = typename related_types<float_type>::vector4;
 
 			//////////////////////////////////////////////////////////////////////////
 			// Sets all 4 axes and creates a 3x4 affine matrix.
@@ -139,7 +139,7 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	// Sets all 3 axes and creates a matrix.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr matrix3x3d RTM_SIMD_CALL matrix_set(const vector4d& x_axis, const vector4d& y_axis, const vector4d& z_axis) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr matrix3x3d RTM_SIMD_CALL matrix_set(vector4d_arg0 x_axis, vector4d_arg1 y_axis, vector4d_arg2 z_axis) RTM_NO_EXCEPT
 	{
 		return matrix3x3d{ x_axis, y_axis, z_axis };
 	}
@@ -155,7 +155,7 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	// Sets all 4 axes and creates a matrix.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr rtm_impl::matrix_setter4x4<double> RTM_SIMD_CALL matrix_set(const vector4d& x_axis, const vector4d& y_axis, const vector4d& z_axis, const vector4d& w_axis) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr rtm_impl::matrix_setter4x4<double> RTM_SIMD_CALL matrix_set(vector4d_arg0 x_axis, vector4d_arg1 y_axis, vector4d_arg2 z_axis, vector4d_arg3 w_axis) RTM_NO_EXCEPT
 	{
 		return rtm_impl::matrix_setter4x4<double>{ x_axis, y_axis, z_axis, w_axis };
 	}

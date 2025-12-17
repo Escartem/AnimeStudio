@@ -45,7 +45,7 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	// Creates a QVV transform from a rotation quaternion, a translation, and a 3D scale.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr qvvd RTM_SIMD_CALL qvv_set(const quatd& rotation, const vector4d& translation, const vector4d& scale) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr qvvd RTM_SIMD_CALL qvv_set(quatd_arg0 rotation, vector4d_arg1 translation, vector4d_arg2 scale) RTM_NO_EXCEPT
 	{
 		return qvvd{ rotation, translation, scale };
 	}

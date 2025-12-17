@@ -205,7 +205,7 @@ namespace rtm
 				else if (static_condition<std::is_signed<SrcRealType>::value>::test())
 					return int64_t(input) >= 0 && SrcType(DstType(input)) == input;
 				else
-					return uint64_t(input) <= uint64_t(std::numeric_limits<DstType>::max());
+					return uint64_t(input) <= uint64_t((std::numeric_limits<DstType>::max)());
 			};
 		};
 

@@ -228,7 +228,7 @@ namespace rtm
 #if defined(RTM_SSE2_INTRINSICS)
 		return _mm_cvtss_f32(_mm_min_ss(_mm_max_ss(_mm_set_ps1(input), _mm_set_ps1(min)), _mm_set_ps1(max)));
 #else
-		return std::min(std::max(input, min), max);
+		return (std::min)((std::max)(input, min), max);
 #endif
 	}
 
@@ -282,36 +282,10 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	// Returns the reciprocal square root of the input.
 	//////////////////////////////////////////////////////////////////////////
-	#if defined(RTM_COMPILER_MSVC) && _MSC_VER >= 1920 && _MSC_VER < 1925 && defined(RTM_ARCH_X64) && !defined(RTM_AVX_INTRINSICS)
-		// HACK!!! Visual Studio 2019 has a code generation bug triggered by the code below, disable optimizations for now
-		// Bug only happens with x64 SSE2, not with AVX nor with x86
-		// Fixed in 16.5.4, see https://github.com/nfrechette/rtm/issues/35
-		// TODO: Remove this hack sometime in 2022 or later once the fix is old enough that we no longer have to support the hack
-		#pragma optimize("", off)
-	#endif
 	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE scalarf RTM_SIMD_CALL scalar_sqrt_reciprocal(scalarf_arg0 input) RTM_NO_EXCEPT
 	{
-		// Perform two passes of Newton-Raphson iteration on the hardware estimate
-		const __m128 half = _mm_set_ss(0.5F);
-		const __m128 input_half = _mm_mul_ss(input.value, half);
-		const __m128 x0 = _mm_rsqrt_ss(input.value);
-
-		// First iteration
-		__m128 x1 = _mm_mul_ss(x0, x0);
-		x1 = _mm_sub_ss(half, _mm_mul_ss(input_half, x1));
-		x1 = _mm_add_ss(_mm_mul_ss(x0, x1), x0);
-
-		// Second iteration
-		__m128 x2 = _mm_mul_ss(x1, x1);
-		x2 = _mm_sub_ss(half, _mm_mul_ss(input_half, x2));
-		x2 = _mm_add_ss(_mm_mul_ss(x1, x2), x1);
-
-		return scalarf{ x2 };
+		return scalarf{ _mm_div_ss(_mm_set_ps1(1.0F), _mm_sqrt_ss(input.value)) };
 	}
-	#if defined(RTM_COMPILER_MSVC) && _MSC_VER >= 1920 && _MSC_VER < 1925 && defined(RTM_ARCH_X64) && !defined(RTM_AVX_INTRINSICS)
-		// HACK!!! See comment above
-		#pragma optimize("", on)
-	#endif
 #endif
 
 	//////////////////////////////////////////////////////////////////////////
@@ -319,11 +293,12 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE float RTM_SIMD_CALL scalar_sqrt_reciprocal(float input) RTM_NO_EXCEPT
 	{
-#if defined(RTM_SSE2_INTRINSICS)
-		return scalar_cast(scalar_sqrt_reciprocal(scalar_set(input)));
-#else
+		// Performance note:
+		// With modern out-of-order executing processors, it is typically faster to use
+		// a full division/square root instead of a reciprocal estimate + Newton-Raphson iterations
+		// because the resulting code is more dense and is more likely to inline and
+		// as it uses fewer instructions.
 		return 1.0F / scalar_sqrt(input);
-#endif
 	}
 
 #if defined(RTM_SSE2_INTRINSICS)
@@ -341,11 +316,12 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE float RTM_SIMD_CALL scalar_reciprocal(float input) RTM_NO_EXCEPT
 	{
-#if defined(RTM_SSE2_INTRINSICS)
-		return scalar_cast(scalar_reciprocal(scalar_set(input)));
-#else
-		return 1.0f / input;
-#endif
+		// Performance note:
+		// With modern out-of-order executing processors, it is typically faster to use
+		// a full division instead of a reciprocal estimate + Newton-Raphson iterations
+		// because the resulting code is more dense and is more likely to inline and
+		// as it uses fewer instructions.
+		return 1.0F / input;
 	}
 
 #if defined(RTM_SSE2_INTRINSICS)
@@ -508,7 +484,7 @@ namespace rtm
 #if defined(RTM_SSE2_INTRINSICS)
 		return _mm_cvtss_f32(_mm_min_ss(_mm_set_ps1(left), _mm_set_ps1(right)));
 #else
-		return std::min(left, right);
+		return (std::min)(left, right);
 #endif
 	}
 
@@ -530,7 +506,7 @@ namespace rtm
 #if defined(RTM_SSE2_INTRINSICS)
 		return _mm_cvtss_f32(_mm_max_ss(_mm_set_ps1(left), _mm_set_ps1(right)));
 #else
-		return std::max(left, right);
+		return (std::max)(left, right);
 #endif
 	}
 
@@ -1291,8 +1267,9 @@ namespace rtm
 		__m128 abs_value = _mm_and_ps(value.value, _mm_castsi128_ps(abs_mask));
 
 		// Compute our value
-		__m128 is_larger_than_one = _mm_cmpgt_ss(abs_value, _mm_set_ps1(1.0F));
-		__m128 reciprocal = scalar_reciprocal(scalarf{ abs_value }).value;
+		const __m128 one = _mm_set_ps1(1.0F);
+		__m128 is_larger_than_one = _mm_cmpgt_ss(abs_value, one);
+		__m128 reciprocal = _mm_div_ss(one, abs_value);
 
 		__m128 x = RTM_VECTOR4F_SELECT(is_larger_than_one, reciprocal, abs_value);
 
@@ -1375,15 +1352,18 @@ namespace rtm
 		// If X < 0.0, we return atan(y/x) + sign(Y) * PI
 		// See: https://en.wikipedia.org/wiki/Atan2#Definition_and_computation
 
+		const __m128 y_value = y.value;
+		const __m128 x_value = x.value;
+
 		const __m128 zero = _mm_setzero_ps();
-		__m128 is_x_zero = _mm_cmpeq_ss(x.value, zero);
-		__m128 is_y_zero = _mm_cmpeq_ss(y.value, zero);
+		__m128 is_x_zero = _mm_cmpeq_ss(x_value, zero);
+		__m128 is_y_zero = _mm_cmpeq_ss(y_value, zero);
 		__m128 inputs_are_zero = _mm_and_ps(is_x_zero, is_y_zero);
 
-		__m128 is_x_positive = _mm_cmpgt_ss(x.value, zero);
+		__m128 is_x_positive = _mm_cmpgt_ss(x_value, zero);
 
 		const __m128 sign_mask = _mm_set_ps(-0.0F, -0.0F, -0.0F, -0.0F);
-		__m128 y_sign = _mm_and_ps(y.value, sign_mask);
+		__m128 y_sign = _mm_and_ps(y_value, sign_mask);
 
 		// If X == 0.0, our offset is PI/2 otherwise it is PI both with the sign of Y
 		__m128 half_pi = _mm_set_ps1(constants::half_pi());
@@ -1397,8 +1377,10 @@ namespace rtm
 		// If X == 0.0 and Y == 0.0, our offset is 0.0
 		offset = _mm_andnot_ps(inputs_are_zero, offset);
 
-		__m128 angle = _mm_div_ss(y.value, x.value);
-		__m128 value = scalar_atan(scalarf{ angle }).value;
+		__m128 angle = _mm_div_ss(y_value, x_value);
+		scalarf angle_s = scalarf{ angle };
+		scalarf value_s = scalar_atan(angle_s);
+		__m128 value = value_s.value;
 
 		// If X == 0.0, our value is 0.0 otherwise it is atan(y/x)
 		value = _mm_or_ps(_mm_and_ps(is_x_zero, zero), _mm_andnot_ps(is_x_zero, value));

@@ -50,6 +50,7 @@ namespace rtm
 			}
 
 #if defined(RTM_SSE2_INTRINSICS)
+			RTM_DEPRECATED("Use 'as_scalar' suffix instead. To be removed in 2.4.")
 			RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE RTM_SIMD_CALL operator scalarf() const RTM_NO_EXCEPT
 			{
 				return scalarf{ _mm_load_ss(ptr) };
@@ -73,6 +74,7 @@ namespace rtm
 			}
 
 #if defined(RTM_SSE2_INTRINSICS)
+			RTM_DEPRECATED("Use 'as_scalar' suffix instead. To be removed in 2.4.")
 			RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE RTM_SIMD_CALL operator scalard() const RTM_NO_EXCEPT
 			{
 				return scalard{ _mm_load_sd(ptr) };
@@ -94,9 +96,33 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	// Loads a scalar from memory.
 	//////////////////////////////////////////////////////////////////////////
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE scalarf RTM_SIMD_CALL scalar_load_as_scalar(const float* input) RTM_NO_EXCEPT
+	{
+#if defined(RTM_SSE2_INTRINSICS)
+		return scalarf{ _mm_load_ss(input) };
+#else
+		return scalar_load(input);
+#endif
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Loads a scalar from memory.
+	//////////////////////////////////////////////////////////////////////////
 	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr rtm_impl::scalar_loaderd RTM_SIMD_CALL scalar_load(const double* input) RTM_NO_EXCEPT
 	{
 		return rtm_impl::scalar_loaderd{ input };
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Loads a scalar from memory.
+	//////////////////////////////////////////////////////////////////////////
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE scalard RTM_SIMD_CALL scalar_load_as_scalar(const double* input) RTM_NO_EXCEPT
+	{
+#if defined(RTM_SSE2_INTRINSICS)
+		return scalard{ _mm_load_sd(input) };
+#else
+		return scalar_load(input);
+#endif
 	}
 
 	RTM_IMPL_VERSION_NAMESPACE_END

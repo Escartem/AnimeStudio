@@ -30,7 +30,7 @@
 #if defined(__GNUG__) && !defined(__clang__)
 	#define RTM_COMPILER_GCC
 #elif defined(__clang__)
-	#define RTM_COMPILER_CLANG
+	#define RTM_COMPILER_CLANG		__clang_major__
 #elif defined(_MSC_VER) && !defined(__clang__)
 	#define RTM_COMPILER_MSVC		_MSC_VER
 	#define RTM_COMPILER_MSVC_2013	1800

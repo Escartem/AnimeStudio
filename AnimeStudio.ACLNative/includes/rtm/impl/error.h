@@ -185,20 +185,26 @@ RTM_IMPL_FILE_PRAGMA_PUSH
 // Deprecation support
 //////////////////////////////////////////////////////////////////////////
 
-#if defined(__has_cpp_attribute) && RTM_CPP_VERSION >= RTM_CPP_VERSION_14
-	#if __has_cpp_attribute(deprecated)
-		#define RTM_DEPRECATED(msg) [[deprecated(msg)]]
+// Use RTM_NO_DEPRECATION to disable all deprecation warnings
+#if !defined(RTM_NO_DEPRECATION)
+	#if defined(__has_cpp_attribute) && RTM_CPP_VERSION >= RTM_CPP_VERSION_14
+		#if __has_cpp_attribute(deprecated)
+			#define RTM_DEPRECATED(msg) [[deprecated(msg)]]
+		#endif
+	#endif
+
+	#if !defined(RTM_DEPRECATED)
+		#if defined(RTM_COMPILER_GCC) || defined(RTM_COMPILER_CLANG)
+			#define RTM_DEPRECATED(msg) __attribute__((deprecated))
+		#elif defined(RTM_COMPILER_MSVC)
+			#define RTM_DEPRECATED(msg) __declspec(deprecated)
+		#endif
 	#endif
 #endif
 
+// If not defined, suppress all deprecation warnings
 #if !defined(RTM_DEPRECATED)
-	#if defined(RTM_COMPILER_GCC) || defined(RTM_COMPILER_CLANG)
-		#define RTM_DEPRECATED(msg) __attribute__((deprecated))
-	#elif defined(RTM_COMPILER_MSVC)
-		#define RTM_DEPRECATED(msg) __declspec(deprecated)
-	#else
-		#define RTM_DEPRECATED(msg)
-	#endif
+	#define RTM_DEPRECATED(msg)
 #endif
 
 RTM_IMPL_FILE_PRAGMA_POP

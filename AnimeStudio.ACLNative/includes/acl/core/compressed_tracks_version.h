@@ -78,7 +78,7 @@ namespace acl
 		// Will be resolved to one of the above via get_version(),
 		// and can be recovered via get_raw_version();
 		vNap		= 100,
-		vHk4e		= 101
+		vHk4e		= 101,
 
 		//////////////////////////////////////////////////////////////////////////
 		// First version marker, this is equal to the first version supported: ACL 2.0.0
@@ -91,7 +91,7 @@ namespace acl
 		latest		= v02_01_00,
 	};
 
-	inline compressed_tracks_version16 get_effective_version(compressed_tracks_version16 version) const {
+	inline compressed_tracks_version16 get_effective_version(compressed_tracks_version16 version) {
 		switch (version) {
 		case compressed_tracks_version16::vNap:
 			return compressed_tracks_version16::v02_01_99;

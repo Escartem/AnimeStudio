@@ -38,17 +38,113 @@ namespace rtm
 	RTM_IMPL_VERSION_NAMESPACE_BEGIN
 
 	//////////////////////////////////////////////////////////////////////////
+	// Returns the axis pointing in the forward direction of the default coordinate system (Z+).
+	//////////////////////////////////////////////////////////////////////////
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr vector4d RTM_SIMD_CALL matrix_get_coord_forward(matrix3x3d_arg0 input) RTM_NO_EXCEPT
+	{
+		return input.z_axis;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Returns the axis pointing in the up direction of the default coordinate system (Y+).
+	//////////////////////////////////////////////////////////////////////////
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr vector4d RTM_SIMD_CALL matrix_get_coord_up(matrix3x3d_arg0 input) RTM_NO_EXCEPT
+	{
+		return input.y_axis;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Returns the axis pointing in the cross direction of the default coordinate system (X+).
+	//////////////////////////////////////////////////////////////////////////
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr vector4d RTM_SIMD_CALL matrix_get_coord_cross(matrix3x3d_arg0 input) RTM_NO_EXCEPT
+	{
+		return input.x_axis;
+	}
+
+	//////////////////////////////////////////////////////////////////////////
 	// Returns the desired 3x3 matrix axis.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr const vector4d& matrix_get_axis(const matrix3x3d& input, axis3 axis) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr vector4d RTM_SIMD_CALL matrix_get_axis(matrix3x3d_arg0 input, axis3 axis) RTM_NO_EXCEPT
 	{
 		return axis == axis3::x ? input.x_axis : (axis == axis3::y ? input.y_axis : input.z_axis);
 	}
 
 	//////////////////////////////////////////////////////////////////////////
+	// Returns a new 3x3 matrix where the specified axis has been replaced on the input matrix.
+	//////////////////////////////////////////////////////////////////////////
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d RTM_SIMD_CALL matrix_set_axis(matrix3x3d_arg0 input, vector4d_arg0 axis_value, axis3 axis) RTM_NO_EXCEPT
+	{
+		switch (axis)
+		{
+			default:
+			case axis3::x:	return matrix3x3d{ axis_value, input.y_axis, input.z_axis };
+			case axis3::y:	return matrix3x3d{ input.x_axis, axis_value, input.z_axis };
+			case axis3::z:	return matrix3x3d{ input.x_axis, input.y_axis, axis_value };
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Returns the desired 3x3 matrix component from the specified axis.
+	//////////////////////////////////////////////////////////////////////////
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline rtm_impl::vector4d_vector_get_component RTM_SIMD_CALL matrix_get_component(matrix3x3d_arg0 input, axis3 axis, component3 component) RTM_NO_EXCEPT
+	{
+		switch (axis)
+		{
+			default:
+			case axis3::x:	return vector_get_component3(input.x_axis, component);
+			case axis3::y:	return vector_get_component3(input.y_axis, component);
+			case axis3::z:	return vector_get_component3(input.z_axis, component);
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Returns the desired 3x3 matrix component from the specified axis.
+	//////////////////////////////////////////////////////////////////////////
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline scalard RTM_SIMD_CALL matrix_get_component_as_scalar(matrix3x3d_arg0 input, axis3 axis, component3 component) RTM_NO_EXCEPT
+	{
+		switch (axis)
+		{
+			default:
+			case axis3::x:	return vector_get_component3_as_scalar(input.x_axis, component);
+			case axis3::y:	return vector_get_component3_as_scalar(input.y_axis, component);
+			case axis3::z:	return vector_get_component3_as_scalar(input.z_axis, component);
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// Returns a new 3x3 matrix where the specified axis/component has been replaced on the input matrix.
+	//////////////////////////////////////////////////////////////////////////
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d RTM_SIMD_CALL matrix_set_component(matrix3x3d_arg0 input, double component_value, axis3 axis, component3 component) RTM_NO_EXCEPT
+	{
+		switch (axis)
+		{
+			default:
+			case axis3::x:	return matrix3x3d{ vector_set_component3(input.x_axis, component_value, component), input.y_axis, input.z_axis };
+			case axis3::y:	return matrix3x3d{ input.x_axis, vector_set_component3(input.y_axis, component_value, component), input.z_axis };
+			case axis3::z:	return matrix3x3d{ input.x_axis, input.y_axis, vector_set_component3(input.z_axis, component_value, component) };
+		}
+	}
+
+#if defined(RTM_SSE2_INTRINSICS)
+	//////////////////////////////////////////////////////////////////////////
+	// Returns a new 3x3 matrix where the specified axis/component has been replaced on the input matrix.
+	//////////////////////////////////////////////////////////////////////////
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d RTM_SIMD_CALL matrix_set_component(matrix3x3d_arg0 input, scalard_arg7 component_value, axis3 axis, component3 component) RTM_NO_EXCEPT
+	{
+		switch (axis)
+		{
+			default:
+			case axis3::x:	return matrix3x3d{ vector_set_component3(input.x_axis, component_value, component), input.y_axis, input.z_axis };
+			case axis3::y:	return matrix3x3d{ input.x_axis, vector_set_component3(input.y_axis, component_value, component), input.z_axis };
+			case axis3::z:	return matrix3x3d{ input.x_axis, input.y_axis, vector_set_component3(input.z_axis, component_value, component) };
+		}
+	}
+#endif
+
+	//////////////////////////////////////////////////////////////////////////
 	// Converts a 3x3 matrix into a rotation quaternion.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK inline quatd quat_from_matrix(const matrix3x3d& input) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline quatd RTM_SIMD_CALL quat_from_matrix(matrix3x3d_arg0 input) RTM_NO_EXCEPT
 	{
 		return rtm_impl::quat_from_matrix(input.x_axis, input.y_axis, input.z_axis);
 	}
@@ -57,7 +153,7 @@ namespace rtm
 	// Multiplies two 3x3 matrices.
 	// Multiplication order is as follow: local_to_world = matrix_mul(local_to_object, object_to_world)
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d RTM_SIMD_CALL matrix_mul(const matrix3x3d& lhs, const matrix3x3d& rhs) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d RTM_SIMD_CALL matrix_mul(matrix3x3d_arg0 lhs, matrix3x3d_arg1 rhs) RTM_NO_EXCEPT
 	{
 		vector4d tmp = vector_mul(vector_dup_x(lhs.x_axis), rhs.x_axis);
 		tmp = vector_mul_add(vector_dup_y(lhs.x_axis), rhs.y_axis, tmp);
@@ -84,7 +180,7 @@ namespace rtm
 	// is to multiply the normal with the cofactor matrix.
 	// See: https://github.com/graphitemaster/normals_revisited
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE vector4d RTM_SIMD_CALL matrix_mul_vector3(const vector4d& vec3, const matrix3x3d& mtx) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE vector4d RTM_SIMD_CALL matrix_mul_vector3(vector4d_arg0 vec3, matrix3x3d_argn mtx) RTM_NO_EXCEPT
 	{
 		vector4d tmp;
 
@@ -98,14 +194,12 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	// Transposes a 3x3 matrix.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE matrix3x3d RTM_SIMD_CALL matrix_transpose(const matrix3x3d& input) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE matrix3x3d RTM_SIMD_CALL matrix_transpose(matrix3x3d_arg0 input) RTM_NO_EXCEPT
 	{
-		const vector4d v00_v01_v10_v11 = vector_mix<mix4::x, mix4::y, mix4::a, mix4::b>(input.x_axis, input.y_axis);
-		const vector4d v02_v03_v12_v13 = vector_mix<mix4::z, mix4::w, mix4::c, mix4::d>(input.x_axis, input.y_axis);
-
-		const vector4d x_axis = vector_mix<mix4::x, mix4::z, mix4::a, mix4::c>(v00_v01_v10_v11, input.z_axis);
-		const vector4d y_axis = vector_mix<mix4::y, mix4::w, mix4::b, mix4::d>(v00_v01_v10_v11, input.z_axis);
-		const vector4d z_axis = vector_mix<mix4::x, mix4::z, mix4::c, mix4::c>(v02_v03_v12_v13, input.z_axis);
+		vector4d x_axis;
+		vector4d y_axis;
+		vector4d z_axis;
+		RTM_MATRIXD_TRANSPOSE_3X3(input.x_axis, input.y_axis, input.z_axis, x_axis, y_axis, z_axis);
 		return matrix3x3d{ x_axis, y_axis, z_axis };
 	}
 
@@ -114,7 +208,7 @@ namespace rtm
 	// If the input matrix is not invertible, the result is undefined.
 	// For a safe alternative, supply a fallback value and a threshold.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d RTM_SIMD_CALL matrix_inverse(const matrix3x3d& input) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d RTM_SIMD_CALL matrix_inverse(matrix3x3d_arg0 input) RTM_NO_EXCEPT
 	{
 		const vector4d v00_v01_v10_v11 = vector_mix<mix4::x, mix4::y, mix4::a, mix4::b>(input.x_axis, input.y_axis);
 		const vector4d v02_v03_v12_v13 = vector_mix<mix4::z, mix4::w, mix4::c, mix4::d>(input.x_axis, input.y_axis);
@@ -170,7 +264,7 @@ namespace rtm
 	// If the input matrix has a determinant whose absolute value is below the supplied threshold, the
 	// fall back value is returned instead.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d RTM_SIMD_CALL matrix_inverse(const matrix3x3d& input, const matrix3x3d& fallback, double threshold = 1.0E-8) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d RTM_SIMD_CALL matrix_inverse(matrix3x3d_arg0 input, matrix3x3d_arg1 fallback, double threshold = 1.0E-8) RTM_NO_EXCEPT
 	{
 		const vector4d v00_v01_v10_v11 = vector_mix<mix4::x, mix4::y, mix4::a, mix4::b>(input.x_axis, input.y_axis);
 		const vector4d v02_v03_v12_v13 = vector_mix<mix4::z, mix4::w, mix4::c, mix4::d>(input.x_axis, input.y_axis);
@@ -227,7 +321,7 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	// Returns the determinant of the input 3x3 matrix.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK inline scalard matrix_determinant(const matrix3x3d& input) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline scalard RTM_SIMD_CALL matrix_determinant(matrix3x3d_arg0 input) RTM_NO_EXCEPT
 	{
 		const vector4d v00_v01_v10_v11 = vector_mix<mix4::x, mix4::y, mix4::a, mix4::b>(input.x_axis, input.y_axis);
 		const vector4d v02_v03_v12_v13 = vector_mix<mix4::z, mix4::w, mix4::c, mix4::d>(input.x_axis, input.y_axis);
@@ -268,7 +362,7 @@ namespace rtm
 		const vector4d o00_o00_o10_o10 = vector_mix<mix4::x, mix4::x, mix4::a, mix4::a>(x_axis, y_axis);
 		const vector4d o00_o10_o20 = vector_mix<mix4::x, mix4::z, mix4::a, mix4::a>(o00_o00_o10_o10, z_axis);
 
-		return vector_dot3(o00_o10_o20, input.x_axis);
+		return vector_dot3_as_scalar(o00_o10_o20, input.x_axis);
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -277,7 +371,7 @@ namespace rtm
 	// The minor is the determinant of the sub-matrix input when the specified
 	// row and column are removed.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK inline scalard matrix_minor(const matrix3x3d& input, axis3 row, axis3 column) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline scalard RTM_SIMD_CALL matrix_minor(matrix3x3d_arg0 input, axis3 row, axis3 column) RTM_NO_EXCEPT
 	{
 		// The minor boils down to calculating the determinant of a 2x2 matrix.
 		// det([a, b], [c, d]) = (a * d) - (b * c)
@@ -319,11 +413,11 @@ namespace rtm
 
 		// Extract the one we need
 		if (column == axis3::x)
-			return vector_get_z(determinants);
+			return vector_get_z_as_scalar(determinants);
 		else if (column == axis3::y)
-			return vector_get_y(determinants);
+			return vector_get_y_as_scalar(determinants);
 		else
-			return vector_get_x(determinants);
+			return vector_get_x_as_scalar(determinants);
 	}
 
 	//////////////////////////////////////////////////////////////////////////
@@ -333,7 +427,7 @@ namespace rtm
 	// is to multiply the normal with the cofactor matrix.
 	// See: https://github.com/graphitemaster/normals_revisited
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d matrix_cofactor(const matrix3x3d& input) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d RTM_SIMD_CALL matrix_cofactor(matrix3x3d_arg0 input) RTM_NO_EXCEPT
 	{
 		const vector4d x_axis = vector_cross3(input.y_axis, input.z_axis);
 		const vector4d y_axis = vector_cross3(input.z_axis, input.x_axis);
@@ -345,7 +439,7 @@ namespace rtm
 	// Returns the adjugate of the input matrix.
 	// See: https://en.wikipedia.org/wiki/Adjugate_matrix
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d matrix_adjugate(const matrix3x3d& input) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d RTM_SIMD_CALL matrix_adjugate(matrix3x3d_arg0 input) RTM_NO_EXCEPT
 	{
 		return matrix_transpose(matrix_cofactor(input));
 	}
@@ -358,7 +452,7 @@ namespace rtm
 	// TODO: Implement rotation recovering, perhaps in a separate function and rename this
 	// one to matrix_remove_non_zero_scale(..)
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d matrix_remove_scale(const matrix3x3d& input) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK inline matrix3x3d RTM_SIMD_CALL matrix_remove_scale(matrix3x3d_arg0 input) RTM_NO_EXCEPT
 	{
 		matrix3x3d result;
 		result.x_axis = vector_normalize3(input.x_axis, input.x_axis);

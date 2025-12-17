@@ -45,7 +45,7 @@ namespace rtm
 	//////////////////////////////////////////////////////////////////////////
 	// Creates a QV transform from a rotation quaternion and a translation.
 	//////////////////////////////////////////////////////////////////////////
-	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr qvd RTM_SIMD_CALL qv_set(const quatd& rotation, const vector4d& translation) RTM_NO_EXCEPT
+	RTM_DISABLE_SECURITY_COOKIE_CHECK RTM_FORCE_INLINE constexpr qvd RTM_SIMD_CALL qv_set(quatd_arg0 rotation, vector4d_arg1 translation) RTM_NO_EXCEPT
 	{
 		return qvd{ rotation, translation };
 	}
