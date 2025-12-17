@@ -75,7 +75,7 @@ namespace AnimeStudio.GUI
 
         private void updateDisplay()
         {
-            var names = typeof(AssetEntry).GetProperties().Select(x => x.Name);
+            var names = typeof(AssetEntry).GetProperties().Select(x => x.Name).Where(x => x != "Offset");
 
             _filters.Clear();
             foreach (var name in names)
@@ -188,7 +188,8 @@ namespace AnimeStudio.GUI
                 Source = entry.Source,
                 Type = entry.Type,
                 Name = entry.Name,
-                PathID = entry.PathID
+                PathID = entry.PathID,
+                Offset = entry.Offset
             })
             .ToList();
 
