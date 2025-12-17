@@ -366,6 +366,7 @@ namespace AnimeStudio
                         Type = objectReader.type,
                         Container = "",
                         SHA256Hash = obj.GetSHA256Hash(),
+                        Offset = assetsFile.offset
                     };
 
                     var exportable = false;

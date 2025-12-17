@@ -34,6 +34,7 @@ namespace AnimeStudio
             public ClassIDType Type { get; set; }
             public String Name { get; set; }
             public long PathID { get; set; }
+            public long Offset { get; set; } = -1;
         }
 
         public class AssetFilterData
@@ -58,6 +59,8 @@ namespace AnimeStudio
         }
 
         public AssetFilterData FilterData = new AssetFilterData { Items = new List<AssetFilterDataItem>() };
+
+        public Dictionary<string, List<long>> OffsetData = new();
 
         public void LoadFiles(params string[] files)
         {
@@ -145,6 +148,39 @@ namespace AnimeStudio
 
         private void LoadFile(FileReader reader)
         {
+            OffsetData.Clear();
+            if (FilterData.Items.Count > 0)
+            {
+                var key = reader.FileName;
+
+                if (!OffsetData.TryGetValue(key, out var existingList))
+                    existingList = new List<long>();
+
+                var set = new HashSet<long>();
+                if (existingList != null)
+                    foreach (var off in existingList)
+                        set.Add(off);
+
+                foreach (var item in FilterData.Items)
+                {
+                    if (string.IsNullOrEmpty(item.Source))
+                        continue;
+
+                    var itemFileName = Path.GetFileName(item.Source);
+                    if (!item.Source.Equals(key, StringComparison.OrdinalIgnoreCase) && !itemFileName.Equals(key, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    if (item.Offset >= 0)
+                        set.Add(item.Offset);
+                    else
+                        if (AssetsHelper.TryGet(item.Source, out var offsets) && offsets.Length > 0)
+                        foreach (var off in offsets)
+                            set.Add(off);
+                }
+
+                OffsetData[key] = set.ToList();
+            }
+
             switch (reader.FileType)
             {
                 case FileType.AssetsFile:
@@ -419,15 +455,31 @@ namespace AnimeStudio
                 using (stream)
                 {
                     var total = stream.Length;
-                    foreach (var offset in stream.GetOffsets(reader.FullPath))
+
+                    OffsetData.TryGetValue(reader.FileName, out var manualOffsets);
+                    bool isManualOffsets = (manualOffsets != null && manualOffsets.Count > 0);
+                    IEnumerable<long> offsetsEnumerable = isManualOffsets
+                        ? manualOffsets
+                        : stream.GetOffsets(reader.FullPath);
+
+                    int idx = 0;
+                    int? manualTotal = (manualOffsets != null && manualOffsets.Count > 0) ? manualOffsets.Count : (int?)null;
+                    foreach (var offset in offsetsEnumerable)
                     {
                         var name = offset.ToString("X8");
                         Logger.Verbose($"Loading Block {name}");
 
                         var dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), name);
                         var subReader = new FileReader(dummyPath, stream, true);
+                        if (isManualOffsets)
+                            subReader.Position = offset;
                         LoadGameBlockFile(subReader, reader.FullPath, offset, false);
-                        Progress.Report((int)offset, (int)total);
+
+                        if (manualTotal.HasValue)
+                            Progress.Report(idx + 1, manualTotal.Value);
+                        else
+                            Progress.Report((int)offset, (int)total);
+                        idx++;
                     }
                 }
                 
