@@ -1156,7 +1156,6 @@ namespace AnimeStudio
 
         public Shader(ObjectReader reader) : base(reader)
         {
-            Logger.Info($"Reading Shader: {Convert.ToHexString(reader.serializedType.m_OldTypeHash)}");
             if (version[0] == 5 && version[1] >= 5 || version[0] > 5) //5.5 and up
             {
                 try
