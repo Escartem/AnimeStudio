@@ -1,29 +1,30 @@
 ﻿
+using Microsoft.VisualBasic.Devices;
 using Newtonsoft.Json;
+using OpenTK.Audio.OpenAL;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
-using static AnimeStudio.GUI.Studio;
-using OpenTK.Graphics;
-using OpenTK.Mathematics;
-using System.Text.RegularExpressions;
-using OpenTK.Audio.OpenAL;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using System.Drawing.Drawing2D;
+using UnityLive2DExtractor;
 using static AnimeStudio.AssetsManager;
-using Microsoft.VisualBasic.Devices;
+using static AnimeStudio.GUI.Studio;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace AnimeStudio.GUI
 {
@@ -3236,6 +3237,147 @@ namespace AnimeStudio.GUI
         {
             unityCNEdit = new UnityCNEdit();
             unityCNEdit.ShowDialog();
+        }
+
+        private async void ExtractAlltoolstripmenu_Click(object sender, EventArgs e)
+        {
+            var openFolderDialog = new OpenFolderDialog();
+            openFolderDialog.InitialFolder = openDirectoryBackup;
+            if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                await Task.Run(() => Live2DExtractor.Extract(assetsManager, openFolderDialog.Folder, toolStripStatusLabel1));
+                Console.WriteLine("Done!");
+            }
+        }
+
+        private void SaveByAllAnimatorstoolStripMenu_Click(object sender, EventArgs e)
+        {
+            var openFolderDialog = new OpenFolderDialog();
+            openFolderDialog.InitialFolder = openDirectoryBackup;
+            if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                Live2DExtractor.SaveByAnimators(exportableAssets.Where(x => x.Type == ClassIDType.Animator), openFolderDialog.Folder, exportWithPathIDFolderToolStripMenuItem.Checked);
+            }
+        }
+
+        private void SaveBySelectedAnimatorstoolStripMenu_Click(object sender, EventArgs e)
+        {
+            var openFolderDialog = new OpenFolderDialog();
+            openFolderDialog.InitialFolder = openDirectoryBackup;
+            if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                Live2DExtractor.SaveByAnimators(GetSelectedAssets().Where(x => x.Type == ClassIDType.Animator), openFolderDialog.Folder, exportWithPathIDFolderToolStripMenuItem.Checked);
+            }
+        }
+
+        private void SaveMotionsBySelectedtoolStripMenu_Click(object sender, EventArgs e)
+        {
+            var openFolderDialog = new OpenFolderDialog();
+            openFolderDialog.InitialFolder = openDirectoryBackup;
+            if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                Live2DExtractor.SaveMotionsBySelectedAnimatorClips(GetSelectedAssets(), openFolderDialog.Folder, exportWithPathIDFolderToolStripMenuItem.Checked);
+            }
+        }
+
+        private void ForceSaveAsMoc3toolStripMenu_Click(object sender, EventArgs e)
+        {
+            var openFolderDialog = new OpenFolderDialog();
+            openFolderDialog.InitialFolder = openDirectoryBackup;
+            if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                Live2DExtractor.ForceSaveAsMoc3(GetSelectedAssets(), openFolderDialog.Folder, exportWithPathIDFolderToolStripMenuItem.Checked);
+            }
+        }
+
+        private void ForceSaveAsPhysicsStripMenu_Click(object sender, EventArgs e)
+        {
+            var openFolderDialog = new OpenFolderDialog();
+            openFolderDialog.InitialFolder = openDirectoryBackup;
+            if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                Live2DExtractor.ForceSaveAsPhysics(GetSelectedAssets(), openFolderDialog.Folder, exportWithPathIDFolderToolStripMenuItem.Checked);
+            }
+        }
+
+        private void saveByAllMonoBehaviourScriptToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (exportExviewerConfigToolStripMenuItem.Checked)
+            {
+                var openFolderDialog = new OpenFolderDialog();
+                openFolderDialog.InitialFolder = openDirectoryBackup;
+                if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    L2DSpineExporter.Spine.SaveByMonoBehaviourScript(
+                        exportableAssets.Where(x => x.Type == ClassIDType.MonoBehaviour),
+                        openFolderDialog.Folder,
+                        exportWithSkelFolderToolStripMenuItem.Checked,
+                        exportWithPathIDFolderToolStripMenuItem1.Checked,
+                        Convert.ToSingle(Scale.Text),
+                        Convert.ToInt32(AnisoLevel.Text),
+                        Convert.ToSingle(PositionX.Text),
+                        Convert.ToSingle(PositionY.Text),
+                        WithEdgePadding.Checked,
+                        WithShader.Checked,
+                        toolStripStatusLabel1
+                        );
+                }
+            }
+            else
+            {
+                var openFolderDialog = new OpenFolderDialog();
+                openFolderDialog.InitialFolder = openDirectoryBackup;
+                if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    L2DSpineExporter.Spine.SaveByMonoBehaviourScript(
+                        exportableAssets.Where(x => x.Type == ClassIDType.MonoBehaviour),
+                        openFolderDialog.Folder,
+                        exportWithSkelFolderToolStripMenuItem.Checked,
+                        exportWithPathIDFolderToolStripMenuItem1.Checked,
+                        toolStripStatusLabel1
+                        );
+                }
+            }
+        }
+
+        private void saveBySelectedMonoBehaviourScriptToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (exportExviewerConfigToolStripMenuItem.Checked)
+            {
+                var openFolderDialog = new OpenFolderDialog();
+                openFolderDialog.InitialFolder = openDirectoryBackup;
+                if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    L2DSpineExporter.Spine.SaveByMonoBehaviourScript(
+                        GetSelectedAssets().Where(x => x.Type == ClassIDType.MonoBehaviour),
+                        openFolderDialog.Folder,
+                        exportWithSkelFolderToolStripMenuItem.Checked,
+                        exportWithPathIDFolderToolStripMenuItem1.Checked,
+                        Convert.ToSingle(Scale.Text),
+                        Convert.ToInt32(AnisoLevel.Text),
+                        Convert.ToSingle(PositionX.Text),
+                        Convert.ToSingle(PositionY.Text),
+                        WithEdgePadding.Checked,
+                        WithShader.Checked,
+                        toolStripStatusLabel1
+                        );
+                }
+            }
+            else
+            {
+                var openFolderDialog = new OpenFolderDialog();
+                openFolderDialog.InitialFolder = openDirectoryBackup;
+                if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
+                {
+                    L2DSpineExporter.Spine.SaveByMonoBehaviourScript(
+                        GetSelectedAssets().Where(x => x.Type == ClassIDType.MonoBehaviour),
+                        openFolderDialog.Folder,
+                        exportWithSkelFolderToolStripMenuItem.Checked,
+                        exportWithPathIDFolderToolStripMenuItem1.Checked,
+                        toolStripStatusLabel1
+                        );
+                }
+            }
         }
     }
 }
