@@ -19,9 +19,18 @@ namespace AnimeStudio.Crypto
             var a = reader.ReadUInt32();
             var b = reader.ReadUInt32();
 
-            var c1 = ((a ^ 0x91A64750) >> 3) ^ ((a ^ 0x91A64750) << 29);
-            var c2 = (c1 << 16) ^ 0xD5F9BECC;
-            var c3 = (c1 ^ c2) & 0xFFFFFFFF;
+            uint c1 = 0, c2 = 0, c3 = 0;
+
+            switch (game)
+            {
+                case GameType.ArknightsEndfield:
+                    break;
+                case GameType.ArknightsEndfieldCB3:
+                    c1 = ((a ^ 0x91A64750) >> 3) ^ ((a ^ 0x91A64750) << 29);
+                    c2 = (c1 << 16) ^ 0xD5F9BECC;
+                    c3 = (c1 ^ c2) & 0xFFFFFFFF;
+                    break;
+            }
 
             reader.Endian = originalEndian;
             reader.Position = (uint)originalPosition;
@@ -40,29 +49,54 @@ namespace AnimeStudio.Crypto
             };
 
             // values
-            var flags1 = reader.ReadUInt32();
-            var uncompressedBlocksInfoSize1 = reader.ReadUInt16();
-            var compressedBlocksInfoSize1 = reader.ReadUInt16();
-            reader.ReadUInt32(); // unknown
-            var uncompressedBlocksInfoSize2 = reader.ReadUInt16();
-            var encFlags = reader.ReadUInt32();
-            var size1 = reader.ReadUInt32();
-            var compressedBlocksInfoSize2 = reader.ReadUInt16();
-            var flags2 = reader.ReadUInt32();
-            var size2 = reader.ReadUInt32();
+            ushort compressedBlocksInfoSize1 = 0, compressedBlocksInfoSize2 = 0;
+            ushort uncompressedBlocksInfoSize1 = 0, uncompressedBlocksInfoSize2 = 0;
+            uint flags1 = 0, flags2 = 0;
+            uint encFlags = 0;
+            uint size1 = 0, size2 = 0;
+
+            switch (game)
+            {
+                case GameType.ArknightsEndfield:
+                    break;
+                case GameType.ArknightsEndfieldCB3:
+                    flags1 = reader.ReadUInt32();
+                    uncompressedBlocksInfoSize1 = reader.ReadUInt16();
+                    compressedBlocksInfoSize1 = reader.ReadUInt16();
+                    reader.ReadUInt32(); // unknown
+                    uncompressedBlocksInfoSize2 = reader.ReadUInt16();
+                    encFlags = reader.ReadUInt32();
+                    size1 = reader.ReadUInt32();
+                    compressedBlocksInfoSize2 = reader.ReadUInt16();
+                    flags2 = reader.ReadUInt32();
+                    size2 = reader.ReadUInt32();
+                    break;
+            }
 
             // descramble
-            var compressedBlocksInfoSize = BitConcat((ushort)(compressedBlocksInfoSize1 ^ compressedBlocksInfoSize2 ^ 0xE114), compressedBlocksInfoSize2);
-            compressedBlocksInfoSize = BitOperations.RotateLeft(compressedBlocksInfoSize, 3) ^ 0x5ADA4ABA;
+            uint compressedBlocksInfoSize = 0, uncompressedBlocksInfoSize = 0, flags = 0;
+            ulong size = 0;
 
-            var uncompressedBlocksInfoSize = BitConcat((ushort)(uncompressedBlocksInfoSize1 ^ uncompressedBlocksInfoSize2 ^ 0xE114), uncompressedBlocksInfoSize2);
-            uncompressedBlocksInfoSize = BitOperations.RotateLeft(uncompressedBlocksInfoSize, 3) ^ 0x5ADA4ABA;
+            switch (game)
+            {
+                case GameType.ArknightsEndfield:
 
-            var size = BitConcat(size1 ^ size2 ^ 0x342D983F, size2);
-            size = (BitOperations.RotateLeft(size, 3)) ^ 0x5B4FA98A430D0E62UL;
 
-            encFlags ^= flags2;
-            var flags = flags1 ^ flags2 ^ 0x98B806A4;
+                    break;
+                case GameType.ArknightsEndfieldCB3:
+                    compressedBlocksInfoSize = BitConcat((ushort)(compressedBlocksInfoSize1 ^ compressedBlocksInfoSize2 ^ 0xE114), compressedBlocksInfoSize2);
+                    compressedBlocksInfoSize = BitOperations.RotateLeft(compressedBlocksInfoSize, 3) ^ 0x5ADA4ABA;
+
+                    uncompressedBlocksInfoSize = BitConcat((ushort)(uncompressedBlocksInfoSize1 ^ uncompressedBlocksInfoSize2 ^ 0xE114), uncompressedBlocksInfoSize2);
+                    uncompressedBlocksInfoSize = BitOperations.RotateLeft(uncompressedBlocksInfoSize, 3) ^ 0x5ADA4ABA;
+
+                    size = BitConcat(size1 ^ size2 ^ 0x342D983F, size2);
+                    size = (BitOperations.RotateLeft(size, 3)) ^ 0x5B4FA98A430D0E62UL;
+
+                    encFlags ^= flags2;
+                    flags = flags1 ^ flags2 ^ 0x98B806A4;
+                    break;
+            }
 
             //
             Header.compressedBlocksInfoSize = compressedBlocksInfoSize;
@@ -76,13 +110,29 @@ namespace AnimeStudio.Crypto
 
         public static List<BundleFile.StorageBlock> ReadBlocksInfos(EndianBinaryReader reader, GameType game)
         {
-            var encCount = reader.ReadUInt32() ^ 0xF6825038;
+            uint encCount = 0;
+
+            switch (game)
+            {
+                case GameType.ArknightsEndfield:
+                    break;
+                case GameType.ArknightsEndfieldCB3:
+                    encCount = reader.ReadUInt32() ^ 0xF6825038;
+                    break;
+            }
 
             var low = (ushort)encCount;
             var high = (ushort)(encCount >> 16);
 
             var blocksCount = BitConcat((ushort)(low ^ high), low);
-            blocksCount = BitOperations.RotateLeft(blocksCount, 3) ^ 0x5F23A227;
+            switch (game)
+            {
+                case GameType.ArknightsEndfield:
+                    break;
+                case GameType.ArknightsEndfieldCB3:
+                    blocksCount = BitOperations.RotateLeft(blocksCount, 3) ^ 0x5F23A227;
+                    break;
+            }
 
             Logger.Verbose($"Blocks Count: {blocksCount}");
 
@@ -90,23 +140,42 @@ namespace AnimeStudio.Crypto
 
             for (int i = 0; i < blocksCount; i++)
             {
-                var encFlags = (ushort)(reader.ReadUInt16() ^ 0xAFEBU);
-                var a = reader.ReadUInt16();
-                var b = reader.ReadUInt16();
-                var c = reader.ReadUInt16();
-                var d = reader.ReadUInt16();
+                ushort a = 0, b = 0, c = 0, d = 0, encFlags = 0;
+
+                switch (game)
+                {
+                    case GameType.ArknightsEndfield:
+                        break;
+                    case GameType.ArknightsEndfieldCB3:
+                        encFlags = (ushort)(reader.ReadUInt16() ^ 0xAFEBU);
+                        a = reader.ReadUInt16();
+                        b = reader.ReadUInt16();
+                        c = reader.ReadUInt16();
+                        d = reader.ReadUInt16();
+                        break;
+                }
 
                 var a0 = (byte)encFlags;
                 var a1 = (byte)(encFlags >> 8);
 
-                var flags = BitConcat((byte)(a0 ^ a1), a0);
-                flags = (ushort)(b ^ RotateLeft(flags, 3) ^ 0xB7AF);
+                ushort flags = 0;
+                uint uncompressedSize = 0, compressedSize = 0;
 
-                var uncompressedSize = BitConcat((ushort)(c ^ b ^ 0xE114), b);
-                uncompressedSize = BitOperations.RotateLeft(uncompressedSize, 3) ^ 0x5ADA4ABA;
+                switch (game)
+                {
+                    case GameType.ArknightsEndfield:
+                        break;
+                    case GameType.ArknightsEndfieldCB3:
+                        flags = BitConcat((byte)(a0 ^ a1), a0);
+                        flags = (ushort)(b ^ RotateLeft(flags, 3) ^ 0xB7AF);
 
-                var compressedSize = BitConcat((ushort)(d ^ a ^ 0xE114), a);
-                compressedSize = BitOperations.RotateLeft(compressedSize, 3) ^ 0x5ADA4ABA;
+                        uncompressedSize = BitConcat((ushort)(c ^ b ^ 0xE114), b);
+                        uncompressedSize = BitOperations.RotateLeft(uncompressedSize, 3) ^ 0x5ADA4ABA;
+
+                        compressedSize = BitConcat((ushort)(d ^ a ^ 0xE114), a);
+                        compressedSize = BitOperations.RotateLeft(compressedSize, 3) ^ 0x5ADA4ABA;
+                        break;
+                }
 
                 blocks.Add(new BundleFile.StorageBlock
                 {
@@ -123,13 +192,29 @@ namespace AnimeStudio.Crypto
 
         public static List<BundleFile.Node> ReadDirectoryInfos(EndianBinaryReader reader, GameType game)
         {
-            var encCount = reader.ReadUInt32() ^ 0xA9535111;
+            uint encCount = 0;
+
+            switch (game)
+            {
+                case GameType.ArknightsEndfield:
+                    break;
+                case GameType.ArknightsEndfieldCB3:
+                    encCount = reader.ReadUInt32() ^ 0xA9535111;
+                    break;
+            }
 
             var low = (ushort)encCount;
             var high = (ushort)(encCount >> 16);
 
             var nodesCount = BitConcat((ushort)(low ^ high), low);
-            nodesCount = BitOperations.RotateLeft(nodesCount, 3) ^ 0xAF807AFC;
+            switch (game)
+            {
+                case GameType.ArknightsEndfield:
+                    break;
+                case GameType.ArknightsEndfieldCB3:
+                    nodesCount = BitOperations.RotateLeft(nodesCount, 3) ^ 0xAF807AFC;
+                    break;
+            }
 
             Logger.Verbose($"Nodes Count: {nodesCount}");
 
@@ -137,40 +222,72 @@ namespace AnimeStudio.Crypto
 
             for (int i = 0; i < nodesCount; i++)
             {
-                var a = reader.ReadUInt32();
-                var b = reader.ReadUInt32();
-                var c = reader.ReadUInt32();
+                uint a = 0, b = 0, c = 0, d = 0, e = 0;
+
+                switch (game)
+                {
+                    case GameType.ArknightsEndfield:
+                        break;
+                    case GameType.ArknightsEndfieldCB3:
+                        a = reader.ReadUInt32();
+                        b = reader.ReadUInt32();
+                        c = reader.ReadUInt32();
+                        break;
+                }
 
                 // read name
                 var bytes = new List<byte>();
-                int count = 0;
-                while (reader.Remaining > 0 && count < 64)
+                while (reader.Remaining > 0 && bytes.Count < 64)
                 {
                     var bt = reader.ReadByte();
                     if (bt == 0)
-                    {
                         break;
-                    }
                     bytes.Add(bt);
-                    count++;
                 }
-                string name = new string(bytes.Select(b => (char)(b ^ 0xAC)).ToArray());
+
+                string name = "";
+
+                switch (game)
+                {
+                    case GameType.ArknightsEndfield:
+                        break;
+                    case GameType.ArknightsEndfieldCB3:
+                        name = new string(bytes.Select(b => (char)(b ^ 0xAC)).ToArray());
+                        break;
+                }
                 //
 
-                var d = reader.ReadUInt32() ^ 0xE4A15748;
-                var e = reader.ReadUInt32();
-                
-                var d0 = (ushort)d;
-                var d1 = (ushort)(d >> 16);
+                switch (game)
+                {
+                    case GameType.ArknightsEndfield:
+                        break;
+                    case GameType.ArknightsEndfieldCB3:
+                        d = reader.ReadUInt32() ^ 0xE4A15748;
+                        e = reader.ReadUInt32();
+                        break;
+                }
 
-                var flags = BitConcat((ushort)(d1 ^ d0), d0);
-                flags = BitOperations.RotateLeft(flags, 3) ^ 0x54D7A374 ^ b;
+                uint flags = 0;
+                ulong offset = 0, size = 0;
 
-                ulong offset = BitConcat(c ^ a ^ 0x342D983F, a);
-                offset = BitOperations.RotateLeft(offset, 3) ^ 0x5B4FA98A430D0E62UL;
+                switch (game)
+                {
+                    case GameType.ArknightsEndfield:
+                        break;
+                    case GameType.ArknightsEndfieldCB3:
+                        var d0 = (ushort)d;
+                        var d1 = (ushort)(d >> 16);
 
-                ulong size = BitConcat(e ^ b ^ 0x342D983F, b);
-                size = BitOperations.RotateLeft(size, 3) ^ 0x5B4FA98A430D0E62UL;
+                        flags = BitConcat((ushort)(d1 ^ d0), d0);
+                        flags = BitOperations.RotateLeft(flags, 3) ^ 0x54D7A374 ^ b;
+
+                        offset = BitConcat(c ^ a ^ 0x342D983F, a);
+                        offset = BitOperations.RotateLeft(offset, 3) ^ 0x5B4FA98A430D0E62UL;
+
+                        size = BitConcat(e ^ b ^ 0x342D983F, b);
+                        size = BitOperations.RotateLeft(size, 3) ^ 0x5B4FA98A430D0E62UL;
+                        break;
+                }
 
                 nodes.Add(new BundleFile.Node
                 {
@@ -188,6 +305,15 @@ namespace AnimeStudio.Crypto
 
         public static void DecryptBlock(Span<byte> buffer, GameType game)
         {
+            switch (game)
+            {
+                case GameType.ArknightsEndfield:
+                    break;
+                case GameType.ArknightsEndfieldCB3:
+                    VFSAES.InitKeys(CryptoHelper.VFSCB3AESSBox, CryptoHelper.VFSCB3AESKey, CryptoHelper.VFSCB3AESIV, 0xDEA1BEEF2AF3BA0EUL);
+                    break;
+            }
+
             if (buffer.Length <= 256)
             {
                 var dec = VFSAES.Decrypt(buffer.ToArray());
@@ -221,9 +347,22 @@ namespace AnimeStudio.Crypto
     public static class VFSAES
     {
         // funky decrypt with cbc encrypt
+        private static byte[] SBox;
+        private static byte[] Key;
+        private static byte[] IV;
+        private static ulong XORKey;
+
+        public static void InitKeys(byte[] VFSSBox, byte[] VFSKey, byte[] VFSIV, ulong VFSXORKey)
+        {
+            SBox = VFSSBox;
+            Key = VFSKey;
+            IV = VFSIV;
+            XORKey = VFSXORKey;
+        }
+
         public static byte[] Decrypt(byte[] ciphertext)
         {
-            byte[] iv = CryptoHelper.VFSAESIV;
+            byte[] iv = IV;
             List<byte[]> blocks = new();
             byte[] previous = iv.ToArray();
 
@@ -241,11 +380,11 @@ namespace AnimeStudio.Crypto
 
                 for (int i = 0; i < 16; i++)
                 {
-                    ulong shiftSrc = 0xDEA1BEEF2AF3BA0EUL >> (count & 0x38);
+                    ulong shiftSrc = XORKey >> (count & 0x38);
                     byte temp = (byte)(block[i] ^ (31 * i) ^ (byte)shiftSrc);
                     count += 8;
                     temp = (byte)((((temp >> 5) | (8 * temp)) & 0xFF));
-                    temp = CryptoHelper.VFSAESSBox[temp];
+                    temp = SBox[temp];
                     nextIv[i] = temp;
                 }
                 // next IV
@@ -289,7 +428,7 @@ namespace AnimeStudio.Crypto
         {
             for (int i = 0; i < 4; i++)
                 for (int j = 0; j < 4; j++)
-                    s[i][j] = CryptoHelper.VFSAESSBox[s[i][j]];
+                    s[i][j] = SBox[s[i][j]];
         }
 
         private static void ShiftRows(List<byte[]> s)
@@ -329,7 +468,7 @@ namespace AnimeStudio.Crypto
         private static List<byte[,]> ExpandKey()
         {
             int nRounds = 10; // 16 bytes keys
-            byte[] masterKey = CryptoHelper.VFSAESKey;
+            byte[] masterKey = Key;
             List<byte[]> keyCols = BytesToMatrix(masterKey);
             int iterationSize = masterKey.Length / 4;
             int i = 1;
@@ -347,14 +486,14 @@ namespace AnimeStudio.Crypto
                     word[^1] = first;
 
                     // sbox
-                    for (int k = 0; k < 4; k++) word[k] = CryptoHelper.VFSAESSBox[word[k]];
+                    for (int k = 0; k < 4; k++) word[k] = SBox[word[k]];
 
                     word[0] ^= rCon[i];
                     i++;
                 }
                 else if (masterKey.Length == 32 && keyCols.Count % iterationSize == 4)
                 {
-                    for (int k = 0; k < 4; k++) word[k] = CryptoHelper.VFSAESSBox[word[k]];
+                    for (int k = 0; k < 4; k++) word[k] = SBox[word[k]];
                 }
 
                 byte[] prev = keyCols[keyCols.Count - iterationSize];
