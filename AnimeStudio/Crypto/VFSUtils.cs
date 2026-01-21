@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -9,8 +10,9 @@ namespace AnimeStudio.Crypto
 {
     internal class VFSUtils
     {
-        public static bool IsValidHeader(FileReader reader)
+        public static bool IsValidHeader(FileReader reader, GameType game)
         {
+            int originalPosition = (int)reader.Position;
             EndianType originalEndian = reader.Endian;
             reader.Endian = EndianType.BigEndian;
 
@@ -22,11 +24,12 @@ namespace AnimeStudio.Crypto
             var c3 = (c1 ^ c2) & 0xFFFFFFFF;
 
             reader.Endian = originalEndian;
+            reader.Position = (uint)originalPosition;
 
             return b == c3;
         }
 
-        public static BundleFile.Header ReadHeader(FileReader reader)
+        public static BundleFile.Header ReadHeader(FileReader reader, GameType game)
         {
             var Header = new BundleFile.Header
             {
@@ -71,7 +74,7 @@ namespace AnimeStudio.Crypto
             return Header;
         }
 
-        public static List<BundleFile.StorageBlock> ReadBlocksInfos(EndianBinaryReader reader)
+        public static List<BundleFile.StorageBlock> ReadBlocksInfos(EndianBinaryReader reader, GameType game)
         {
             var encCount = reader.ReadUInt32() ^ 0xF6825038;
 
@@ -118,7 +121,7 @@ namespace AnimeStudio.Crypto
             return blocks;
         }
 
-        public static List<BundleFile.Node> ReadDirectoryInfos(EndianBinaryReader reader)
+        public static List<BundleFile.Node> ReadDirectoryInfos(EndianBinaryReader reader, GameType game)
         {
             var encCount = reader.ReadUInt32() ^ 0xA9535111;
 
@@ -183,7 +186,7 @@ namespace AnimeStudio.Crypto
             return nodes;
         }
 
-        public static void DecryptBlock(Span<byte> buffer)
+        public static void DecryptBlock(Span<byte> buffer, GameType game)
         {
             if (buffer.Length <= 256)
             {

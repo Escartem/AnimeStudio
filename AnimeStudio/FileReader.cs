@@ -56,7 +56,7 @@ namespace AnimeStudio
                 default:
                     {
                         Logger.Verbose("signature does not match any of the supported string signatures, attempting to check bytes signatures");
-                        if (VFSUtils.IsValidHeader(this))
+                        if (VFSUtils.IsValidHeader(this, GameType.ArknightsEndfieldCB3) || VFSUtils.IsValidHeader(this, GameType.ArknightsEndfield))
                         {
                             Logger.Verbose("File is VFS !!");
                             Position = 0;

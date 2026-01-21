@@ -18,18 +18,20 @@ namespace AnimeStudio
         public List<StreamFile> fileList;
         public long Offset;
 
-        public VFSFile(FileReader reader, string path)
+        public VFSFile(FileReader reader, string path, GameType game)
         {
             Offset = reader.Position;
             reader.Endian = EndianType.BigEndian;
 
-            if (!VFSUtils.IsValidHeader(reader))
+
+            if (!VFSUtils.IsValidHeader(reader, game))
             {
-                throw new Exception("Not a VFS file");
+                throw new Exception("Not a VFS file / VFS version mismatch");
             }
 
             // read header
-            m_Header = VFSUtils.ReadHeader(reader);
+            reader.ReadBytes(8);
+            m_Header = VFSUtils.ReadHeader(reader, game);
             Logger.Verbose($"Header : {m_Header.ToString()}");
 
             // go to blocks info
@@ -46,7 +48,7 @@ namespace AnimeStudio
             }
 
             reader.Position = Offset + blockInfosOffset;
-            ReadBlocksInfoAndDirectory(reader);
+            ReadBlocksInfoAndDirectory(reader, game);
 
             // go to data
             uint dataOffset;
@@ -67,11 +69,11 @@ namespace AnimeStudio
 
             //
             using var blocksStream = CreateBlocksStream(path);
-            ReadBlocks(reader, blocksStream);
+            ReadBlocks(reader, blocksStream, game);
             ReadFiles(blocksStream, path);
         }
 
-        private void ReadBlocksInfoAndDirectory(FileReader reader)
+        private void ReadBlocksInfoAndDirectory(FileReader reader, GameType game)
         {
             byte[] blocksInfoBytes = reader.ReadBytes((int)m_Header.compressedBlocksInfoSize);
 
@@ -79,7 +81,7 @@ namespace AnimeStudio
             if (((int)m_Header.flags & 0x3F) != 0)
             {
                 // compressed + encrypted
-                VFSUtils.DecryptBlock(blocksInfoBytes);
+                VFSUtils.DecryptBlock(blocksInfoBytes, game);
 
                 var uncompressedSize = m_Header.uncompressedBlocksInfoSize;
                 var blocksInfoBytesSpan = blocksInfoBytes.AsSpan(0, blocksInfoBytes.Length);
@@ -112,8 +114,8 @@ namespace AnimeStudio
             using (var blocksInfoReader = new EndianBinaryReader(blocksInfoUncompressedStream))
             {
                 reader.Endian = EndianType.BigEndian;
-                m_BlocksInfo = VFSUtils.ReadBlocksInfos(blocksInfoReader);
-                m_DirectoryInfo = VFSUtils.ReadDirectoryInfos(blocksInfoReader);
+                m_BlocksInfo = VFSUtils.ReadBlocksInfos(blocksInfoReader, game);
+                m_DirectoryInfo = VFSUtils.ReadDirectoryInfos(blocksInfoReader, game);
             }
         }
 
@@ -129,7 +131,7 @@ namespace AnimeStudio
             return blocksStream;
         }
 
-        private void ReadBlocks(FileReader reader, Stream blocksStream)
+        private void ReadBlocks(FileReader reader, Stream blocksStream, GameType game)
         {
             foreach (var blockInfo in m_BlocksInfo)
             {
@@ -157,7 +159,7 @@ namespace AnimeStudio
                         {
                             reader.Read(compressedBytesSpan);
 
-                            VFSUtils.DecryptBlock(compressedBytesSpan);
+                            VFSUtils.DecryptBlock(compressedBytesSpan, game);
 
                             // LZ4Inv this time
                             var numWrite = LZ4Inv.Instance.Decompress(compressedBytesSpan, uncompressedBytesSpan);

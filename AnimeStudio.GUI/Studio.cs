@@ -198,7 +198,7 @@ namespace AnimeStudio.GUI
             StatusStripUpdate($"Decompressing {reader.FileName} ...");
             try
             {
-                var vfsFile = new VFSFile(reader, reader.FullPath);
+                var vfsFile = new VFSFile(reader, reader.FullPath, Studio.Game.Type);
                 reader.Dispose();
                 if (vfsFile.fileList != null && vfsFile.fileList.Count > 0)
                 {

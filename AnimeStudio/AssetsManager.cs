@@ -519,7 +519,7 @@ namespace AnimeStudio
                         file = new HygFile(reader, reader.FullPath);
                         break;
                     case FileType.VFSFile:
-                        file = new VFSFile(reader, reader.FullPath);
+                        file = new VFSFile(reader, reader.FullPath, Game.Type);
                         break;
                 }
 
