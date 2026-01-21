@@ -53,7 +53,7 @@ namespace AnimeStudio
             {
                 m_WrapMode = reader.ReadInt32();
             }
-            if (reader.Game.Type.IsArknightsEndfieldCB3())
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
             {
                 var m_TextureGroup = reader.ReadUInt32();
             }

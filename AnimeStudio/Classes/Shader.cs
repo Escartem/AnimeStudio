@@ -637,7 +637,7 @@ namespace AnimeStudio
                 m_Samplers.Add(new SamplerParameter(reader));
             }
 
-            if (reader.Game.Type.IsArknightsEndfieldCB3())
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
             {
                 int numDescriptorSetParams = reader.ReadInt32();
                 m_DescriptorSetParams = new List<DescriptorSetParam>();
@@ -989,7 +989,7 @@ namespace AnimeStudio
             {
                 var m_HasProceduralInstancingVariant = reader.ReadBoolean();
             }
-            if (reader.Game.Type.IsArknightsEndfieldCB3())
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
             {
                 var m_HasSRPInstancingVariant = reader.ReadBoolean();
                 var m_HasHGECSInstancingVariant = reader.ReadBoolean();
@@ -1096,7 +1096,7 @@ namespace AnimeStudio
             if (version[0] > 2021 || (version[0] == 2021 && version[1] >= 2)) //2021.2 and up
             {
                 m_KeywordNames = reader.ReadStringArray();
-                if (reader.Game.Type.IsArknightsEndfieldCB3())
+                if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
                 {
                     m_DifferentMaterialCbKeywordNames = reader.ReadStringArray();
                 }
@@ -1238,7 +1238,7 @@ namespace AnimeStudio
                     Logger.Error($"Cannot parse shader, no more bytes left for asset {reader.assetsFile.fileName} of {reader.assetsFile.originalPath} at path {reader.m_PathID}.");
                     return;
                 }
-                if (reader.Game.Type.IsArknightsEndfieldCB3())
+                if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
                 {
                     m_UseExternalBlobs = reader.ReadBoolean();
                     reader.AlignStream();
@@ -1308,7 +1308,7 @@ namespace AnimeStudio
                     }
                 }
 
-                if (reader.Game.Type.IsArknightsEndfieldCB3())
+                if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
                 {
                     var m_CompressionType = reader.ReadInt32();
                 }

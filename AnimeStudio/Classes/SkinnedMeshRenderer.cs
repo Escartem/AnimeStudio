@@ -54,7 +54,7 @@ namespace AnimeStudio
                 m_BlendShapeWeights = reader.ReadSingleArray();
             }
 
-            if (reader.Game.Type.IsGIGroup() || reader.Game.Type.IsZZZ() || reader.Game.Type.IsHYGCB1() || reader.Game.Type.IsArknightsEndfieldCB3())
+            if (reader.Game.Type.IsGIGroup() || reader.Game.Type.IsZZZ() || reader.Game.Type.IsHYGCB1() || reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
             {
                 m_RootBone = new PPtr<Transform>(reader);
                 m_AABB = new AABB(reader);
@@ -62,7 +62,7 @@ namespace AnimeStudio
                 reader.AlignStream();
             }
 
-            if (reader.Game.Type.IsArknightsEndfieldCB3())
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
             {
                 var m_SkinningRoot = new PPtr<Transform>(reader);
             }

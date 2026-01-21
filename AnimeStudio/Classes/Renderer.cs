@@ -126,7 +126,7 @@ namespace AnimeStudio
                     {
                         var m_MeshShowQuality = reader.ReadByte();
                     }
-                    if (reader.Game.Type.IsArknightsEndfieldCB3())
+                    if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
                     {
                         var m_RenderFoliageOccluder = reader.ReadByte();
                     }
@@ -141,7 +141,7 @@ namespace AnimeStudio
                     reader.AlignStream();
                 }
 
-                if (reader.Game.Type.IsArknightsEndfieldCB3())
+                if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
                 {
                     var m_PlatformSpecificCastShadows = reader.ReadUInt32();
                 }
@@ -234,7 +234,7 @@ namespace AnimeStudio
                 }
             }
 
-            if (reader.Game.Type.IsArknightsEndfieldCB3())
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
             {
                 var m_ShadowProxyMesh = new PPtr<Mesh>(reader);
             }
@@ -279,7 +279,7 @@ namespace AnimeStudio
                         var m_CullingDistance = reader.ReadSingle();
                     }
                 }
-                if (reader.Game.Type.IsArknightsEndfieldCB3())
+                if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
                 {
                     var m_EnableCharacterOutline = reader.ReadBoolean();
                     var m_EnablePerRendererLighting = reader.ReadBoolean();

@@ -124,7 +124,7 @@ namespace AnimeStudio
                 m_Colors.Add(new(reader.ReadAlignedString(), reader.ReadColor4()));
             }
 
-            if (reader.Game.Type.IsArknightsEndfieldCB3())
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
             {
                 var m_SubsurfaceProfile = new PPtr<HGSubsurfaceProfile>(reader);
             }

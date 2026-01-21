@@ -27,7 +27,7 @@ namespace AnimeStudio
 
         public AssetBundle(ObjectReader reader) : base(reader)
         {
-            if (reader.Game.Type.IsArknightsEndfieldCB3())
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
             {
                 var m_PathFlags = reader.ReadInt32();
             }

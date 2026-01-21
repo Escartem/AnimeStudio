@@ -219,6 +219,7 @@ namespace AnimeStudio
         CodenameJump,
         GirlsFrontline,
         Reverse1999,
+        ArknightsEndfield,
         ArknightsEndfieldCB3,
         ArknightsEndfieldCB2,
         Arknights,
@@ -288,8 +289,9 @@ namespace AnimeStudio
         public static bool IsNaraka(this GameType type) => type == GameType.Naraka;
         public static bool IsOPFP(this GameType type) => type == GameType.OPFP;
         public static bool IsNetEase(this GameType type) => type == GameType.NetEase;
+        public static bool IsArknightsEndfield(this GameType type) => type == GameType.ArknightsEndfield;
         public static bool IsArknightsEndfieldCB3(this GameType type) => type == GameType.ArknightsEndfieldCB3;
-        public static bool IsArknightsEndfield(this GameType type) => type == GameType.ArknightsEndfieldCB2;
+        public static bool IsArknightsEndfieldCB2(this GameType type) => type == GameType.ArknightsEndfieldCB2;
         public static bool IsArknights(this GameType type) => type == GameType.Arknights;
         public static bool IsLoveAndDeepspace(this GameType type) => type == GameType.LoveAndDeepspace;
         public static bool IsExAstris(this GameType type) => type == GameType.ExAstris;
@@ -338,7 +340,7 @@ namespace AnimeStudio
 
         public static bool IsArknightsEndfieldGroup(this GameType type) => type switch
         {
-            GameType.ArknightsEndfieldCB2 or GameType.ArknightsEndfieldCB3 => true,
+            GameType.ArknightsEndfieldCB2 or GameType.ArknightsEndfieldCB3 or GameType.ArknightsEndfield => true,
             _ => false,
         };
     }
