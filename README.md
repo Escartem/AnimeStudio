@@ -45,5 +45,6 @@ Special thanks to:
 - Razmoth: Original AssetStudio for anime games support - [[project](https://github.com/RazTools/Studio)]
 - hashblen: ZZZ fixes fork - [[project](https://github.com/hashblen/ZZZ_Studio)]
 - yarik0chka: Genshin and Star Rail fixes fork - [[project](https://github.com/yarik0chka/YarikStudio)]
+- aelurum: AssetStudioMod - [[project](https://github.com/aelurum/AssetStudio)]
 - Perfare: The real original AssetStudio - [[project](https://github.com/perfare/AssetStudio)]
 - All of the others contributor of Razmoth's Studio
