@@ -6,7 +6,7 @@ using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AnimeStudio.Crypto
+namespace AnimeStudio
 {
     internal class VFSUtils
     {
