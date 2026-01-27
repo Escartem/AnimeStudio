@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +24,7 @@ namespace AnimeStudio
             switch (game)
             {
                 case GameType.ArknightsEndfield:
-                    break;
+                    return false;
                 case GameType.ArknightsEndfieldCB3:
                     c1 = ((a ^ 0x91A64750) >> 3) ^ ((a ^ 0x91A64750) << 29);
                     c2 = (c1 << 16) ^ 0xD5F9BECC;
