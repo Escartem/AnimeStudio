@@ -61,6 +61,7 @@ namespace AnimeStudio
             Games.Add(index++, new Game(GameType.Reverse1999, "Reverse: 1999"));
             Games.Add(index++, new Game(GameType.ArknightsEndfieldCB3, "Arknights Endfield CBT3"));
             Games.Add(index++, new Game(GameType.ArknightsEndfieldCB2, "Arknights Endfield CBT2"));
+            Games.Add(index++, new Game(GameType.ArknightsEndfieldCB1, "Arknights Endfield CBT1"));
             Games.Add(index++, new Game(GameType.Arknights, "Arknights"));
             Games.Add(index++, new Game(GameType.JJKPhantomParade, "JJK Phantom Parade"));
             Games.Add(index++, new Game(GameType.MuvLuvDimensions, "Muv-Luv Dimensions"));
@@ -222,6 +223,7 @@ namespace AnimeStudio
         ArknightsEndfield,
         ArknightsEndfieldCB3,
         ArknightsEndfieldCB2,
+        ArknightsEndfieldCB1,
         Arknights,
         JJKPhantomParade,
         MuvLuvDimensions,
@@ -292,6 +294,7 @@ namespace AnimeStudio
         public static bool IsArknightsEndfield(this GameType type) => type == GameType.ArknightsEndfield;
         public static bool IsArknightsEndfieldCB3(this GameType type) => type == GameType.ArknightsEndfieldCB3;
         public static bool IsArknightsEndfieldCB2(this GameType type) => type == GameType.ArknightsEndfieldCB2;
+        public static bool IsArknightsEndfieldCB1(this GameType type) => type == GameType.ArknightsEndfieldCB1;
         public static bool IsArknights(this GameType type) => type == GameType.Arknights;
         public static bool IsLoveAndDeepspace(this GameType type) => type == GameType.LoveAndDeepspace;
         public static bool IsExAstris(this GameType type) => type == GameType.ExAstris;
