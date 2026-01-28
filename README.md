@@ -1,7 +1,7 @@
 # Anime Studio
-## Asset exploration tool for hoyo games and more !
+## Asset extraction tool for unity games !
 
-![image](https://github.com/user-attachments/assets/173757f6-8dce-48fc-9525-821bb1244280)
+![image](https://github.com/user-attachments/assets/fc1decdc-a589-43a2-b965-2d8151d0975f)
 
 ---
 
