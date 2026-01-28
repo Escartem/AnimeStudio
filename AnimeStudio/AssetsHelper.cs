@@ -26,6 +26,8 @@ namespace AnimeStudio
         private static Dictionary<string, HashSet<long>> Offsets = new Dictionary<string, HashSet<long>>();
         private static AssetsManager assetsManager = new AssetsManager() { Silent = true, SkipProcess = true, ResolveDependencies = false };
 
+        public static Dictionary<ulong, string> Paths { get; set; } = new Dictionary<ulong, string>();
+
         public record Entry
         {
             public string Path { get; set; }
@@ -380,9 +382,16 @@ namespace AnimeStudio
                                     var preloadIndex = m_Container.Value.preloadIndex;
                                     var preloadSize = m_Container.Value.preloadSize;
                                     var preloadEnd = preloadIndex + preloadSize;
+
+                                    string container = m_Container.Key;
+                                    var pathTest = Paths;
+                                    if(ulong.TryParse(container, out var hash) && Paths.TryGetValue(hash, out var path))
+                                    {
+                                        container = path;
+                                    }
                                     for (int k = preloadIndex; k < preloadEnd; k++)
                                     {
-                                        containers.Add((assetBundle.m_PreloadTable[k], m_Container.Key));
+                                        containers.Add((assetBundle.m_PreloadTable[k], container));
                                     }
                                 }
 
