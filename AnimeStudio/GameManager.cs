@@ -87,6 +87,7 @@ namespace AnimeStudio
 
             Games.Add(index++, new UnityCNGame(GameType.UnityCNCustomKey, new("UnityCN Custom Key", ""), GameCategory.Unity));
         }
+        public static Game GetGameByType(GameType gameType) => Games.FirstOrDefault(x => x.Value.Type == gameType).Value;
         public static Game GetGame(GameType gameType) => GetGame((int)gameType);
         public static Game GetGame(int index)
         {

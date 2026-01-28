@@ -206,7 +206,7 @@ namespace AnimeStudio.GUI
             {
                 Logger.Info("Loading...");
                 bringMainToFront();
-                _parent.Invoke(() => _parent.updateGame((int)ResourceMap.GetGameType()));
+                _parent.Invoke(() => _parent.updateGame(ResourceMap.GetGameType()));
                 _parent.Invoke(() => _parent.LoadPaths(files, filePaths.ToArray()));
             }
         }
@@ -531,7 +531,8 @@ namespace AnimeStudio.GUI
             {
                 var folder = dialog.SelectedPath;
                 var allFiles = Directory.GetFiles(folder, "*", SearchOption.AllDirectories)
-                                .ToDictionary(Path.GetFileName, x => x, StringComparer.OrdinalIgnoreCase);
+                                .GroupBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
+                                .ToDictionary(g => g.Key, g => g.Last(), StringComparer.OrdinalIgnoreCase);
                 int missing = 0;
                 foreach (var entry in _assetEntries)
                 {

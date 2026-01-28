@@ -2321,14 +2321,17 @@ namespace AnimeStudio.GUI
             Properties.Settings.Default.Save();
         }
 
-        public void updateGame(int index)
+        public void updateGame(GameType mapGame)
         {
+            Game game = GameManager.GetGameByType(mapGame);
+            int index = GameManager.GetGameIndex(game);
+
             Properties.Settings.Default.selectedGame = index;
             Properties.Settings.Default.Save();
 
             ResetForm();
 
-            Studio.Game = GameManager.GetGame(Properties.Settings.Default.selectedGame);
+            Studio.Game = game;
             Logger.Info($"Target Game is {Studio.Game.Name}");
 
             if (Studio.Game.IsUnityCN() && Studio.Game is UnityCNGame unityCnGame)
