@@ -6,7 +6,35 @@ namespace AnimeStudio
     //Special thanks to LukeFZ#4035.
     public static class FairGuardUtils
     {
-        public static void Decrypt(Span<byte> bytes)
+        private static class CB2Constants
+        {
+            public const uint SEED_PART0_XOR = 0x226a61b9;
+            public const uint SEED_PART1_XOR = 0x7a39d018;
+            public const uint SEED_PART2_XOR = 0x18f6d8aa;
+            public const uint SEED_PART3_XOR = 0xaa255fb1;
+            public const uint SEED_PART4_XOR = 0xf78dd8eb;
+
+            public const uint KEY_PART0_SUB = 0x1C26B82D;
+            public const uint KEY_PART1_ADD = 0x3F72EAF3;
+            public const uint KEY_PART2_XOR = 0x82C57E3C;
+            public const uint KEY_PART3_ADD = 0x6F2A7347;
+        }
+
+        private static class CB1Constants
+        {
+            public const uint SEED_PART0_XOR = 0x1274CBEC ^ 0x3F72EAF3;
+            public const uint SEED_PART1_XOR = 0xBE482704;
+            public const uint SEED_PART2_XOR = 0x753BDCAA;
+            public const uint SEED_PART3_XOR = 0x82C57E3C ^ 0xE3D947D3;
+            public const uint SEED_PART4_XOR = 0x6F2A7347 ^ 0x4736C714;
+
+            public const uint KEY_PART0_SUB = 0x1C26B82D;
+            public const uint KEY_PART1_ADD = 0x3F72EAF3;
+            public const uint KEY_PART2_XOR = 0x82C57E3C;
+            public const uint KEY_PART3_ADD = 0x6F2A7347;
+        }
+
+        public static void Decrypt(Span<byte> bytes, GameType gameType)
         {
             Logger.Verbose($"Attempting to decrypt block with FairGuard encryption...");
 
@@ -27,11 +55,28 @@ namespace AnimeStudio
                 encrypted[i] ^= 0xA6;
             }
 
-            var seedPart0 = (uint)(encryptedInts[2] ^ encryptedInts[6] ^ 0x226a61b9);
-            var seedPart1 = (uint)(encryptedInts[3] ^ encryptedInts[0] ^ 0x7a39d018 ^ encryptedSize);
-            var seedPart2 = (uint)(encryptedInts[1] ^ encryptedInts[5] ^ 0x18f6d8aa ^ encryptedSize);
-            var seedPart3 = (uint)(encryptedInts[0] ^ encryptedInts[7] ^ 0xaa255fb1);
-            var seedPart4 = (uint)(encryptedInts[4] ^ encryptedInts[7] ^ 0xf78dd8eb);
+            uint seedPart0, seedPart1, seedPart2, seedPart3, seedPart4;
+
+            if (gameType.IsArknightsEndfieldCB2())
+            {
+                seedPart0 = (uint)(encryptedInts[2] ^ encryptedInts[6] ^ CB2Constants.SEED_PART0_XOR);
+                seedPart1 = (uint)(encryptedInts[3] ^ encryptedInts[0] ^ CB2Constants.SEED_PART1_XOR ^ encryptedSize);
+                seedPart2 = (uint)(encryptedInts[1] ^ encryptedInts[5] ^ CB2Constants.SEED_PART2_XOR ^ encryptedSize);
+                seedPart3 = (uint)(encryptedInts[0] ^ encryptedInts[7] ^ CB2Constants.SEED_PART3_XOR);
+                seedPart4 = (uint)(encryptedInts[4] ^ encryptedInts[7] ^ CB2Constants.SEED_PART4_XOR);
+            }
+            else if (gameType.IsArknightsEndfieldCB1())
+            {
+                seedPart0 = (uint)(encryptedInts[2] ^ encryptedInts[6] ^ CB1Constants.SEED_PART0_XOR);
+                seedPart1 = (uint)(encryptedInts[3] ^ encryptedInts[0] ^ CB1Constants.SEED_PART1_XOR ^ encryptedSize);
+                seedPart2 = (uint)(encryptedInts[1] ^ encryptedInts[5] ^ CB1Constants.SEED_PART2_XOR ^ encryptedSize);
+                seedPart3 = (uint)(encryptedInts[0] ^ encryptedInts[7] ^ CB1Constants.SEED_PART3_XOR);
+                seedPart4 = (uint)(encryptedInts[4] ^ encryptedInts[7] ^ CB1Constants.SEED_PART4_XOR);
+            }
+            else
+            {
+                throw new InvalidOperationException("Unsupported game type for FairGuard decryption");
+            }
 
             var seedInts = new uint[] { seedPart0, seedPart1, seedPart2, seedPart3, seedPart4 };
             var seedBytes = MemoryMarshal.AsBytes<uint>(seedInts);
@@ -41,16 +86,29 @@ namespace AnimeStudio
             seed = CRC.CalculateDigest(seedBuffer, 0, (uint)seedBuffer.Length);
 
             var key = seedInts[0] ^ seedInts[1] ^ seedInts[2] ^ seedInts[3] ^ seedInts[4] ^ (uint)encryptedSize;
-            
+
             RC4(seedBytes, key);
             var keySeed = CRC.CalculateDigest(seedBytes.ToArray(), 0, (uint)seedBytes.Length);
             var keySeedBytes = BitConverter.GetBytes(keySeed);
             keySeed = GenerateSeed(keySeedBytes);
 
-            var keyPart0 = (seedInts[3] - 0x1C26B82D) ^ keySeed;
-            var keyPart1 = (seedInts[2] + 0x3F72EAF3) ^ seed;
-            var keyPart2 = seedInts[0] ^ 0x82C57E3C ^ keySeed;
-            var keyPart3 = (seedInts[1] + 0x6F2A7347) ^ seed;
+            uint keyPart0, keyPart1, keyPart2, keyPart3;
+
+            if (gameType.IsArknightsEndfieldCB2())
+            {
+                keyPart0 = (seedInts[3] - CB2Constants.KEY_PART0_SUB) ^ keySeed;
+                keyPart1 = (seedInts[2] + CB2Constants.KEY_PART1_ADD) ^ seed;
+                keyPart2 = seedInts[0] ^ CB2Constants.KEY_PART2_XOR ^ keySeed;
+                keyPart3 = (seedInts[1] + CB2Constants.KEY_PART3_ADD) ^ seed;
+            }
+            else // CB1
+            {
+                keyPart0 = (seedInts[3] - CB1Constants.KEY_PART0_SUB) ^ keySeed;
+                keyPart1 = (seedInts[2] + CB1Constants.KEY_PART1_ADD) ^ seed;
+                keyPart2 = seedInts[0] ^ CB1Constants.KEY_PART2_XOR ^ keySeed;
+                keyPart3 = (seedInts[1] + CB1Constants.KEY_PART3_ADD) ^ seed;
+            }
+
             var keyVector = new uint[] { keyPart0, keyPart1, keyPart2, keyPart3 };
 
             var block = encrypted[0x20..];

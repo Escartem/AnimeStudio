@@ -29,6 +29,8 @@ namespace AnimeStudio
         public ClassIDType Type { get; set; }
         [Key(5)]
         public string SHA256Hash { get; set; }
+        [Key(6)]
+        public long Offset { get; set; } = -1;
 
         public bool Matches(Dictionary<string, Regex> filters)
         {

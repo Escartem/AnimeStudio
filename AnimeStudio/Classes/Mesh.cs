@@ -616,6 +616,12 @@ namespace AnimeStudio
                     }
                     var m_KeepVertices = reader.ReadBoolean();
                     var m_KeepIndices = reader.ReadBoolean();
+                    if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+                    {
+                        var m_CollisionMeshOnly = reader.ReadBoolean();
+                        m_CollisionMeshBaked = reader.ReadBoolean();
+                        var m_CollisionMeshConvex = reader.ReadBoolean();
+                    }
                     if (reader.Game.Type.IsHYGCB1())
                     {
                         var m_FullPrecisionVertexPosition = reader.ReadBoolean();
@@ -624,7 +630,7 @@ namespace AnimeStudio
                     {
                         var m_VertexColorSkinning = reader.ReadBoolean();
                     }
-                    if (reader.Game.Type.IsArknightsEndfield())
+                    if (reader.Game.Type.IsArknightsEndfieldCB2())
                     {
                         var m_CollisionMeshOnly = reader.ReadBoolean();
                         m_CollisionMeshBaked = reader.ReadBoolean();
@@ -789,7 +795,7 @@ namespace AnimeStudio
                 var m_MeshMetrics = new float[2];
                 m_MeshMetrics[0] = reader.ReadSingle();
                 m_MeshMetrics[1] = reader.ReadSingle();
-                if (reader.Game.Type.IsArknightsEndfield())
+                if (reader.Game.Type.IsArknightsEndfieldGroup())
                 {
                     var m_MeshMetrics2 = reader.ReadSingle();
                 }
@@ -837,6 +843,11 @@ namespace AnimeStudio
                 m_StreamData = new StreamingInfo(reader);
             }
 
+            if (reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_BonesPerVertex = reader.ReadUInt32();
+            }
+
             ProcessData();
         }
 
@@ -867,6 +878,7 @@ namespace AnimeStudio
 
             GetTriangles();
         }
+
 
         private void ReadVertexData()
         {
@@ -912,10 +924,18 @@ namespace AnimeStudio
 
                         int[] componentsIntArray = null;
                         float[] componentsFloatArray = null;
-                        if (MeshHelper.IsIntFormat(vertexFormat))
-                            componentsIntArray = MeshHelper.BytesToIntArray(componentBytes, vertexFormat);
+                        if (reader.Game.Type.IsArknightsEndfieldGroup() && chn == 1 && m_Channel.dimension == 1)
+                        {
+                            //componentsFloatArray = MeshHelper.BytesToFloatArray(componentBytes, vertexFormat);
+                            componentsFloatArray = MeshHelper.DecompressEndfieldNormal(componentBytes, vertexFormat);
+                        }
                         else
-                            componentsFloatArray = MeshHelper.BytesToFloatArray(componentBytes, vertexFormat);
+                        {
+                            if (MeshHelper.IsIntFormat(vertexFormat))
+                                componentsIntArray = MeshHelper.BytesToIntArray(componentBytes, vertexFormat);
+                            else
+                                componentsFloatArray = MeshHelper.BytesToFloatArray(componentBytes, vertexFormat);
+                        }
 
                         if (version[0] >= 2018)
                         {
@@ -1551,6 +1571,70 @@ namespace AnimeStudio
                         result[i] = BinaryPrimitives.ReadInt32LittleEndian(inputBytes.AsSpan(i * 4));
                         break;
                 }
+            }
+            return result;
+        }
+
+        // From: https://github.com/Hororiya/YarikStudio/blob/main/AssetStudio/Classes/Mesh.cs#L1535
+        public static float[] DecompressEndfieldNormal(byte[] inputBytes, VertexFormat format) // 8bits per component
+        {
+            var size = GetFormatSize(format);
+            var len = inputBytes.Length / size;
+            var result = new float[len * 3];
+            var readFloat = new float[len];
+            readFloat = BytesToFloatArray(inputBytes, format);
+
+            for (int i = 0; i < len; i++)
+            {
+                float value = readFloat[i];
+
+                float r0x = BitConverter.ToInt32(BitConverter.GetBytes(value)) & 0x40000000;
+                r0x = (BitConverter.ToUInt32(BitConverter.GetBytes(r0x)) > 0) ? 1.0f : 0.0f;
+
+                // (((int3)v2.xxx << (32 - int3(10,10,10) - int3(0,10,20))) >> (32 - int3(10,10,10)))
+                float r0y = (BitConverter.ToInt32(BitConverter.GetBytes(value)) << 22) >> 22;
+                float r0z = (BitConverter.ToInt32(BitConverter.GetBytes(value)) << 12) >> 22;
+                float r0w = (BitConverter.ToInt32(BitConverter.GetBytes(value)) << 2) >> 22;
+
+                float r1x = (BitConverter.ToUInt32(BitConverter.GetBytes(value))) >> 31;
+
+                float r1y = 0.00195694715f * r0y;
+                float r1z = 0.00195694715f * r0z;
+                float r1w = 0.00195694715f * r0w;
+
+                float leng = r1x * r1x + r1y * r1y + r1z * r1z + r1w * r1w;
+
+                float r2x = 1.0f - Math.Abs(r1y);
+                float r2y = 1.0f - Math.Abs(r1z);
+                float r2z = 1.0f - Math.Abs(r1y);
+
+                float r3z = r2x - Math.Abs(r1z);
+
+                r2x = r3z < 0.0f ? 1.0f : 0.0f;
+
+                r0y = r0y >= 0.0f ? 1.0f : 0.0f;
+                r0z = r0z >= 0.0f ? 1.0f : 0.0f;
+
+                r0y = r0y * 2.0f - 1.0f;
+                r0z = r0z * 2.0f - 1.0f;
+
+                r0y = r2y * r0y;
+                r0z = r2z * r0z;
+
+                float r3x = (r2x == 1.0f) ? r0y : r1y;
+                float r3y = (r2x == 1.0f) ? r0z : r1z;
+
+                r0y = r3x * r3x + r3y * r3y + r3z * r3z;
+                r0y = 1.0f / (float)Math.Sqrt(r0y);
+
+                r2x = r3x * r0y;
+                r2y = r3y * r0y;
+                r2z = r3z * r0y;
+
+                // 计算result[i * 3]的值
+                result[i * 3] = r2x;
+                result[i * 3 + 1] = r2y;
+                result[i * 3 + 2] = r2z;
             }
             return result;
         }

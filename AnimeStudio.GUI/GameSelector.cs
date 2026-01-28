@@ -106,7 +106,7 @@ namespace AnimeStudio.GUI
                     Properties.Settings.Default.Save();
                 }
             }
-            _parent.updateGame(GameManager.GetGameIndex(selectedGame));
+            _parent.updateGame(selectedGame.Type);
             this.Close();
         }
     }
