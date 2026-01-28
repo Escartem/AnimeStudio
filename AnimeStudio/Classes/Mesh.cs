@@ -843,6 +843,11 @@ namespace AnimeStudio
                 m_StreamData = new StreamingInfo(reader);
             }
 
+            if (reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_BonesPerVertex = reader.ReadUInt32();
+            }
+
             ProcessData();
         }
 
