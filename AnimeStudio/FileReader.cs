@@ -247,6 +247,7 @@ namespace AnimeStudio
                     case GameType.SchoolGirlStrikers:
                         reader = DecryptSchoolGirlStrikers(reader);
                         break;
+
                 }
             }
             if (reader.FileType == FileType.BundleFile && game.Type.IsBlockFile() || reader.FileType == FileType.ENCRFile || reader.FileType == FileType.Blb2File || reader.FileType == FileType.Blb3File || reader.FileType == FileType.HygFile || reader.FileType == FileType.VFSFile)

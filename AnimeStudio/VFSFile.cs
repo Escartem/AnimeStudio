@@ -40,7 +40,7 @@ namespace AnimeStudio
                 blockInfosOffset = (uint)(m_Header.size) - m_Header.compressedBlocksInfoSize;
             else
             {
-                if (m_Header.encFlags >= 7)
+                if (m_Header.version >= 7)
                     blockInfosOffset = 48;
                 else
                     blockInfosOffset = 40;
@@ -52,7 +52,7 @@ namespace AnimeStudio
             // go to data
             uint dataOffset;
 
-            if (m_Header.encFlags >= 7)
+            if (m_Header.version >= 7)
                 dataOffset = 48;
             else
                 dataOffset = 40;

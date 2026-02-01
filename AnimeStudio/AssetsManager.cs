@@ -208,6 +208,10 @@ namespace AnimeStudio
                 case FileType.MhyFile:
                     LoadGameBlockFile(reader);
                     break;
+                
+                case FileType.VFSFile:
+                    LoadGameBlockFile(reader);
+                    break;
             }
         }
 
