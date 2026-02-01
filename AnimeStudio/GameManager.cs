@@ -59,6 +59,7 @@ namespace AnimeStudio
             Games.Add(index++, new Game(GameType.CodenameJump, "Codename Jump"));
             Games.Add(index++, new Game(GameType.GirlsFrontline, "Girls Frontline"));
             Games.Add(index++, new Game(GameType.Reverse1999, "Reverse: 1999"));
+            Games.Add(index++, new Game(GameType.ArknightsEndfield, "Arknights Endfield"));
             Games.Add(index++, new Game(GameType.ArknightsEndfieldCB3, "Arknights Endfield CBT3"));
             Games.Add(index++, new Game(GameType.ArknightsEndfieldCB2, "Arknights Endfield CBT2"));
             Games.Add(index++, new Game(GameType.ArknightsEndfieldCB1, "Arknights Endfield CBT1"));

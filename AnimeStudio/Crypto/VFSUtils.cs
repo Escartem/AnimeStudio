@@ -24,7 +24,10 @@ namespace AnimeStudio
             switch (game)
             {
                 case GameType.ArknightsEndfield:
-                    return false;
+                    c1 = 4 * (a ^ 0x4A92F0CD) & 0xFFFF0000;
+                    c2 = BitOperations.RotateRight(a ^ 0x4A92F0CD, 14);
+                    c3 = c1 ^ c2 ^ 0xD8B1E637;
+                    break;
                 case GameType.ArknightsEndfieldCB3:
                     c1 = ((a ^ 0x91A64750) >> 3) ^ ((a ^ 0x91A64750) << 29);
                     c2 = (c1 << 16) ^ 0xD5F9BECC;
@@ -58,6 +61,17 @@ namespace AnimeStudio
             switch (game)
             {
                 case GameType.ArknightsEndfield:
+                    compressedBlocksInfoSize2 = reader.ReadUInt16();
+                    flags2 = reader.ReadUInt32();
+                    encFlags = reader.ReadUInt32();
+                    size2 = reader.ReadUInt32();
+                    flags1 = reader.ReadUInt32();
+                    uncompressedBlocksInfoSize1 = reader.ReadUInt16();
+                    reader.ReadUInt32(); // unknown
+                    uncompressedBlocksInfoSize2 = reader.ReadUInt16();
+                    size1 = reader.ReadUInt32();
+                    compressedBlocksInfoSize1 = reader.ReadUInt16();
+                    reader.ReadByte(); // unknown
                     break;
                 case GameType.ArknightsEndfieldCB3:
                     flags1 = reader.ReadUInt32();
@@ -80,8 +94,17 @@ namespace AnimeStudio
             switch (game)
             {
                 case GameType.ArknightsEndfield:
+                    compressedBlocksInfoSize = BitConcat((ushort)(compressedBlocksInfoSize1 ^ compressedBlocksInfoSize2 ^ 0xA121), compressedBlocksInfoSize2);
+                    compressedBlocksInfoSize = BitOperations.RotateRight(compressedBlocksInfoSize, 18) ^ 0xF74324EE;
 
+                    uncompressedBlocksInfoSize = BitConcat((ushort)(uncompressedBlocksInfoSize1 ^ uncompressedBlocksInfoSize2 ^ 0xA121), uncompressedBlocksInfoSize2);
+                    uncompressedBlocksInfoSize = BitOperations.RotateRight(uncompressedBlocksInfoSize, 18) ^ 0xF74324EE;
 
+                    size = BitConcat(size1 ^ size2 ^ 0xDAD76848, size2);
+                    size = (BitOperations.RotateRight(size, 18)) ^ 0xA4F1A11747816520UL;
+
+                    encFlags ^= flags2;
+                    flags = flags1 ^ flags2 ^ 0xA7F49310;
                     break;
                 case GameType.ArknightsEndfieldCB3:
                     compressedBlocksInfoSize = BitConcat((ushort)(compressedBlocksInfoSize1 ^ compressedBlocksInfoSize2 ^ 0xE114), compressedBlocksInfoSize2);
@@ -115,6 +138,10 @@ namespace AnimeStudio
             switch (game)
             {
                 case GameType.ArknightsEndfield:
+                    var originalEndian = reader.Endian;
+                    reader.Endian = EndianType.LittleEndian;
+                    encCount = BinaryPrimitives.ReverseEndianness(reader.ReadUInt32() ^ 0x8A7BF723);
+                    reader.Endian = originalEndian;
                     break;
                 case GameType.ArknightsEndfieldCB3:
                     encCount = reader.ReadUInt32() ^ 0xF6825038;
@@ -128,6 +155,7 @@ namespace AnimeStudio
             switch (game)
             {
                 case GameType.ArknightsEndfield:
+                    blocksCount = BitOperations.RotateRight(blocksCount, 18) ^ 0x91CE0A4F;
                     break;
                 case GameType.ArknightsEndfieldCB3:
                     blocksCount = BitOperations.RotateLeft(blocksCount, 3) ^ 0x5F23A227;
@@ -145,6 +173,11 @@ namespace AnimeStudio
                 switch (game)
                 {
                     case GameType.ArknightsEndfield:
+                        a = reader.ReadUInt16();
+                        b = reader.ReadUInt16();
+                        c = reader.ReadUInt16();
+                        encFlags = (ushort)(reader.ReadUInt16() ^ 0x9CD6);
+                        d = reader.ReadUInt16();
                         break;
                     case GameType.ArknightsEndfieldCB3:
                         encFlags = (ushort)(reader.ReadUInt16() ^ 0xAFEBU);
@@ -164,6 +197,14 @@ namespace AnimeStudio
                 switch (game)
                 {
                     case GameType.ArknightsEndfield:
+                        flags = BitConcat((byte)(a0 ^ a1), a0);
+                        flags = (ushort)(c ^ RotateLeft(flags, 14) ^ 0x523F);
+
+                        uncompressedSize = BitConcat((ushort)(a ^ c ^ 0xA121), c);
+                        uncompressedSize = BitOperations.RotateRight(uncompressedSize, 18) ^ 0xF74324EE;
+
+                        compressedSize = BitConcat((ushort)(b ^ d ^ 0xA121), d);
+                        compressedSize = BitOperations.RotateRight(compressedSize, 18) ^ 0xF74324EE;
                         break;
                     case GameType.ArknightsEndfieldCB3:
                         flags = BitConcat((byte)(a0 ^ a1), a0);
@@ -197,6 +238,10 @@ namespace AnimeStudio
             switch (game)
             {
                 case GameType.ArknightsEndfield:
+                    var originalEndian = reader.Endian;
+                    reader.Endian = EndianType.LittleEndian;
+                    encCount = BinaryPrimitives.ReverseEndianness(reader.ReadUInt32() ^ 0x5DE50A6B);
+                    reader.Endian = originalEndian;
                     break;
                 case GameType.ArknightsEndfieldCB3:
                     encCount = reader.ReadUInt32() ^ 0xA9535111;
@@ -210,6 +255,7 @@ namespace AnimeStudio
             switch (game)
             {
                 case GameType.ArknightsEndfield:
+                    nodesCount = BitOperations.RotateRight(nodesCount, 18) ^ 0xE4C1D9F2;
                     break;
                 case GameType.ArknightsEndfieldCB3:
                     nodesCount = BitOperations.RotateLeft(nodesCount, 3) ^ 0xAF807AFC;
@@ -227,6 +273,10 @@ namespace AnimeStudio
                 switch (game)
                 {
                     case GameType.ArknightsEndfield:
+                        a = reader.ReadUInt32() ^ 0x8E06A9F8;
+                        b = reader.ReadUInt32();
+                        c = reader.ReadUInt32();
+                        d = reader.ReadUInt32();
                         break;
                     case GameType.ArknightsEndfieldCB3:
                         a = reader.ReadUInt32();
@@ -250,6 +300,10 @@ namespace AnimeStudio
                 switch (game)
                 {
                     case GameType.ArknightsEndfield:
+                        for (int j = 0; j < bytes.Count; j++)
+                            bytes[j] ^= (byte)((j ^ 0x97) & 0xFF);
+
+                        name = Encoding.ASCII.GetString(bytes.ToArray());
                         break;
                     case GameType.ArknightsEndfieldCB3:
                         name = new string(bytes.Select(b => (char)(b ^ 0xAC)).ToArray());
@@ -260,6 +314,7 @@ namespace AnimeStudio
                 switch (game)
                 {
                     case GameType.ArknightsEndfield:
+                        e = reader.ReadUInt32();
                         break;
                     case GameType.ArknightsEndfieldCB3:
                         d = reader.ReadUInt32() ^ 0xE4A15748;
@@ -273,6 +328,17 @@ namespace AnimeStudio
                 switch (game)
                 {
                     case GameType.ArknightsEndfield:
+                        var a0 = (ushort)a;
+                        var a1 = (ushort)(a >> 16);
+
+                        flags = BitConcat((ushort)(a1 ^ a0), a0);
+                        flags = BitOperations.RotateRight(flags, 18) ^ 0xF13927C4 ^ b;
+
+                        offset = BitConcat(d ^ c ^ 0xDAD76848, c);
+                        offset = BitOperations.RotateLeft(offset, 14) ^ 0xA4F1A11747816520UL;
+
+                        size = BitConcat(b ^ e ^ 0xDAD76848, e);
+                        size = BitOperations.RotateLeft(size, 14) ^ 0xA4F1A11747816520UL;
                         break;
                     case GameType.ArknightsEndfieldCB3:
                         var d0 = (ushort)d;
@@ -308,6 +374,7 @@ namespace AnimeStudio
             switch (game)
             {
                 case GameType.ArknightsEndfield:
+                    VFSAES.InitKeys(CryptoHelper.VFSAESSBox, CryptoHelper.VFSAESKey, CryptoHelper.VFSAESIV, 0xF19AB7752CDD0196UL);
                     break;
                 case GameType.ArknightsEndfieldCB3:
                     VFSAES.InitKeys(CryptoHelper.VFSCB3AESSBox, CryptoHelper.VFSCB3AESKey, CryptoHelper.VFSCB3AESIV, 0xDEA1BEEF2AF3BA0EUL);
