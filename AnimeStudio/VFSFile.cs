@@ -36,7 +36,7 @@ namespace AnimeStudio
             // go to blocks info
             uint blockInfosOffset;
 
-            if (((int)m_Header.flags & 0x80) != 0)
+            if ((m_Header.flags & ArchiveFlags.BlocksInfoAtTheEnd) != 0)
                 blockInfosOffset = (uint)(m_Header.size) - m_Header.compressedBlocksInfoSize;
             else
             {
@@ -56,10 +56,10 @@ namespace AnimeStudio
                 dataOffset = 48;
             else
                 dataOffset = 40;
-            if (((int)(m_Header.flags) & 0x80) == 0)
+            if (((m_Header.flags) & ArchiveFlags.BlocksInfoAtTheEnd) == 0)
             {
                 var temp = m_Header.compressedBlocksInfoSize;
-                if (((int)(m_Header.flags) & 0x200) != 0)
+                if (((m_Header.flags) & ArchiveFlags.BlockInfoNeedPaddingAtStart) != 0)
                     temp = (temp + 15) & 0xFFFFFFF0;
                 dataOffset += temp;
             }
