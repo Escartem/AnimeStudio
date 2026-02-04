@@ -86,6 +86,20 @@ namespace AnimeStudio
             {
                 m_SyncedLayerAffectsTiming = reader.ReadBoolean();
             }
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_MeshSpace = reader.ReadBoolean();
+                var m_UseThreePoseBlender = reader.ReadBoolean();
+                var m_curveMaskIndex = reader.ReadUInt32();
+                var m_DisableRootMotionPass = reader.ReadBoolean();
+                var m_ConvertSimpleBlend = reader.ReadBoolean();
+                var m_PostProcessLayer = reader.ReadBoolean();
+                reader.AlignStream();
+                var m_layerOptMode = reader.ReadInt32();
+                var m_LODThreshold = reader.ReadInt32();
+                var m_AbilityThreshold = reader.ReadInt32();
+                var m_UseIdentifyValues = reader.ReadBoolean();
+            }
             reader.AlignStream();
         }
     }
@@ -103,6 +117,18 @@ namespace AnimeStudio
             m_EventID = reader.ReadUInt32();
             m_EventThreshold = reader.ReadSingle();
             m_ExitTime = reader.ReadSingle();
+        }
+    }
+
+    public class TransitionBlockParamConstant
+    {
+        public int m_HashId;
+        public float m_OutputValue;
+
+        public TransitionBlockParamConstant(ObjectReader reader)
+        {
+            m_HashId = reader.ReadInt32();
+            m_OutputValue = reader.ReadSingle();
         }
     }
 
@@ -132,6 +158,16 @@ namespace AnimeStudio
             for (int i = 0; i < numConditions; i++)
             {
                 m_ConditionConstantArray.Add(new ConditionConstant(reader));
+            }
+
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var numTransitionBlockParam = reader.ReadInt32();
+                var m_TransitionBlockParamConstantArray = new List<TransitionBlockParamConstant>();
+                for (int i = 0; i < numTransitionBlockParam; i++)
+                {
+                    m_TransitionBlockParamConstantArray.Add(new TransitionBlockParamConstant(reader));
+                }
             }
 
             m_DestinationState = reader.ReadUInt32();
@@ -171,6 +207,10 @@ namespace AnimeStudio
                 }
                 reader.AlignStream();
                 m_InterruptionSource = reader.ReadInt32();
+                if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+                {
+                    var m_BlendStyle = reader.ReadInt32();
+                }
                 m_OrderedInterruption = reader.ReadBoolean();
             }
             else
@@ -181,6 +221,11 @@ namespace AnimeStudio
             if (version[0] > 4 || (version[0] == 4 && version[1] >= 5)) //4.5 and up
             {
                 m_CanTransitionToSelf = reader.ReadBoolean();
+            }
+
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_EnableBlendRootMotion = reader.ReadBoolean();
             }
 
             reader.AlignStream();
@@ -251,7 +296,68 @@ namespace AnimeStudio
         public BlendDirectDataConstant(ObjectReader reader)
         {
             m_ChildBlendEventIDArray = reader.ReadUInt32Array();
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_ChildPoseTimeEventIDArray = reader.ReadUInt32Array();
+            }
             m_NormalizedBlendValues = reader.ReadBoolean();
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_UsePoseTimeValues = reader.ReadBoolean();
+            }
+            reader.AlignStream();
+        }
+    }
+
+    public class BlendSequenceDataConstant
+    {
+        public uint[] m_ChildBlendEventIDArray;
+        public uint[] m_ChildPoseTimeEventIDArray;
+        public bool m_NormalizedBlendValues;
+        public bool m_UsePoseTimeValues;
+        public HumanPoseMask m_BodyMask;
+        public SkeletonMask m_SkeletonMask;
+        public byte[] m_BlendingMode;
+        public HumanPoseMask[] m_ChildBodyMask;
+        public SkeletonMask[] m_ChildSkeletonMask;
+        public float[] m_ChildSpeed;
+        public int[] m_ChildLodThreshold;
+        public int[] m_ChildAbilityThreshold;
+        public byte[] m_ChildCullingMode;
+        public bool m_UseBlendDuration;
+
+        public BlendSequenceDataConstant(ObjectReader reader)
+        {
+            m_ChildBlendEventIDArray = reader.ReadUInt32Array();
+            m_ChildPoseTimeEventIDArray = reader.ReadUInt32Array();
+            m_NormalizedBlendValues= reader.ReadBoolean();
+            m_UsePoseTimeValues = reader.ReadBoolean();
+            reader.AlignStream();
+            m_BodyMask = new HumanPoseMask(reader);
+            m_SkeletonMask = new SkeletonMask(reader);
+            m_BlendingMode = reader.ReadUInt8Array();
+            reader.AlignStream();
+
+            var numChildBodyMasks = reader.ReadInt32();
+            m_ChildBodyMask = new HumanPoseMask[numChildBodyMasks];
+            for (int i = 0; i < numChildBodyMasks; i++)
+            {
+                m_ChildBodyMask[i] = new HumanPoseMask(reader);
+            }
+
+            var numChildSkeletonMasks = reader.ReadInt32();
+            m_ChildSkeletonMask = new SkeletonMask[numChildSkeletonMasks];
+            for (int i = 0; i < numChildSkeletonMasks; i++)
+            {
+                m_ChildSkeletonMask[i] = new SkeletonMask(reader);
+            }
+
+            m_ChildSpeed = reader.ReadSingleArray();
+            m_ChildLodThreshold = reader.ReadInt32Array();
+            m_ChildAbilityThreshold = reader.ReadInt32Array();
+            m_ChildCullingMode = reader.ReadUInt8Array();
+            m_UseBlendDuration = reader.ReadBoolean();
+
             reader.AlignStream();
         }
     }
@@ -302,6 +408,11 @@ namespace AnimeStudio
                 m_BlendDirectData = new BlendDirectDataConstant(reader);
             }
 
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_BlendSequenceData = new BlendSequenceDataConstant(reader);
+            }
+
             m_ClipID = reader.ReadUInt32();
             if (version[0] == 4 && version[1] >= 5) //4.5 - 5.0
             {
@@ -315,7 +426,7 @@ namespace AnimeStudio
                 || (version[0] == 4 && version[1] == 1 && version[2] >= 3)) //4.1.3 and up
             {
                 m_CycleOffset = reader.ReadSingle();
-                if (reader.Game.Type.IsArknightsEndfield())
+                if (reader.Game.Type.IsArknightsEndfieldGroup())
                 {
                     var m_StateNameHash = reader.ReadUInt32();
                 }
@@ -445,13 +556,36 @@ namespace AnimeStudio
                 m_Mirror = reader.ReadBoolean();
             }
 
-            if (reader.Game.Type.IsArknightsEndfield())
+            if (reader.Game.Type.IsArknightsEndfieldGroup())
             {
                 var m_SyncGroupID = reader.ReadUInt32();
                 var m_SyncGroupRole = reader.ReadUInt32();
             }
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_CullingMode = reader.ReadUInt32();
+                reader.AlignStream();
+                var numStateParameterConstant = reader.ReadInt32();
+                var m_StateParameterConstantArray = new StateParameterConstant[numStateParameterConstant];
+                for (int i = 0; i < numStateParameterConstant; i++)
+                {
+                    m_StateParameterConstantArray[i] = new StateParameterConstant(reader);
+                }
+            }
 
             reader.AlignStream();
+        }
+    }
+
+    public class StateParameterConstant
+    {
+        public int m_NameID;
+        public float m_Value;
+
+        public StateParameterConstant(ObjectReader reader)
+        {
+            m_NameID = reader.ReadInt32();
+            m_Value = reader.ReadSingle();
         }
     }
 
@@ -469,6 +603,16 @@ namespace AnimeStudio
             for (int i = 0; i < numConditions; i++)
             {
                 m_ConditionConstantArray.Add(new ConditionConstant(reader));
+            }
+
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var numTransitionBlockParam = reader.ReadInt32();
+                var m_TransitionBlockParamConstantArray = new List<TransitionBlockParamConstant>();
+                for (int i = 0; i < numTransitionBlockParam; i++)
+                {
+                    m_TransitionBlockParamConstantArray.Add(new TransitionBlockParamConstant(reader));
+                }
             }
         }
     }
@@ -532,6 +676,12 @@ namespace AnimeStudio
 
             m_DefaultState = reader.ReadUInt32();
             m_MotionSetCount = reader.ReadUInt32();
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_ImmediateTransition = reader.ReadBoolean();
+                var m_InterruptDynamicTransitions = reader.ReadBoolean();
+                reader.AlignStream();
+            }
         }
     }
 
@@ -605,6 +755,34 @@ namespace AnimeStudio
 
             m_Values = new ValueArrayConstant(reader);
             m_DefaultValues = new ValueArray(reader);
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_ClothCalculatorType = reader.ReadInt32();
+            }
+        }
+    }
+
+    public class HGAnimationCurveMask : NamedObject
+    {
+        public uint[] m_Mask;
+        public List<string> m_CurveNames;
+        public GenericBinding[] m_GenericBindings;
+
+        public HGAnimationCurveMask(ObjectReader reader) : base(reader)
+        {
+            m_Mask = reader.ReadUInt32Array();
+
+            var curveNamesCount = reader.ReadInt32();
+            m_CurveNames = new List<string>(curveNamesCount);
+            for (int i = 0; i < curveNamesCount; i++)
+            {
+                m_CurveNames.Add(reader.ReadAlignedString());
+            }
+            reader.AlignStream();
+
+            var genericBindingsCount = reader.ReadInt32();
+            m_GenericBindings = new GenericBinding[genericBindingsCount];
+            reader.AlignStream();
         }
     }
 
@@ -625,12 +803,24 @@ namespace AnimeStudio
                 m_TOS.Add(reader.ReadUInt32(), reader.ReadAlignedString());
             }
 
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                int animationCurveMaskSize = reader.ReadInt32();
+                var m_AnimationCurveMask = new PPtr<HGAnimationCurveMask>[animationCurveMaskSize];
+                for (int i = 0; i < animationCurveMaskSize; i++)
+                {
+                    m_AnimationCurveMask[i] = new PPtr<HGAnimationCurveMask>(reader);
+                }
+            }
+
             int numClips = reader.ReadInt32();
             m_AnimationClips = new List<PPtr<AnimationClip>>();
             for (int i = 0; i < numClips; i++)
             {
                 m_AnimationClips.Add(new PPtr<AnimationClip>(reader));
             }
+
+            // TODO add some more stuff maybe?
         }
     }
 }

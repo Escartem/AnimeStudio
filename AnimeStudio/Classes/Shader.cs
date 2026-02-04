@@ -55,6 +55,47 @@ namespace AnimeStudio
             bindPoint = reader.ReadInt32();
         }
     }
+    
+    public class DescriptorSetParam
+    {
+        public int m_NameIndex;
+        public int m_SetId;
+        public int m_MaxBindingIndex;
+        public List<SetBinding> m_SetBindings;
+
+        public DescriptorSetParam(EndianBinaryReader reader)
+        {
+            m_NameIndex = reader.ReadInt32();
+            m_SetId = reader.ReadInt32();
+            m_MaxBindingIndex = reader.ReadInt32();
+
+            var numSetBindings = reader.ReadInt32();
+            m_SetBindings = new List<SetBinding>();
+            for (int i = 0; i < numSetBindings; i++)
+            {
+                m_SetBindings.Add(new SetBinding(reader));
+            }
+        }
+    }
+
+    public class SetBinding
+    {
+        public int m_NameIndex;
+        public int m_BindingIndex;
+        public int m_DescriptorType;
+        public uint m_PackedBinding;
+        public uint m_PackedInfo;
+
+        public SetBinding(EndianBinaryReader reader)
+        {
+            m_NameIndex = reader.ReadInt32();
+            m_BindingIndex = reader.ReadInt32();
+            m_DescriptorType = reader.ReadInt32();
+            m_PackedBinding = reader.ReadUInt32();
+            m_PackedInfo = reader.ReadUInt32();
+        }
+    }
+
     public enum TextureDimension
     {
         Unknown = -1,
@@ -541,6 +582,7 @@ namespace AnimeStudio
         public List<BufferBinding> m_ConstantBufferBindings;
         public List<UAVParameter> m_UAVParams;
         public List<SamplerParameter> m_Samplers;
+        public List<DescriptorSetParam> m_DescriptorSetParams;
 
         public SerializedProgramParameters(ObjectReader reader)
         {
@@ -598,6 +640,16 @@ namespace AnimeStudio
             for (int i = 0; i < numSamplers; i++)
             {
                 m_Samplers.Add(new SamplerParameter(reader));
+            }
+
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                int numDescriptorSetParams = reader.ReadInt32();
+                m_DescriptorSetParams = new List<DescriptorSetParam>();
+                for (int i = 0; i < numDescriptorSetParams; i++)
+                {
+                    m_DescriptorSetParams.Add(new DescriptorSetParam(reader));
+                }
             }
         }
     }
@@ -942,6 +994,11 @@ namespace AnimeStudio
             {
                 var m_HasProceduralInstancingVariant = reader.ReadBoolean();
             }
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_HasSRPInstancingVariant = reader.ReadBoolean();
+                var m_HasHGECSInstancingVariant = reader.ReadBoolean();
+            }
             if (reader.Game.Type.IsSR())
             {
                 var m_HasMultiDrawVariant = reader.ReadBoolean();
@@ -1023,6 +1080,7 @@ namespace AnimeStudio
         public SerializedProperties m_PropInfo;
         public List<SerializedSubShader> m_SubShaders;
         public string[] m_KeywordNames;
+        public string[] m_DifferentMaterialCbKeywordNames;
         public byte[] m_KeywordFlags;
         public string m_Name;
         public string m_CustomEditorName;
@@ -1047,6 +1105,10 @@ namespace AnimeStudio
             if (version[0] > 2021 || (version[0] == 2021 && version[1] >= 2)) //2021.2 and up
             {
                 m_KeywordNames = reader.ReadStringArray();
+                if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+                {
+                    m_DifferentMaterialCbKeywordNames = reader.ReadStringArray();
+                }
                 m_KeywordFlags = reader.ReadUInt8Array();
                 reader.AlignStream();
             }
@@ -1135,6 +1197,22 @@ namespace AnimeStudio
         }
     }
 
+    public class SubShaderBinaryData : NamedObject
+    {
+        public uint[] m_CompressedBlob;
+        public uint[][] m_Offsets;
+        public uint[][] m_CompressedLengths;
+        public uint[][] m_DecompressedLengths;
+
+        public SubShaderBinaryData(ObjectReader reader) : base(reader)
+        {
+            m_CompressedBlob = reader.ReadUInt32Array();
+            m_Offsets = reader.ReadUInt32ArrayArray();
+            m_CompressedLengths = reader.ReadUInt32ArrayArray();
+            m_DecompressedLengths = reader.ReadUInt32ArrayArray();
+        }
+    }
+
     public class Shader : NamedObject
     {
         public byte[] m_Script;
@@ -1143,6 +1221,9 @@ namespace AnimeStudio
         public byte[] m_SubProgramBlob;
         //5.5 and up
         public SerializedShader m_ParsedForm;
+        public bool m_UseExternalBlobs;
+        public int[] m_SubShaderBinaryDataLODs;
+        public List<PPtr<SubShaderBinaryData>> m_SubShaderBinaryData;
         public ShaderCompilerPlatform[] platforms;
         public uint[][] offsets;
         public uint[][] compressedLengths;
@@ -1165,6 +1246,21 @@ namespace AnimeStudio
                 {
                     Logger.Error($"Cannot parse shader, no more bytes left for asset {reader.assetsFile.fileName} of {reader.assetsFile.originalPath} at path {reader.m_PathID}.");
                     return;
+                }
+                if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+                {
+                    m_UseExternalBlobs = reader.ReadBoolean();
+                    reader.AlignStream();
+                    m_SubShaderBinaryDataLODs = reader.ReadInt32Array();
+                    reader.AlignStream();
+
+                    int numSubShaderBinaryData = reader.ReadInt32();
+                    m_SubShaderBinaryData = new List<PPtr<SubShaderBinaryData>>();
+                    for (int i = 0; i < numSubShaderBinaryData; i++)
+                    {
+                        m_SubShaderBinaryData.Add(new PPtr<SubShaderBinaryData>(reader));
+                    }
+                    reader.AlignStream();
                 }
                 platforms = reader.ReadUInt32Array().Select(x => (ShaderCompilerPlatform)x).ToArray();
                 if (reader.Game.Type.IsSRGroup())
@@ -1219,6 +1315,11 @@ namespace AnimeStudio
                     {
                         stageCounts = reader.ReadUInt32Array();
                     }
+                }
+
+                if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+                {
+                    var m_CompressionType = reader.ReadInt32();
                 }
 
                 var m_DependenciesCount = reader.ReadInt32();

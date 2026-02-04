@@ -55,6 +55,13 @@ namespace AnimeStudio
                 default:
                     {
                         Logger.Verbose("signature does not match any of the supported string signatures, attempting to check bytes signatures");
+                        if (VFSUtils.IsValidHeader(this, GameType.ArknightsEndfieldCB3) || VFSUtils.IsValidHeader(this, GameType.ArknightsEndfield))
+                        {
+                            Logger.Verbose("File is VFS !!");
+                            Position = 0;
+                            return FileType.VFSFile;
+                        }
+                        Position = 0;
                         byte[] magic = ReadBytes(2);
                         Position = 0;
                         Logger.Verbose($"Parsed signature is {Convert.ToHexString(magic)}");
@@ -242,7 +249,7 @@ namespace AnimeStudio
                         break;
                 }
             }
-            if (reader.FileType == FileType.BundleFile && game.Type.IsBlockFile() || reader.FileType == FileType.ENCRFile || reader.FileType == FileType.Blb2File || reader.FileType == FileType.Blb3File || reader.FileType == FileType.HygFile)
+            if (reader.FileType == FileType.BundleFile && game.Type.IsBlockFile() || reader.FileType == FileType.ENCRFile || reader.FileType == FileType.Blb2File || reader.FileType == FileType.Blb3File || reader.FileType == FileType.HygFile || reader.FileType == FileType.VFSFile)
             {
                 Logger.Verbose("File might have multiple bundles !!");
                 try

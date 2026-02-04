@@ -20,7 +20,7 @@ namespace AnimeStudio
         }
         public static byte[] ToUInt8Array(this byte[] source, int offset, int size)
         {
-            var buffer = new byte[size / 2];
+            var buffer = new byte[(size + 1) / 2];
             for (var i = 0; i < size; i++)
             {
                 var idx = i / 2;

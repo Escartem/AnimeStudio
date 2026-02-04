@@ -58,6 +58,7 @@ namespace AnimeStudio
             public uint compressedBlocksInfoSize;
             public uint uncompressedBlocksInfoSize;
             public ArchiveFlags flags;
+            public uint encFlags;
 
             public override string ToString()
             {
@@ -648,9 +649,9 @@ namespace AnimeStudio
                                 {
                                     NetEaseUtils.DecryptWithHeader(compressedBytesSpan);
                                 }
-                                if (Game.Type.IsArknightsEndfield() && i == 0 && compressedBytesSpan[..32].Count((byte)0xa6) > 5)
+                                if ((Game.Type.IsArknightsEndfieldCB1() || Game.Type.IsArknightsEndfieldCB2()) && i == 0 && compressedBytesSpan[..32].Count((byte)0xa6) > 5)
                                 {
-                                    FairGuardUtils.Decrypt(compressedBytesSpan);
+                                    FairGuardUtils.Decrypt(compressedBytesSpan, Game.Type);
                                 }
                                 if (Game.Type.IsOPFP())
                                 {
@@ -678,7 +679,7 @@ namespace AnimeStudio
                             }
                             break;
                         }
-                    case CompressionType.Lz4Inv when Game.Type.IsArknightsEndfield():
+                    case CompressionType.Lz4Inv when Game.Type.IsArknightsEndfieldCB2():
                         {
                             var compressedSize = (int)blockInfo.compressedSize;
                             var uncompressedSize = (int)blockInfo.uncompressedSize;
@@ -694,10 +695,43 @@ namespace AnimeStudio
                                 reader.Read(compressedBytesSpan);
                                 if (i == 0 && compressedBytesSpan[..32].Count((byte)0xa6) > 5)
                                 {
-                                    FairGuardUtils.Decrypt(compressedBytesSpan);
+                                    FairGuardUtils.Decrypt(compressedBytesSpan, Game.Type);
                                 }
 
                                 var numWrite = LZ4Inv.Instance.Decompress(compressedBytesSpan, uncompressedBytesSpan);
+                                if (numWrite != uncompressedSize)
+                                {
+                                    throw new IOException($"Lz4 decompression error, write {numWrite} bytes but expected {uncompressedSize} bytes");
+                                }
+                                blocksStream.Write(uncompressedBytesSpan);
+                            }
+                            finally
+                            {
+                                ArrayPool<byte>.Shared.Return(compressedBytes, true);
+                                ArrayPool<byte>.Shared.Return(uncompressedBytes, true);
+                            }
+                            break;
+                        }
+                    case CompressionType.Lz4Inv when Game.Type.IsArknightsEndfieldCB1():
+                        {
+                            var compressedSize = (int)blockInfo.compressedSize;
+                            var uncompressedSize = (int)blockInfo.uncompressedSize;
+
+                            var compressedBytes = ArrayPool<byte>.Shared.Rent(compressedSize);
+                            var uncompressedBytes = ArrayPool<byte>.Shared.Rent(uncompressedSize);
+
+                            var compressedBytesSpan = compressedBytes.AsSpan(0, compressedSize);
+                            var uncompressedBytesSpan = uncompressedBytes.AsSpan(0, uncompressedSize);
+
+                            try
+                            {
+                                reader.Read(compressedBytesSpan);
+                                if (i == 0 && compressedBytesSpan[..32].Count((byte)0xa6) > 5)
+                                {
+                                    FairGuardUtils.Decrypt(compressedBytesSpan, Game.Type);
+                                }
+
+                                var numWrite = LZ4Ak.Instance.Decompress(compressedBytesSpan, uncompressedBytesSpan);
                                 if (numWrite != uncompressedSize)
                                 {
                                     throw new IOException($"Lz4 decompression error, write {numWrite} bytes but expected {uncompressedSize} bytes");

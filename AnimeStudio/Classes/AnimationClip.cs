@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 namespace AnimeStudio
 {
@@ -1089,6 +1088,7 @@ namespace AnimeStudio
         public float m_SampleRate;
         public float m_BeginTime;
         public float[] m_SampleArray;
+
         public DenseClip() { }
 
         public DenseClip(ObjectReader reader)
@@ -1142,7 +1142,7 @@ namespace AnimeStudio
         public ACLDenseClip(ObjectReader reader) : base(reader)
         {
             m_ACLType = reader.ReadInt32();
-            if (reader.Game.Type.IsArknightsEndfield())
+            if (reader.Game.Type.IsArknightsEndfieldGroup())
             {
                 m_ACLArray = reader.ReadUInt8Array();
                 reader.AlignStream();
@@ -1323,7 +1323,7 @@ namespace AnimeStudio
         {
             var version = reader.version;
             m_StreamedClip = new StreamedClip(reader);
-            if (reader.Game.Type.IsArknightsEndfield() || reader.Game.Type.IsExAstris())
+            if (reader.Game.Type.IsArknightsEndfieldGroup() || reader.Game.Type.IsExAstris())
             {
                 m_DenseClip = new ACLDenseClip(reader);
             }
@@ -1339,6 +1339,10 @@ namespace AnimeStudio
             if (version[0] > 4 || (version[0] == 4 && version[1] >= 3)) //4.3 and up
             {
                 m_ConstantClip = new ConstantClip(reader);
+            }
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_CompressedCurveCount = reader.ReadUInt32();
             }
             if (reader.Game.Type.IsGIGroup() || reader.Game.Type.IsBH3Group() || reader.Game.Type.IsZZZCB1() || reader.Game.Type.IsZZZ())
             {
@@ -1707,6 +1711,62 @@ namespace AnimeStudio
         }
     }
 
+    public class AnimClipAclCompressedBuffer
+    {
+        public int Version;
+        public byte[] TransformBufferData;
+        public byte[] RootMotionBufferData;
+        public byte[] FloatBufferData;
+        public byte[] TransformSubTrackMasks;
+        public byte[] TransformSubTrackConstantMasks;
+        public ushort OutputTrackCount;
+        public ushort RootPosIndex;
+        public ushort RootRotIndex;
+        public ushort RootScaleIndex;
+        public ushort RootTrackCount;
+        public ushort FloatCurveCount;
+        public ushort[] m_DefaultIndexs;
+        public ushort[] m_ConstantIndexs;
+        public float[] m_ConstantValues;
+
+        public AnimClipAclCompressedBuffer(EndianBinaryReader reader)
+        {
+            Version = reader.ReadInt32();
+
+            // All of these are ACL compressed tracks with 0xac11ac11 magic
+            TransformBufferData = reader.ReadUInt8Array();
+            reader.AlignStream();
+
+            RootMotionBufferData = reader.ReadUInt8Array();
+            reader.AlignStream();
+
+            FloatBufferData = reader.ReadUInt8Array();
+            reader.AlignStream();
+
+            TransformSubTrackMasks = reader.ReadUInt8Array();
+            reader.AlignStream();
+
+            TransformSubTrackConstantMasks = reader.ReadUInt8Array();
+            reader.AlignStream();
+
+            OutputTrackCount = reader.ReadUInt16();
+            RootPosIndex = reader.ReadUInt16();
+            RootRotIndex = reader.ReadUInt16();
+            RootScaleIndex = reader.ReadUInt16();
+            RootTrackCount = reader.ReadUInt16();
+            FloatCurveCount = reader.ReadUInt16();
+
+            m_DefaultIndexs = reader.ReadUInt16Array();
+            reader.AlignStream();
+
+            m_ConstantIndexs = reader.ReadUInt16Array();
+            reader.AlignStream();
+
+            m_ConstantValues = reader.ReadSingleArray();
+            reader.AlignStream();
+        }
+    }
+
     public class AnimationClipBindingConstant : IYAMLExportable
     {
         public List<GenericBinding> genericBindings;
@@ -1784,6 +1844,7 @@ namespace AnimeStudio
         public float floatParameter;
         public int intParameter;
         public int messageOptions;
+        public int hashCodeType;
 
         public AnimationEvent(ObjectReader reader)
         {
@@ -1799,6 +1860,10 @@ namespace AnimeStudio
                 intParameter = reader.ReadInt32();
             }
             messageOptions = reader.ReadInt32();
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                hashCodeType = reader.ReadInt32();
+            }
         }
 
         public YAMLNode ExportYAML(int[] version)
@@ -1841,6 +1906,7 @@ namespace AnimeStudio
         public uint m_MuscleClipSize;
         public ClipMuscleConstant m_MuscleClip;
         public AnimationClipBindingConstant m_ClipBindingConstant;
+        public AnimClipAclCompressedBuffer m_AclCompressedBuffer;
         public List<AnimationEvent> m_Events;
         public StreamingInfo m_StreamData;
 
@@ -1876,6 +1942,10 @@ namespace AnimeStudio
                 var m_aclScalarTrackId2CurveId = reader.ReadUInt32Array();
             }
             m_Compressed = reader.ReadBoolean();
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_TransferCompressed = reader.ReadBoolean();
+            }
             if (version[0] > 4 || (version[0] == 4 && version[1] >= 3))//4.3 and up
             {
                 m_UseHighQualityCurve = reader.ReadBoolean();
@@ -1943,7 +2013,7 @@ namespace AnimeStudio
 
             m_SampleRate = reader.ReadSingle();
             m_WrapMode = reader.ReadInt32();
-            if (reader.Game.Type.IsArknightsEndfield())
+            if (reader.Game.Type.IsArknightsEndfieldGroup())
             {
                 var m_aclType = reader.ReadInt32();
             }
@@ -1991,6 +2061,10 @@ namespace AnimeStudio
             {
                 m_ClipBindingConstant = new AnimationClipBindingConstant(reader);
             }
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                m_AclCompressedBuffer = new AnimClipAclCompressedBuffer(reader);
+            }
             if (version[0] > 2018 || (version[0] == 2018 && version[1] >= 3)) //2018.3 and up
             {
                 var m_HasGenericRootTransform = reader.ReadBoolean();
@@ -2002,6 +2076,15 @@ namespace AnimeStudio
             for (int i = 0; i < numEvents; i++)
             {
                 m_Events.Add(new AnimationEvent(reader));
+            }
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_ClipTag = reader.ReadUInt16();
+                var m_TransitionRotateMode = reader.ReadByte();
+                var m_TransitionRotateDirType = reader.ReadByte();
+                reader.AlignStream();
+                var m_TotalSize = reader.ReadUInt32();
+                var m_TransitionRotateCurveIndex = reader.ReadUInt16();
             }
             if (version[0] >= 2017) //2017 and up
             {

@@ -444,6 +444,7 @@ namespace AnimeStudio.GUI
             displayAll.Size = new System.Drawing.Size(416, 44);
             displayAll.Text = "Show hidden assets";
             displayAll.ToolTipText = "Check this option will display all types assets. Not extractable assets can export the RAW file.";
+            displayAll.CheckedChanged += displayAll_CheckedChanged;
             // 
             // enablePreview
             // 

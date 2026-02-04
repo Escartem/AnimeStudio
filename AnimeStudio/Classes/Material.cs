@@ -21,10 +21,60 @@ namespace AnimeStudio
             {
                 reader.ReadBytes(4);
             }
-            if (reader.Game.Type.IsArknightsEndfield())
+            if (reader.Game.Type.IsArknightsEndfieldGroup())
             {
                 var m_UVSetIndex = reader.ReadInt32();
             }
+        }
+    }
+
+    public class HGSubsurfaceProfile : NamedObject
+    {
+        public ColorRGBA m_SurfaceAlbedo;
+        public Vector4 m_diffuseMeanFreePath;
+        public Vector3 m_subsurfaceNormalLerp;
+        public float m_curvatureScale;
+        public float m_penumbraScale;
+        public PPtr<Texture2D> m_scatterLut;
+        public PPtr<Texture2D> m_penumbraLut;
+        public PPtr<Texture2D> m_indirectLut;
+
+        public HGSubsurfaceProfile(ObjectReader reader) : base(reader)
+        {
+            m_SurfaceAlbedo = new ColorRGBA(reader);
+            m_diffuseMeanFreePath = new Vector4(
+                reader.ReadUInt32(),
+                reader.ReadUInt32(),
+                reader.ReadUInt32(),
+                reader.ReadUInt32()
+            );
+            m_subsurfaceNormalLerp = new Vector3(
+                reader.ReadUInt32(),
+                reader.ReadUInt32(),
+                reader.ReadUInt32()
+            );
+            m_curvatureScale = new Float(reader.ReadUInt32());
+            m_penumbraScale = new Float(reader.ReadUInt32());
+            m_scatterLut = new PPtr<Texture2D>(reader);
+            m_penumbraLut = new PPtr<Texture2D>(reader);
+            m_indirectLut = new PPtr<Texture2D>(reader);
+        }
+    }
+
+    // technically a vector4 with other names
+    public class ColorRGBA
+    {
+        public float r;
+        public float g;
+        public float b;
+        public float a;
+
+        public ColorRGBA(ObjectReader reader)
+        {
+            r = new Float(reader.ReadUInt32());
+            g = new Float(reader.ReadUInt32());
+            b = new Float(reader.ReadUInt32());
+            a = new Float(reader.ReadUInt32());
         }
     }
 
@@ -72,6 +122,11 @@ namespace AnimeStudio
             for (int i = 0; i < m_ColorsSize; i++)
             {
                 m_Colors.Add(new(reader.ReadAlignedString(), reader.ReadColor4()));
+            }
+
+            if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
+            {
+                var m_SubsurfaceProfile = new PPtr<HGSubsurfaceProfile>(reader);
             }
         }
     }
