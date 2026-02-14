@@ -9,8 +9,7 @@
         Title="AnimeStudio" Height="550" Width="1000"
         WindowStartupLocation="CenterScreen"
         AllowDrop="True"
-    xmlns:ui="http://schemas.modernwpf.com/2019"
-    ui:WindowHelper.UseModernWindowStyle="True"
+    Style="{StaticResource BaseWindowStyle}"
     Background="#1E1E1E">
 
     <DockPanel>

@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using AnimeStudio.GUIV2.Views;
 using AvalonDock.Layout;
 using AvalonDock.Layout.Serialization;
@@ -62,6 +63,26 @@ namespace AnimeStudio.GUIV2
             Logger.Flags = LoggerEvent.Info | LoggerEvent.Warning | LoggerEvent.Error | LoggerEvent.Debug;
 
             Logger.Info("Welcome back~");
+        }
+
+        private void TitleBar_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 2)
+                ToggleMaximize();
+            else
+                DragMove();
+        }
+
+        private void MaxRestore_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleMaximize();
+        }
+
+        private void ToggleMaximize()
+        {
+            WindowState = WindowState == WindowState.Maximized
+                ? WindowState.Normal
+                : WindowState.Maximized;
         }
 
         private void InitializeOptions()
