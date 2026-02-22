@@ -28,7 +28,7 @@ namespace AnimeStudio
         [Key(4)]
         public ClassIDType Type { get; set; }
         [Key(5)]
-        public string SHA256Hash { get; set; }
+        public string Hash { get; set; }
         [Key(6)]
         public long Offset { get; set; } = -1;
 
@@ -44,8 +44,7 @@ namespace AnimeStudio
                     string value when value.Equals(nameof(Source), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Source),
                     string value when value.Equals(nameof(PathID), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(PathID.ToString()),
                     string value when value.Equals(nameof (Type), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Type.ToString()),
-                    string value when value.Equals(nameof(SHA256Hash), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(SHA256Hash),
-                    _ => throw new NotImplementedException()
+                    string value when value.Equals(nameof(Hash), StringComparison.OrdinalIgnoreCase) || value.Equals("SHA256Hash", StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Hash ?? String.Empty)
                 });
             }
             return matches.Count(x => x == true) == filters.Count;

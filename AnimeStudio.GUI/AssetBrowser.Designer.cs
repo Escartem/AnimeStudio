@@ -277,7 +277,7 @@ namespace AnimeStudio.GUI
             hashTextBox.Location = new System.Drawing.Point(1146, 6);
             hashTextBox.Margin = new Padding(6);
             hashTextBox.Name = "hashTextBox";
-            hashTextBox.PlaceholderText = "SHA256Hash";
+            hashTextBox.PlaceholderText = "Hash";
             hashTextBox.Size = new System.Drawing.Size(210, 39);
             hashTextBox.TabIndex = 8;
             hashTextBox.KeyPress += HashTextBox_KeyPress;

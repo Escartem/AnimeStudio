@@ -102,7 +102,7 @@ namespace AnimeStudio.GUI
                             first => new { first.Name, first.Container, first.PathID },
                             second => new { second.Name, second.Container, second.PathID },
                             (first, second) => new { first, second })
-                        .Where(x => x.first.SHA256Hash != x.second.SHA256Hash)
+                        .Where(x => x.first.Hash != x.second.Hash)
                         .Select(x => x.first);
 
                         _assetEntries.AddRange(differentAssets);
@@ -457,7 +457,7 @@ namespace AnimeStudio.GUI
                     2 => assetEntry.Source,
                     3 => assetEntry.PathID,
                     4 => assetEntry.Type,
-                    5 => assetEntry.SHA256Hash,
+                    5 => assetEntry.Hash,
                     _ => ""
                 };
             }
@@ -497,7 +497,7 @@ namespace AnimeStudio.GUI
                     2 => x => x.Source,
                     3 => x => x.PathID,
                     4 => x => x.Type.ToString(),
-                    5 => x => x.SHA256Hash,
+                    5 => x => x.Hash,
                     _ => x => ""
                 };
 

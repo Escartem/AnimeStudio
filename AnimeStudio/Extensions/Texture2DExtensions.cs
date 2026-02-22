@@ -5,7 +5,7 @@ using SixLabors.ImageSharp.Processing;
 using System;
 using System.Buffers;
 using System.IO;
-using System.Security.Cryptography;
+using K4os.Hash.xxHash;
 
 namespace AnimeStudio
 {
@@ -31,9 +31,9 @@ namespace AnimeStudio
                     using var ms = new MemoryStream();
                     image.Save(ms, new PngEncoder());
                     ms.Position = 0;
-                    using var sha256 = SHA256.Create();
-                    var hash = sha256.ComputeHash(ms);
-                    hashstring = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+                    Span<byte> span = ms.GetBuffer().AsSpan(0, (int)ms.Length);
+                    var hash = XXH64.DigestOf(span);
+                    hashstring = hash.ToString("x");
                 }
                 catch
                 {

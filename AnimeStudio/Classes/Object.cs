@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using K4os.Hash.xxHash;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Specialized;
 
@@ -48,7 +49,7 @@ namespace AnimeStudio
             }
         }
 
-        public string GetSHA256Hash(bool overrides = false)
+        public string GetHash(bool overrides = false)
         {
             if (type == ClassIDType.Texture2D && overrides)
             {
@@ -59,7 +60,7 @@ namespace AnimeStudio
                 return hash;
             } else
             {
-                return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(GetRawData())).ToLower();
+                return XXH64.DigestOf(GetRawData()).ToString("x");
             }
         }
 
