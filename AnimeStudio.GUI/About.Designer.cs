@@ -620,7 +620,7 @@ namespace AnimeStudio.GUI
             tabPage2.Margin = new System.Windows.Forms.Padding(7, 6, 7, 6);
             tabPage2.Name = "tabPage2";
             tabPage2.Padding = new System.Windows.Forms.Padding(7, 6, 7, 6);
-            tabPage2.Size = new Size(786, 961);
+            tabPage2.Size = new Size(786, 853);
             tabPage2.TabIndex = 1;
             tabPage2.Text = "License";
             tabPage2.UseVisualStyleBackColor = true;

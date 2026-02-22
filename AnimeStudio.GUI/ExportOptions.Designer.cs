@@ -34,6 +34,7 @@ namespace AnimeStudio.GUI
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(ExportOptions));
             OKbutton = new Button();
             Cancel = new Button();
             groupBox1 = new GroupBox();
@@ -744,6 +745,7 @@ namespace AnimeStudio.GUI
             Controls.Add(Cancel);
             Controls.Add(OKbutton);
             FormBorderStyle = FormBorderStyle.Fixed3D;
+            Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(7, 9, 7, 9);
             MaximizeBox = false;
             MinimizeBox = false;
