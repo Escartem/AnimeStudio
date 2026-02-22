@@ -457,7 +457,7 @@ namespace AnimeStudio
                     var total = stream.Length;
 
                     OffsetData.TryGetValue(reader.FileName, out var manualOffsets);
-                    bool isManualOffsets = (manualOffsets != null && manualOffsets.Count > 0);
+                    bool isManualOffsets = (manualOffsets != null && manualOffsets.Count > 0) && reader.FileType.Equals(FileType.VFSFile);
                     IEnumerable<long> offsetsEnumerable = isManualOffsets
                         ? manualOffsets
                         : stream.GetOffsets(reader.FullPath);
