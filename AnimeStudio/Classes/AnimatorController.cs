@@ -362,6 +362,46 @@ namespace AnimeStudio
         }
     }
 
+    public class BlendTreeTriangleEdgeInfo
+    {
+        public Vector2 m_Normal;
+        public int m_NeighbourTriangleIndex;
+        public int Triangle0;
+        public int Triangle1;
+        public int Vertex0;
+        public int Vertex1;
+
+        public BlendTreeTriangleEdgeInfo(ObjectReader reader)
+        {
+            m_Normal = reader.ReadVector2();
+            m_NeighbourTriangleIndex = reader.ReadInt32();
+            Triangle0 = reader.ReadInt32();
+            Triangle1 = reader.ReadInt32();
+            Vertex0 = reader.ReadInt32();
+            Vertex1 = reader.ReadInt32();
+        }
+    }
+
+    public class BlendTreeTriangle
+    {
+        public int VertexIndex0;
+        public int VertexIndex1;
+        public int VertexIndex2;
+        public BlendTreeTriangleEdgeInfo EdgeInfo0;
+        public BlendTreeTriangleEdgeInfo EdgeInfo1;
+        public BlendTreeTriangleEdgeInfo EdgeInfo2;
+
+        public BlendTreeTriangle(ObjectReader reader)
+        {
+            VertexIndex0 = reader.ReadInt32();
+            VertexIndex1 = reader.ReadInt32();
+            VertexIndex2 = reader.ReadInt32();
+            EdgeInfo0 = new BlendTreeTriangleEdgeInfo(reader);
+            EdgeInfo1 = new BlendTreeTriangleEdgeInfo(reader);
+            EdgeInfo2 = new BlendTreeTriangleEdgeInfo(reader);
+        }
+    }
+
     public class BlendTreeNodeConstant
     {
         public uint m_BlendType;
@@ -372,11 +412,14 @@ namespace AnimeStudio
         public Blend1dDataConstant m_Blend1dData;
         public Blend2dDataConstant m_Blend2dData;
         public BlendDirectDataConstant m_BlendDirectData;
+        public List<BlendTreeTriangle> m_Triangles;
         public uint m_ClipID;
         public uint m_ClipIndex;
         public float m_Duration;
         public float m_CycleOffset;
         public bool m_Mirror;
+
+        private static bool HasTriangles(SerializedType type) => type.Match("6226663645CFE20F51EFFE2F89DDB650"); // gi 6.4
 
         public BlendTreeNodeConstant(ObjectReader reader)
         {
@@ -406,6 +449,16 @@ namespace AnimeStudio
             if (version[0] >= 5) //5.0 and up
             {
                 m_BlendDirectData = new BlendDirectDataConstant(reader);
+            }
+
+            if (reader.Game.Type.IsGI() && HasTriangles(reader.serializedType))
+            {
+                int trianglesCount = reader.ReadInt32();
+                m_Triangles = new List<BlendTreeTriangle>();
+                for (int i = 0; i < trianglesCount; i++)
+                {
+                    m_Triangles.Add(new BlendTreeTriangle(reader));
+                }
             }
 
             if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
