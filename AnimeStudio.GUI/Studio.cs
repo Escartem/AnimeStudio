@@ -38,6 +38,7 @@ namespace AnimeStudio.GUI
         public static List<AssetItem> exportableAssets = new List<AssetItem>();
         public static List<AssetItem> visibleAssets = new List<AssetItem>();
         internal static Action<string> StatusStripUpdate = x => { };
+        public static Dictionary<ulong, string> Paths { get; set; } = new Dictionary<ulong, string>();
 
         public static int ExtractFolder(string path, string savePath)
         {
@@ -272,6 +273,11 @@ namespace AnimeStudio.GUI
                 Logger.Info("Updating Containers...");
                 foreach (var asset in exportableAssets)
                 {
+                    if (Game.Type.IsZZZ() && ulong.TryParse(asset.Container, out var hash) && Paths.TryGetValue(hash, out var z3Path))
+                    {
+                        asset.Container = z3Path;
+                        continue;
+                    }
                     if (int.TryParse(asset.Container, out var value))
                     {
                         var last = unchecked((uint)value);
@@ -470,7 +476,7 @@ namespace AnimeStudio.GUI
                     }
                 }
                 containers.Clear();
-                if (Game.Type.IsGISubGroup())
+                if (Game.Type.IsGISubGroup() || Game.Type.IsZZZ())
                 {
                     UpdateContainers();
                 }
