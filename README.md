@@ -1,7 +1,7 @@
 # Anime Studio
-## Asset exploration tool for hoyo games and more !
+## Asset extraction tool for unity games !
 
-![image](https://github.com/user-attachments/assets/173757f6-8dce-48fc-9525-821bb1244280)
+![image](https://github.com/user-attachments/assets/fc1decdc-a589-43a2-b965-2d8151d0975f)
 
 ---
 
@@ -45,5 +45,6 @@ Special thanks to:
 - Razmoth: Original AssetStudio for anime games support - [[project](https://github.com/RazTools/Studio)]
 - hashblen: ZZZ fixes fork - [[project](https://github.com/hashblen/ZZZ_Studio)]
 - yarik0chka: Genshin and Star Rail fixes fork - [[project](https://github.com/yarik0chka/YarikStudio)]
+- aelurum: AssetStudioMod - [[project](https://github.com/aelurum/AssetStudio)]
 - Perfare: The real original AssetStudio - [[project](https://github.com/perfare/AssetStudio)]
 - All of the others contributor of Razmoth's Studio

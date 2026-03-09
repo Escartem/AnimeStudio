@@ -84,6 +84,8 @@ namespace AnimeStudio.GUI
                 extractedCount += ExtractBlockFile(reader, savePath);
             else if (reader.FileType == FileType.Blb3File)
                 extractedCount += ExtractBlb3File(reader, savePath);
+            else if (reader.FileType == FileType.VFSFile)
+                extractedCount += ExtractVFSFile(reader, savePath);
             else
                 reader.Dispose();
             return extractedCount;
@@ -95,7 +97,7 @@ namespace AnimeStudio.GUI
             {
                 var bundleFile = new Blb3File(reader, reader.FullPath);
                 reader.Dispose();
-                if (bundleFile.fileList.Count > 0)
+                if (bundleFile.fileList != null && bundleFile.fileList.Count > 0)
                 {
                     var extractPath = Path.Combine(savePath, reader.FileName + "_unpacked");
                     return ExtractStreamFile(extractPath, bundleFile.fileList);
@@ -114,7 +116,7 @@ namespace AnimeStudio.GUI
             {
                 var bundleFile = new BundleFile(reader, Game);
                 reader.Dispose();
-                if (bundleFile.fileList.Count > 0)
+                if (bundleFile.fileList != null && bundleFile.fileList.Count > 0)
                 {
                     var extractPath = Path.Combine(savePath, reader.FileName + "_unpacked");
                     return ExtractStreamFile(extractPath, bundleFile.fileList);
@@ -132,7 +134,7 @@ namespace AnimeStudio.GUI
             StatusStripUpdate($"Decompressing {reader.FileName} ...");
             var webFile = new WebFile(reader);
             reader.Dispose();
-            if (webFile.fileList.Count > 0)
+            if (webFile.fileList != null && webFile.fileList.Count > 0)
             {
                 var extractPath = Path.Combine(savePath, reader.FileName + "_unpacked");
                 return ExtractStreamFile(extractPath, webFile.fileList);
@@ -184,10 +186,32 @@ namespace AnimeStudio.GUI
                 var subReader = new FileReader(dummyPath, stream, true);
                 if (subReader.FileType == FileType.Blb3File)
                     total += ExtractBlb3File(subReader, subSavePath);
+                else if (subReader.FileType == FileType.VFSFile)
+                    total += ExtractVFSFile(subReader, subSavePath);
                 else
                     total += ExtractBundleFile(subReader, subSavePath);
             } while (stream.Remaining > 0);
             return total;
+        }
+
+        private static int ExtractVFSFile(FileReader reader, string savePath)
+        {
+            StatusStripUpdate($"Decompressing {reader.FileName} ...");
+            try
+            {
+                var vfsFile = new VFSFile(reader, reader.FullPath, Studio.Game.Type);
+                reader.Dispose();
+                if (vfsFile.fileList != null && vfsFile.fileList.Count > 0)
+                {
+                    var extractPath = Path.Combine(savePath, reader.FileName + "_unpacked");
+                    return ExtractStreamFile(extractPath, vfsFile.fileList);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Error($"Error while reading VFS file {reader.FullPath}", e);
+            }
+            return 0;
         }
 
         private static int ExtractMhyFile(FileReader reader, string savePath)
@@ -197,7 +221,7 @@ namespace AnimeStudio.GUI
             {
                 var mhy0File = new MhyFile(reader, (Mhy)Game);
                 reader.Dispose();
-                if (mhy0File.fileList.Count > 0)
+                if (mhy0File.fileList != null && mhy0File.fileList.Count > 0)
                 {
                     var extractPath = Path.Combine(savePath, reader.FileName + "_unpacked");
                     return ExtractStreamFile(extractPath, mhy0File.fileList);
@@ -213,6 +237,10 @@ namespace AnimeStudio.GUI
         private static int ExtractStreamFile(string extractPath, List<StreamFile> fileList)
         {
             int extractedCount = 0;
+            if (fileList == null || fileList.Count == 0)
+            {
+                return 0;
+            }
             foreach (var file in fileList)
             {
                 var filePath = Path.Combine(extractPath, file.path);
@@ -223,6 +251,10 @@ namespace AnimeStudio.GUI
                 }
                 if (!File.Exists(filePath))
                 {
+                    if (file.stream == null)
+                    {
+                        continue;
+                    }
                     using (var fileStream = File.Create(filePath))
                     {
                         file.stream.CopyTo(fileStream);
@@ -351,7 +383,13 @@ namespace AnimeStudio.GUI
                                                 {
                                                     containerName = assetBundleName;
                                                 }
-                                                containers.Add((m_AssetBundle.m_PreloadTable[k], m_Container.Key));
+                                                try
+                                                {
+                                                    containers.Add((m_AssetBundle.m_PreloadTable[k], m_Container.Key));
+                                                } catch
+                                                {
+                                                    Logger.Info($"Failed to add container {m_Container.Key}");
+                                                }
                                             }
                                             break;
                                     }

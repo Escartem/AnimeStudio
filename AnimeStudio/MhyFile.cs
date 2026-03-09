@@ -20,7 +20,7 @@ namespace AnimeStudio
         public Mhy mhy;
 
         public long Offset;
-        private bool isZZZ20; // zzz 2.0 uses oodle but the flag is still set to LZ4
+        private bool isOodle; // zzz 2.0 uses oodle but the flag is still set to LZ4 (with dimbreath patch)
 
         private static readonly byte[] Key = new byte[256]
         {
@@ -113,6 +113,7 @@ namespace AnimeStudio
             try
             {
                 int numWrite;
+                isOodle = compressedBlocksInfo[0] == 0x8C;
                 numWrite = Decompress(compressedBlocksInfo, uncompressedBlocksInfoSpan);
 
                 Logger.Verbose($"Writing block and directory to blocks stream...");
@@ -217,21 +218,16 @@ namespace AnimeStudio
         }
         private int Decompress(Span<byte> compressed, Span<byte> decompressed)
         {
-            if (isZZZ20) return OodleHelper.Decompress(compressed, decompressed);
-
-            try { return LZ4.Instance.Decompress(compressed, decompressed); }
-            catch
+            try
             {
-                try { 
-                    int numWrite = OodleHelper.Decompress(compressed, decompressed);
-                    isZZZ20 = true;
-                    return numWrite;
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error($"Decompression failed: {ex.Message}");
-                    throw;
-                }
+                if (isOodle)
+                    return OodleHelper.Decompress(compressed, decompressed);
+                else
+                    return LZ4.Instance.Decompress(compressed, decompressed);
+            } catch (Exception ex)
+            {
+                Logger.Error($"Decompression failed: {ex.Message}");
+                throw;
             }
         }
 

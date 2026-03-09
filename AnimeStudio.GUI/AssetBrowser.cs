@@ -75,7 +75,7 @@ namespace AnimeStudio.GUI
 
         private void updateDisplay()
         {
-            var names = typeof(AssetEntry).GetProperties().Select(x => x.Name);
+            var names = typeof(AssetEntry).GetProperties().Select(x => x.Name).Where(x => x != "Offset");
 
             _filters.Clear();
             foreach (var name in names)
@@ -102,7 +102,7 @@ namespace AnimeStudio.GUI
                             first => new { first.Name, first.Container, first.PathID },
                             second => new { second.Name, second.Container, second.PathID },
                             (first, second) => new { first, second })
-                        .Where(x => x.first.SHA256Hash != x.second.SHA256Hash)
+                        .Where(x => x.first.Hash != x.second.Hash)
                         .Select(x => x.first);
 
                         _assetEntries.AddRange(differentAssets);
@@ -188,7 +188,8 @@ namespace AnimeStudio.GUI
                 Source = entry.Source,
                 Type = entry.Type,
                 Name = entry.Name,
-                PathID = entry.PathID
+                PathID = entry.PathID,
+                Offset = entry.Offset
             })
             .ToList();
 
@@ -205,7 +206,7 @@ namespace AnimeStudio.GUI
             {
                 Logger.Info("Loading...");
                 bringMainToFront();
-                _parent.Invoke(() => _parent.updateGame((int)ResourceMap.GetGameType()));
+                _parent.Invoke(() => _parent.updateGame(ResourceMap.GetGameType()));
                 _parent.Invoke(() => _parent.LoadPaths(files, filePaths.ToArray()));
             }
         }
@@ -456,7 +457,7 @@ namespace AnimeStudio.GUI
                     2 => assetEntry.Source,
                     3 => assetEntry.PathID,
                     4 => assetEntry.Type,
-                    5 => assetEntry.SHA256Hash,
+                    5 => assetEntry.Hash,
                     _ => ""
                 };
             }
@@ -496,7 +497,7 @@ namespace AnimeStudio.GUI
                     2 => x => x.Source,
                     3 => x => x.PathID,
                     4 => x => x.Type.ToString(),
-                    5 => x => x.SHA256Hash,
+                    5 => x => x.Hash,
                     _ => x => ""
                 };
 
@@ -530,7 +531,8 @@ namespace AnimeStudio.GUI
             {
                 var folder = dialog.SelectedPath;
                 var allFiles = Directory.GetFiles(folder, "*", SearchOption.AllDirectories)
-                                .ToDictionary(Path.GetFileName, x => x, StringComparer.OrdinalIgnoreCase);
+                                .GroupBy(Path.GetFileName, StringComparer.OrdinalIgnoreCase)
+                                .ToDictionary(g => g.Key, g => g.Last(), StringComparer.OrdinalIgnoreCase);
                 int missing = 0;
                 foreach (var entry in _assetEntries)
                 {

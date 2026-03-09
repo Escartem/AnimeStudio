@@ -17,7 +17,7 @@ namespace AnimeStudio
         {
             m_Avatar = new PPtr<Avatar>(reader);
             m_Controller = new PPtr<RuntimeAnimatorController>(reader);
-            if (reader.Game.Type.IsGISubGroup())
+            if (reader.Game.Type.IsGISubGroup() || reader.Game.Type == GameType.BH3)
             {
                 var m_FBIKAvatar = new PPtr<Object>(reader); //FBIKAvatar placeholder
             }

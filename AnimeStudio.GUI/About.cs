@@ -121,5 +121,14 @@ namespace AnimeStudio.GUI
             };
             Process.Start(ps);
         }
+
+        private void linkLabel3_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            var ps = new ProcessStartInfo("https://discord.gg/hoyotoon")
+            {
+                UseShellExecute = true
+            };
+            Process.Start(ps);
+        }
     }
 }

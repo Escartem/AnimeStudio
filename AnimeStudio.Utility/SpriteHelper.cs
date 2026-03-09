@@ -78,12 +78,17 @@ namespace AnimeStudio
                     {
                         try
                         {
-                            var triangles = GetTriangles(m_Sprite.m_RD);
-                            var polygons = triangles.Select(x => new Polygon(new LinearLineSegment(x.Select(y => new PointF(y.X, y.Y)).ToArray()))).ToArray();
-                            IPathCollection path = new PathCollection(polygons);
                             var matrix = Matrix3x2.CreateScale(m_Sprite.m_PixelsToUnits);
                             matrix *= Matrix3x2.CreateTranslation(m_Sprite.m_Rect.width * m_Sprite.m_Pivot.X - textureRectOffset.X, m_Sprite.m_Rect.height * m_Sprite.m_Pivot.Y - textureRectOffset.Y);
-                            path = path.Transform(matrix);
+                            var triangles = GetTriangles(m_Sprite.m_RD);
+                            var points = triangles.Select(x => x.Select(y => new PointF(y.X, y.Y)));
+                            var pathBuilder = new PathBuilder(matrix);
+                            foreach (var p in points)
+                            {
+                                pathBuilder.AddLines(p);
+                                pathBuilder.CloseFigure();
+                            }
+                            var path = pathBuilder.Build();
                             var options = new DrawingOptions
                             {
                                 GraphicsOptions = new GraphicsOptions
@@ -92,6 +97,20 @@ namespace AnimeStudio
                                     AlphaCompositionMode = PixelAlphaCompositionMode.DestOut
                                 }
                             };
+                            if (triangles.Length < 1024)
+                            {
+                                var rectP = new RectangularPolygon(0, 0, rect.Width, rect.Height);
+                                try
+                                {
+                                    spriteImage.Mutate(x => x.Fill(options, SixLabors.ImageSharp.Color.Red, rectP.Clip(path.Clip())));
+                                    spriteImage.Mutate(x => x.Flip(FlipMode.Vertical));
+                                    return spriteImage;
+                                }
+                                catch (ArgumentOutOfRangeException)
+                                {
+                                    // ignored
+                                }
+                            }
                             using (var mask = new Image<Bgra32>(rect.Width, rect.Height, SixLabors.ImageSharp.Color.Black))
                             {
                                 mask.Mutate(x => x.Fill(options, SixLabors.ImageSharp.Color.Red, path));
@@ -101,9 +120,9 @@ namespace AnimeStudio
                                 return spriteImage;
                             }
                         }
-                        catch
+                        catch (Exception e)
                         {
-                            // ignored
+                            Logger.Warning($"{m_Sprite.m_Name} Unable to render the packed sprite correctly.\n{e}");
                         }
                     }
 
