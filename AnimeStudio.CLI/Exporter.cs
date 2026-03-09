@@ -98,29 +98,8 @@ namespace AnimeStudio.CLI
             var option = new Options();
             var m_MonoBehaviour = (MonoBehaviour)item.Asset;
 
-            string[] EXTENSIONS = new[]
-            {
-            // IMAGES
-            ".png", ".tga", ".jpg", ".jpeg", ".dds", ".psd", ".bmp",
-            // MATERIALS
-            ".mat", ".exr", ".physicMaterial", ".compute", ".cube", ".shader",
-            // ANIMATIONS / MODELS
-            ".fbx", ".obj", ".anim", ".mesh",
-            // UNITY FILES
-            ".unity", ".prefab", ".asset",
-            // SPINE FILES
-            ".atlas", ".skel", ".spine",
-            // DATA FILES
-            ".bytes", ".json", ".txt", ".dat", ".cs", ".otf", ".srt", ".csv", ".html",
-            // AUDIO / VIDEO
-            ".pck", ".bnk", ".mp4", ".usm", ".mov",
-            // OTHER
-            ".CustomPropertyUI", ".patch", ".playable", ".diff", ".log",
-            };
-
-            string extPattern = string.Join("|", EXTENSIONS.Select(e => Regex.Escape(e.TrimStart('.'))));
-            string folderPattern = $@"(?:Assets|UI|IconRole|Data|Scenes|OriginalResRepos)(?:/[^\s"",/.]+)*";
-            string filePattern = $@"(?:Assets|UI|IconRole|Data|Scenes|OriginalResRepos)/[^\s"",]+?\.(?:{extPattern})";
+            string folderPattern = $@"(?:Assets|UI|IconRole|Data|Scenes|OriginalResRepos|Comic|Weapon)(?:/[^\s"",/.]+)*";
+            string filePattern = $@"(?:Assets|UI|IconRole|Data|Scenes|OriginalResRepos|Comic|Weapon)/[^\s"",]+?\.(?:.*)";
             string voPattern = @"(?:VO|Breath|Tips)_[^""\s;]+";
             string eventPattern = @"(?:Ev|Play|Stop|StateGroup|State|VO|SFX)_[a-zA-Z0-9/_-\{\}]{2,}";
 
@@ -128,7 +107,6 @@ namespace AnimeStudio.CLI
             var fileRegex = new Regex(filePattern, RegexOptions.IgnoreCase);
             var voRegex = new Regex(voPattern, RegexOptions.IgnoreCase);
             var eventRegex = new Regex(eventPattern, RegexOptions.IgnoreCase);
-            var removeExtRegex = new Regex(@"\.(?:" + extPattern + ")$", RegexOptions.IgnoreCase);
 
             if (Properties.Settings.Default.scrapeMonos)
             {
@@ -178,7 +156,6 @@ namespace AnimeStudio.CLI
                             else if (subMatch.StartsWith("Data"))
                                 subMatch = $"Assets/NapResources/{subMatch}";
 
-                            subMatch = removeExtRegex.Replace(subMatch, "");
                             Studio.PathStrings.Add(subMatch);
                         }
 
