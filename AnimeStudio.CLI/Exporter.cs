@@ -98,7 +98,7 @@ namespace AnimeStudio.CLI
             var option = new Options();
             var m_MonoBehaviour = (MonoBehaviour)item.Asset;
 
-            string folderPattern = $@"(?:Assets|UI|IconRole|Data|Scenes|OriginalResRepos|Comic|Weapon)(?:/[^\s"",/.]+)*";
+            string folderPattern = $@"(?:Assets|UI|IconRole|Data|Scenes|OriginalResRepos|Comic|Weapon)(?:/[^\s"",]+)*";
             string filePattern = $@"(?:Assets|UI|IconRole|Data|Scenes|OriginalResRepos|Comic|Weapon)/[^\s"",]+?\.(?:.*)";
             string voPattern = @"(?:VO|Breath|Tips)_[^""\s;]+";
             string eventPattern = @"(?:Ev|Play|Stop|StateGroup|State|VO|SFX)_[a-zA-Z0-9/_-\{\}]{2,}";

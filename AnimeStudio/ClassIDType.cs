@@ -299,6 +299,7 @@ namespace AnimeStudio
         MiHoYoTextureStreamingPreloader = 1211,
         ActivationLogComponent = 2000,
         //kLargestEditorClassID = 2001
+        PBDDeformer = 19549,
         //kClassIdOutOfHierarchy = 100000
         //int = 100000,
         //bool = 100001,
