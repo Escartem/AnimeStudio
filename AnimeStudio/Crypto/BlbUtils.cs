@@ -27,21 +27,25 @@ namespace AnimeStudio
             buffer = buffer[..Math.Min(128, buffer.Length)];
             Debug.Assert(header.Length == 0x10, $"Invalid header size: {header.Length} != 16");
             // Initial XOR step
-            for (int i = 0; i < header.Length; i++)
+            var count = Math.Min(buffer.Length, header.Length);
+            for (int i = 0; i < count; i++)
             {
                 buffer[i] ^= header[i];
             }
 
-            // This is a modified AES implementation. Calling the Encrypt() method is intentional.
-            BlbAES.Encrypt(buffer.Slice(0, 16).ToArray(), header).CopyTo(buffer);
-
-            if (buffer.Length > 16)
+            if (buffer.Length >= 16)
             {
-                // The RC4 call only modified bytes after the first 16, though it uses those early bytes to seed its key schedule.
-                RC4(buffer);
-            }
+                // This is a modified AES implementation. Calling the Encrypt() method is intentional.
+                BlbAES.Encrypt(buffer.Slice(0, 16).ToArray(), header).CopyTo(buffer);
 
-            Descramble(buffer.Slice(0, 16));
+                if (buffer.Length > 16)
+                {
+                    // The RC4 call only modified bytes after the first 16, though it uses those early bytes to seed its key schedule.
+                    RC4(buffer);
+                }
+
+                Descramble(buffer.Slice(0, 16));
+            }
         }
 
         private static int GF256Mul(int a, int b) => (a == 0 || b == 0) ? 0 : CryptoHelper.GF256Exp[(CryptoHelper.GF256Log[a] + CryptoHelper.GF256Log[b]) % 0xFF];
