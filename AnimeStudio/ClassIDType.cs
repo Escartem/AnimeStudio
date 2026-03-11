@@ -428,7 +428,7 @@ namespace AnimeStudio
         AnimageRigAsset = 2056369590,
         AnimageFBIKSettingAsset = 2056369591,
         AnimageComponent = 2056369592,
-        AnimageSplineIKSettingAss = 2056369593,
+        AnimageSplineIKSettingAsset = 2056369593,
         AnimageSkinnedMeshAsset = 2056369594,
         AnimageBellSettingAsset = 2056369597,
         VisualEffectAsset = 2058629509,
