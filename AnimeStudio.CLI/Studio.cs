@@ -370,6 +370,12 @@ namespace AnimeStudio.CLI
                     exportable = true;
                     break;
             }
+            // In a scenario where a specific case doesn't exist, still allows export, without needing a class file for them.
+            // Best used when --export_type Raw or Dump.
+            if (!exportable && assetItem.Type.CanExport())
+            {
+                exportable = true;
+            }
             if (assetItem.Text == "")
             {
                 assetItem.Text = assetItem.TypeString + assetItem.UniqueID;
