@@ -339,12 +339,15 @@ namespace AnimeStudio
         HGSubsurfaceProfile = 298811569,
         SiblingDerived = 334799969,
         TestObjectWithSerializedMapStringNonAlignedStruct = 342846651,
+        LightFlickerStyle = 342910633,
         PBDDeformRenderer = 343759162,
+        HGPsoWarmupCollection = 345140692,
         SubDerived = 367388927,
         AssetImportInProgressProxy = 369655926,
         PluginBuildInfo = 382020655,
         PBDDeformAsset = 390993283,
         LoopSubdivData = 394505447,
+        HGTransformAnimatedBehaviour = 416702132,
         EditorProjectAccess = 426301858,
         PrefabImporter = 468431735,
         TestObjectWithSerializedArray = 478637458,
@@ -365,6 +368,7 @@ namespace AnimeStudio
         RayTracingShaderImporter = 747330370,
         RayTracingShader = 825902497,
         NapLODMeshFilter = 827083203,
+        LightStateTransitionPreset = 849312072,
         LightingSettings = 850595691,
         PlatformModuleSetup = 877146078,
         VersionControlSettings = 890905787,
@@ -435,6 +439,7 @@ namespace AnimeStudio
         VisualEffect = 2083052967,
         LocalizationAsset = 2083778819,
         ScriptedImporter = 20898584,
+        HGTextureGroupSettings = 2091354445,
         MDBAvatar = 2147440192
     }
 }
