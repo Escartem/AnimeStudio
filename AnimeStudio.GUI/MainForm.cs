@@ -946,6 +946,7 @@ namespace AnimeStudio.GUI
         {
             previewPanel.BackgroundImage = Properties.Resources.preview;
             previewPanel.BackgroundImageLayout = ImageLayout.Center;
+            previewPanel.ContextMenuStrip = null;
             classTextBox.Visible = false;
             assetInfoLabel.Visible = false;
             assetInfoLabel.Text = null;
@@ -1624,6 +1625,7 @@ namespace AnimeStudio.GUI
             imageTexture?.Dispose();
             imageTexture = bitmap;
             previewPanel.BackgroundImage = imageTexture.Bitmap;
+            previewPanel.ContextMenuStrip = previewContextMenuStrip;
             if (imageTexture.Width > previewPanel.Width || imageTexture.Height > previewPanel.Height)
                 previewPanel.BackgroundImageLayout = ImageLayout.Zoom;
             else
@@ -1680,6 +1682,7 @@ namespace AnimeStudio.GUI
             classesListView.Items.Clear();
             classesListView.Groups.Clear();
             previewPanel.BackgroundImage = Properties.Resources.preview;
+            previewPanel.ContextMenuStrip = null;
             imageTexture?.Dispose();
             imageTexture = null;
             previewPanel.BackgroundImageLayout = ImageLayout.Center;
@@ -1733,6 +1736,12 @@ namespace AnimeStudio.GUI
         private void copyToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Clipboard.SetDataObject(tempClipboard);
+        }
+
+        private void copyImageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (imageTexture != null)
+                Clipboard.SetImage(imageTexture.Bitmap);
         }
 
         private void exportSelectedAssetsToolStripMenuItem_Click(object sender, EventArgs e)
