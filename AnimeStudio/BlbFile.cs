@@ -109,19 +109,9 @@ namespace AnimeStudio
                     size = reader.ReadInt32()
                 });
 
-                var pos = reader.Position;
-                reader.Position = flagInfoOffset;
-                var flag = reader.ReadUInt32();
-                if (i >= 0x20)
-                {
-                    flag = reader.ReadUInt32();
-                }
-                m_DirectoryInfo[i].flags = (uint)(flag & (1 << i)) * 4;
-                reader.Position = pos;
-
                 var pathOffset = reader.Position + reader.ReadInt64();
 
-                pos = reader.Position;
+                var pos = reader.Position;
                 reader.Position = pathOffset;
                 m_DirectoryInfo[i].path = reader.ReadStringToNull();
                 reader.Position = pos;
