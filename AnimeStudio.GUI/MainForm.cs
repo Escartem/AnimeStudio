@@ -1740,8 +1740,17 @@ namespace AnimeStudio.GUI
 
         private void copyImageToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (imageTexture != null)
-                Clipboard.SetImage(imageTexture.Bitmap);
+            if (imageTexture == null)
+                return;
+
+            var data = new DataObject();
+            using (var ms = new MemoryStream())
+            {
+                imageTexture.Bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                data.SetData("PNG", false, ms);
+                data.SetImage(imageTexture.Bitmap);
+                Clipboard.SetDataObject(data, true);
+            }
         }
 
         private void exportSelectedAssetsToolStripMenuItem_Click(object sender, EventArgs e)
