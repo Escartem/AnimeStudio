@@ -186,6 +186,8 @@ namespace AnimeStudio.GUI
             timer = new System.Windows.Forms.Timer(components);
             openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(components);
+            previewContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(components);
+            copyImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             exportSelectedAssetsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             exportAnimatorwithselectedAnimationClipMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -1464,7 +1466,21 @@ namespace AnimeStudio.GUI
             contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { copyToolStripMenuItem, exportSelectedAssetsToolStripMenuItem, exportAnimatorwithselectedAnimationClipMenuItem, goToSceneHierarchyToolStripMenuItem, showOriginalFileToolStripMenuItem });
             contextMenuStrip1.Name = "contextMenuStrip1";
             contextMenuStrip1.Size = new System.Drawing.Size(547, 194);
-            // 
+            //
+            // previewContextMenuStrip
+            //
+            previewContextMenuStrip.ImageScalingSize = new System.Drawing.Size(20, 20);
+            previewContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { copyImageToolStripMenuItem });
+            previewContextMenuStrip.Name = "previewContextMenuStrip";
+            previewContextMenuStrip.Size = new System.Drawing.Size(200, 38);
+            //
+            // copyImageToolStripMenuItem
+            //
+            copyImageToolStripMenuItem.Name = "copyImageToolStripMenuItem";
+            copyImageToolStripMenuItem.Size = new System.Drawing.Size(199, 34);
+            copyImageToolStripMenuItem.Text = "Copy Image";
+            copyImageToolStripMenuItem.Click += copyImageToolStripMenuItem_Click;
+            //
             // copyToolStripMenuItem
             // 
             copyToolStripMenuItem.Name = "copyToolStripMenuItem";
@@ -1711,6 +1727,8 @@ namespace AnimeStudio.GUI
         private System.Windows.Forms.ToolStripMenuItem gameSelect;
         private System.Windows.Forms.ToolStripMenuItem editUnityCNKeysToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem useBundleContainerNameToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip previewContextMenuStrip;
+        private System.Windows.Forms.ToolStripMenuItem copyImageToolStripMenuItem;
     }
 }
 
