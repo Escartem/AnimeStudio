@@ -32,6 +32,7 @@ namespace AnimeStudio
             else
             {
                 type = ClassIDType.UnknownType;
+                Logger.Warning($"Unknown ClassIDType {objectInfo.classID} for object with PathID {m_PathID} in file {assetsFile.fileName}");
             }
             serializedType = objectInfo.serializedType;
             platform = assetsFile.m_TargetPlatform;
