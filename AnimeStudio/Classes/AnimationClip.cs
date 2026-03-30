@@ -205,7 +205,7 @@ namespace AnimeStudio
 
         public QuaternionCurve(ObjectReader reader)
         {
-            curve = new AnimationCurve<Quaternion>(reader, reader.ReadQuaternion, 1);
+            curve = new AnimationCurve<Quaternion>(reader, reader.ReadQuaternion, 0);
             path = reader.ReadAlignedString();
         }
 
