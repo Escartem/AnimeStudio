@@ -118,6 +118,10 @@ namespace AnimeStudio
                 reader.AlignStream(); //m_IgnoreMipmapLimit
                 var m_MipmapLimitGroupName = reader.ReadAlignedString();
             }
+            if (reader.Game.Type.IsRewindingCadence())
+            {
+                var m_IsDisableAutoUpload = reader.ReadBoolean();
+            }
             if (version[0] >= 3) //3.0.0 - 5.4
             {
                 if (version[0] < 5 || (version[0] == 5 && version[1] <= 4))

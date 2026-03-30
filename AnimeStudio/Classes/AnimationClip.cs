@@ -71,6 +71,42 @@ namespace AnimeStudio
         }
     }
 
+    public class CompressMetaData1
+    {
+        public float m_Range;
+        public float m_Min;
+        public float m_BitRate;
+        public float m_BitFixed;
+        public int m_SegmentBegin;
+        public int m_SegmentEnd;
+
+        public CompressMetaData1(ObjectReader reader)
+        {
+            m_Range = reader.ReadFloat();
+            m_Min = reader.ReadFloat();
+            m_BitRate = reader.ReadFloat();
+            m_BitFixed = reader.ReadFloat();
+            m_SegmentBegin = reader.ReadInt32();
+            m_SegmentEnd = reader.ReadInt32(); 
+        }
+    }
+
+    public class CompressMetaData2
+    {
+        public Vector3 m_Range;
+        public Vector3 m_Min;
+        public Vector3 m_BitRate;
+        public Vector3 m_BitFixed;
+
+        public CompressMetaData2(ObjectReader reader)
+        {
+            m_Range = reader.ReadVector3();
+            m_Min = reader.ReadVector3();
+            m_BitRate = reader.ReadVector3();
+            m_BitFixed = reader.ReadVector3();
+        }
+    }
+
     public class AnimationCurve<T> : IYAMLExportable where T : IYAMLExportable
     {
         public List<Keyframe<T>> m_Curve;
@@ -86,7 +122,7 @@ namespace AnimeStudio
             m_Curve = new List<Keyframe<T>>();
         }
 
-        public AnimationCurve(ObjectReader reader, Func<T> readerFunc)
+        public AnimationCurve(ObjectReader reader, Func<T> readerFunc, int type = 0)
         {
             var version = reader.version;
             int numCurves = reader.ReadInt32();
@@ -101,6 +137,34 @@ namespace AnimeStudio
             if (version[0] > 5 || (version[0] == 5 && version[1] >= 3))//5.3 and up
             {
                 m_RotationOrder = reader.ReadInt32();
+            }
+            if (reader.Game.Type.IsRewindingCadence())
+            {
+                if (type == 0) {
+                    var m_Range = reader.ReadQuaternion();
+                    var m_Min = reader.ReadQuaternion();
+                    var m_BitRate = reader.ReadQuaternion();
+                    var m_BitFixed = reader.ReadQuaternion();
+                } else if (type == 1) {
+                    var m_Range = reader.ReadFloat();
+                    var m_Min = reader.ReadFloat();
+                    var m_IsBitCompress = reader.ReadBoolean();
+
+                    var m_MetaData = new List<CompressMetaData1>();
+                    var m_MetaDataCount = reader.ReadInt32();
+                    for (int i = 0; (i < m_MetaDataCount); i++)
+                    {
+                        m_MetaData.Add(new CompressMetaData1(reader));
+                    }
+                } else if (type == 2)
+                {
+                    var m_MetaData = new List<CompressMetaData2>();
+                    var m_MetaDataCount = reader.ReadInt32();
+                    for (int i = 0; (i < m_MetaDataCount); i++)
+                    {
+                        m_MetaData.Add(new CompressMetaData2(reader));
+                    }
+                }
             }
         }
 
@@ -141,7 +205,7 @@ namespace AnimeStudio
 
         public QuaternionCurve(ObjectReader reader)
         {
-            curve = new AnimationCurve<Quaternion>(reader, reader.ReadQuaternion);
+            curve = new AnimationCurve<Quaternion>(reader, reader.ReadQuaternion, 1);
             path = reader.ReadAlignedString();
         }
 
@@ -430,7 +494,7 @@ namespace AnimeStudio
 
         public Vector3Curve(ObjectReader reader)
         {
-            curve = new AnimationCurve<Vector3>(reader, reader.ReadVector3);
+            curve = new AnimationCurve<Vector3>(reader, reader.ReadVector3, 2);
             path = reader.ReadAlignedString();
         }
 
@@ -485,7 +549,7 @@ namespace AnimeStudio
         {
             var version = reader.version;
 
-            curve = new AnimationCurve<Float>(reader, reader.ReadFloat);
+            curve = new AnimationCurve<Float>(reader, reader.ReadFloat, 1);
             attribute = reader.ReadAlignedString();
             path = reader.ReadAlignedString();
             classID = (ClassIDType)reader.ReadInt32();
@@ -493,7 +557,7 @@ namespace AnimeStudio
             if (version[0] == 2022 && version[1] >= 2) //2022.2 and up
             {
                 flags = reader.ReadInt32();
-        }
+            }
         }
 
         public YAMLNode ExportYAML(int[] version)
@@ -1767,6 +1831,23 @@ namespace AnimeStudio
         }
     }
 
+    public class BindingToCurveIndices
+    {
+        public uint[] positionIndices;
+        public uint[] quaternionIndices;
+        public uint[] scaleIndices;
+
+        public BindingToCurveIndices(ObjectReader reader)
+        {
+            var positionIndicesCount = reader.ReadInt32();
+            positionIndices = reader.ReadUInt32Array(positionIndicesCount);
+            var quaternionIndicesCount = reader.ReadInt32();
+            quaternionIndices = reader.ReadUInt32Array(quaternionIndicesCount);
+            var scaleIndicesCount = reader.ReadInt32();
+            scaleIndices = reader.ReadUInt32Array(scaleIndicesCount);
+        }
+    }
+
     public class AnimationClipBindingConstant : IYAMLExportable
     {
         public List<GenericBinding> genericBindings;
@@ -1788,6 +1869,12 @@ namespace AnimeStudio
             for (int i = 0; i < numMappings; i++)
             {
                 pptrCurveMapping.Add(new PPtr<Object>(reader));
+            }
+
+            if (reader.Game.Type.IsRewindingCadence())
+            {
+                var bindingToCurveIndices = new BindingToCurveIndices(reader);
+                var bindingsHash = reader.ReadUInt32();
             }
         }
 
@@ -1864,6 +1951,10 @@ namespace AnimeStudio
             {
                 hashCodeType = reader.ReadInt32();
             }
+            if (reader.Game.Type.IsRewindingCadence())
+            {
+                var enableCustomEventExtension = reader.ReadBoolean();
+            }
         }
 
         public YAMLNode ExportYAML(int[] version)
@@ -1877,6 +1968,20 @@ namespace AnimeStudio
             node.Add(nameof(intParameter), intParameter);
             node.Add(nameof(messageOptions), messageOptions);
             return node;
+        }
+    }
+
+    public class TransformInfo
+    {
+        public Vector3[] PositionValues;
+        public Vector4[] QuaternionValues;
+        public Vector3[] ScaleValues;
+
+        public TransformInfo(ObjectReader reader)
+        {
+            PositionValues = reader.ReadVector3Array();
+            QuaternionValues = reader.ReadVector4Array();
+            ScaleValues = reader.ReadVector3Array();
         }
     }
 
@@ -2023,7 +2128,7 @@ namespace AnimeStudio
             }
             if (version[0] >= 4)//4.0 and up
             {
-                if (reader.Game.Type.IsGI())
+                if (reader.Game.Type.IsGI() || reader.Game.Type.IsRewindingCadence())
                 {
                     var muscleClipSize = reader.ReadInt32();
                     if (muscleClipSize < 0)
@@ -2071,6 +2176,10 @@ namespace AnimeStudio
                 var m_HasMotionFloatCurves = reader.ReadBoolean();
                 reader.AlignStream();
             }
+            if (reader.Game.Type.IsRewindingCadence())
+            {
+                var m_AvatarDefaultPose = new TransformInfo(reader);
+            }
             int numEvents = reader.ReadInt32();
             m_Events = new List<AnimationEvent>();
             for (int i = 0; i < numEvents; i++)
@@ -2085,6 +2194,11 @@ namespace AnimeStudio
                 reader.AlignStream();
                 var m_TotalSize = reader.ReadUInt32();
                 var m_TransitionRotateCurveIndex = reader.ReadUInt16();
+            }
+            if (reader.Game.Type.IsRewindingCadence())
+            {
+                var m_UseDefaultPoseAdditive = reader.ReadBoolean();
+                var m_AvatarDefaultPoseHash = reader.ReadInt32();
             }
             if (version[0] >= 2017) //2017 and up
             {

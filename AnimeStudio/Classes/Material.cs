@@ -147,6 +147,11 @@ namespace AnimeStudio
                 var m_ShaderKeywords = reader.ReadStringArray();
             }
 
+            if (reader.Game.Type.IsRewindingCadence())
+            {
+                var m_VertexSkinningFlag = reader.ReadUInt32();
+            }
+
             if (version[0] > 2021 || (version[0] == 2021 && version[1] >= 3)) //2021.3 and up
             {
                 var m_ValidKeywords = reader.ReadStringArray();
@@ -173,6 +178,11 @@ namespace AnimeStudio
             if (version[0] > 4 || (version[0] == 4 && version[1] >= 3)) //4.3 and up
             {
                 var m_CustomRenderQueue = reader.ReadInt32();
+            }
+
+            if (reader.Game.Type.IsRewindingCadence())
+            {
+                var m_RenderingUsageMask = reader.ReadUInt32();
             }
 
             if (reader.Game.Type.IsLoveAndDeepspace())

@@ -616,6 +616,12 @@ namespace AnimeStudio
                     }
                     var m_KeepVertices = reader.ReadBoolean();
                     var m_KeepIndices = reader.ReadBoolean();
+                    if (reader.Game.Type.IsRewindingCadence())
+                    {
+                        var m_VertexAttributePacking = reader.ReadBoolean();
+                        var m_IsDisableAutoUpload = reader.ReadBoolean();
+                        var m_VertexAttributePackingMask = reader.ReadUInt32();
+                    }
                     if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
                     {
                         var m_CollisionMeshOnly = reader.ReadBoolean();
