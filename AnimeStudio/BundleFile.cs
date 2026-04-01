@@ -417,14 +417,7 @@ namespace AnimeStudio
             if ((m_Header.flags & mask) != 0 || (m_Header.flags & ArchiveFlags.UnityCNEncryption2) != 0)
             {
                 Logger.Verbose($"Encryption flag exist, file is encrypted, attempting to decrypt");
-                if(Game.IsUnityCN())
-                {
-                    UnityCN = new UnityCN(reader);
-                }
-                else
-                {
-                    throw new IOException($"Unknown encryption for Unity CN with version {version[0]}.{version[1]}.{version[2]}");
-                }
+                UnityCN = new UnityCN(reader);
                 
             }
         }
