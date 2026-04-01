@@ -111,6 +111,7 @@ namespace AnimeStudio
 
         private Game Game;
         private UnityCN UnityCN;
+        private AzurPromilia AzurPromilia;
 
         public Header m_Header;
         private List<Node> m_DirectoryInfo;
@@ -145,7 +146,7 @@ namespace AnimeStudio
                 case "UnityFS":
                 case "ENCR":
                     ReadHeader(reader);
-                    if (game.IsUnityCN())
+                    if (game.IsUnityCN() || game.Type.IsAzurPromilia())
                     {
                         ReadUnityCN(reader);
                     }
@@ -406,7 +407,19 @@ namespace AnimeStudio
             if ((m_Header.flags & mask) != 0 || (m_Header.flags & ArchiveFlags.UnityCNEncryption2) != 0)
             {
                 Logger.Verbose($"Encryption flag exist, file is encrypted, attempting to decrypt");
-                UnityCN = new UnityCN(reader);
+                if(Game.IsUnityCN())
+                {
+                    UnityCN = new UnityCN(reader);
+                }
+                else if (Game.Type.IsAzurPromilia())
+                {
+                    AzurPromilia = new AzurPromilia(reader);
+                }
+                else
+                {
+                    throw new IOException($"Unknown encryption for Unity CN with version {version[0]}.{version[1]}.{version[2]}");
+                }
+                
             }
         }
 
@@ -644,6 +657,11 @@ namespace AnimeStudio
                                 {
                                     Logger.Verbose($"Decrypting block with UnityCN...");
                                     UnityCN.DecryptBlock(compressedBytes, compressedSize, i);
+                                }
+                                if (Game.Type.IsAzurPromilia() && ((int)blockInfo.flags & 0x100) != 0)
+                                {
+                                    Logger.Verbose($"Decrypting block with AzurPromilia...");
+                                    AzurPromilia.DecryptBlock(compressedBytes, compressedSize, i);
                                 }
                                 if (Game.Type.IsNetEase() && i == 0)
                                 {
