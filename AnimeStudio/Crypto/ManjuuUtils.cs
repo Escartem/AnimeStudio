@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Text;
 using System.Security.Cryptography;
+using System.Runtime.CompilerServices;
 
 namespace AnimeStudio
 {
-    public class AzurPromilia
+    public class ManjuuUtils
     {
         private const string Signature = "#$manjuuunity*!@";
-
+        private const string Key = "7a346c32336268352333356826333231";
         private static ICryptoTransform Encryptor;
 
         public byte[] Index = new byte[0x10];
         public byte[] Sub = new byte[0x10];
 
-        public AzurPromilia(EndianBinaryReader reader)
+        public ManjuuUtils(EndianBinaryReader reader)
         {
             reader.ReadUInt32();
 
@@ -25,19 +26,19 @@ namespace AnimeStudio
             var signatureKey = reader.ReadBytes(0x10);
             reader.Position += 1;
 
-            Logger.Verbose($"Initializing AzurPromilia decryptor with key");
+            Logger.Verbose($"Initializing ManjuuUtils decryptor with key");
             try
             {
                 using var aes = Aes.Create();
                 aes.Mode = CipherMode.ECB;
-                aes.Key = Convert.FromHexString("7a346c32336268352333356826333231");
+                aes.Key = Convert.FromHexString(Key);
 
                 Encryptor = aes.CreateEncryptor();
                 Logger.Verbose($"Decryptor initialized !!");
             }
             catch (Exception e)
             {
-                Logger.Error($"[AzurPromilia] Invalid key !!\n{e.Message}");
+                Logger.Error($"Invalid key !!\n{e.Message}");
             }
 
             DecryptKey(signatureKey, signatureBytes);

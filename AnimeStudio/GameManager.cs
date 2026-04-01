@@ -72,7 +72,7 @@ namespace AnimeStudio
             Games.Add(index++, new Game(GameType.ExAstris, "ExAstris"));
             Games.Add(index++, new Game(GameType.PerpetualNovelty, "Perpetual Novelty"));
             Games.Add(index++, new Game(GameType.RewindingCadence, "Rewinding Cadence"));
-            Games.Add(index++, new Game(GameType.AzurPromilia, "Azur Promilia"));
+            Games.Add(index++, new Game(GameType.AzurPromiliaCBT2, "Azur Promilia CBT2"));
             
             // unity cn
             var list = UnityCNManager.ReadJson();
@@ -261,7 +261,7 @@ namespace AnimeStudio
         CatFantasy,
         UnityCNCustomKey,
         RewindingCadence,
-        AzurPromilia,
+        AzurPromiliaCBT2,
     }
 
 
@@ -306,7 +306,7 @@ namespace AnimeStudio
         public static bool IsExAstris(this GameType type) => type == GameType.ExAstris;
         public static bool IsPerpetualNovelty(this GameType type) => type == GameType.PerpetualNovelty;
         public static bool IsRewindingCadence(this GameType type) => type == GameType.RewindingCadence;
-        public static bool IsAzurPromilia(this GameType type) => type == GameType.AzurPromilia;
+        public static bool IsAzurPromiliaCBT2(this GameType type) => type == GameType.AzurPromiliaCBT2;
         public static bool IsGIGroup(this GameType type) => type switch
         {
             GameType.GI or GameType.GI_Pack or GameType.GI_CB1 or GameType.GI_CB2 or GameType.GI_CB3 or GameType.GI_CB3Pre => true,

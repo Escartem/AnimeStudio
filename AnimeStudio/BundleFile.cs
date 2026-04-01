@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Buffers;
+using System.Net.NetworkInformation;
 
 namespace AnimeStudio
 {
@@ -111,7 +112,7 @@ namespace AnimeStudio
 
         private Game Game;
         private UnityCN UnityCN;
-        private AzurPromilia AzurPromilia;
+        private ManjuuUtils AzurPromilia;
 
         public Header m_Header;
         private List<Node> m_DirectoryInfo;
@@ -146,9 +147,13 @@ namespace AnimeStudio
                 case "UnityFS":
                 case "ENCR":
                     ReadHeader(reader);
-                    if (game.IsUnityCN() || game.Type.IsAzurPromilia())
+                    if (game.IsUnityCN())
                     {
                         ReadUnityCN(reader);
+                    }
+                    else if(game.Type.IsAzurPromiliaCBT2())
+                    {
+                        ReadManjuu(reader);
                     }
                     ReadBlocksInfoAndDirectory(reader);
                     using (var blocksStream = CreateBlocksStream(reader.FullPath))
@@ -216,7 +221,6 @@ namespace AnimeStudio
                     break;
 
             }
-
             return header;
         }
 
@@ -381,6 +385,26 @@ namespace AnimeStudio
             Logger.Verbose($"Bundle header Info: {m_Header}");
         }
 
+        private void ReadManjuu(FileReader reader)
+        {
+            if ((m_Header.flags & ArchiveFlags.UnityCNEncryption) != 0)
+            {
+                Logger.Verbose($"Manjuu encryption flag exist, file is encrypted, attempting to decrypt");
+                if (Game.Type.IsAzurPromiliaCBT2())
+                {
+                    try
+                    {
+                        AzurPromilia = new ManjuuUtils(reader);
+                    }
+                    catch (Exception)
+                    {
+                        
+                        throw new IOException($"Failed to initialize ManjuuUtils, the file may be corrupted or the key is incorrect");
+                    }
+                }
+            }
+        }
+
         private void ReadUnityCN(FileReader reader)
         {
             Logger.Verbose($"Attempting to decrypt file {reader.FileName} with UnityCN encryption");
@@ -410,10 +434,6 @@ namespace AnimeStudio
                 if(Game.IsUnityCN())
                 {
                     UnityCN = new UnityCN(reader);
-                }
-                else if (Game.Type.IsAzurPromilia())
-                {
-                    AzurPromilia = new AzurPromilia(reader);
                 }
                 else
                 {
@@ -658,9 +678,9 @@ namespace AnimeStudio
                                     Logger.Verbose($"Decrypting block with UnityCN...");
                                     UnityCN.DecryptBlock(compressedBytes, compressedSize, i);
                                 }
-                                if (Game.Type.IsAzurPromilia() && ((int)blockInfo.flags & 0x100) != 0)
+                                if (Game.Type.IsAzurPromiliaCBT2() && ((int)blockInfo.flags & 0x100) != 0)
                                 {
-                                    Logger.Verbose($"Decrypting block with AzurPromilia...");
+                                    Logger.Verbose($"Decrypting block with AzurPromilia CBT2...");
                                     AzurPromilia.DecryptBlock(compressedBytes, compressedSize, i);
                                 }
                                 if (Game.Type.IsNetEase() && i == 0)
