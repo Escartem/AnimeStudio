@@ -583,6 +583,7 @@ namespace AnimeStudio
 
         public void CheckStrippedVersion(SerializedFile assetsFile)
         {
+            if(Game.Type.IsAzurPromiliaCBT2() && assetsFile.IsVersionStripped) SpecifyUnityVersion = "2022.3.62f3";
             if (assetsFile.IsVersionStripped && string.IsNullOrEmpty(SpecifyUnityVersion))
             {
                 throw new Exception("The Unity version has been stripped, please set the version in the options");
