@@ -112,7 +112,6 @@ namespace AnimeStudio
 
         private Game Game;
         private UnityCN UnityCN;
-        private ManjuuUtils AzurPromilia;
 
         public Header m_Header;
         private List<Node> m_DirectoryInfo;
@@ -153,7 +152,8 @@ namespace AnimeStudio
                     }
                     else if(game.Type.IsAzurPromiliaCBT2())
                     {
-                        ReadManjuu(reader);
+                        UnityCN.SetKey("7a346c32336268352333356826333231");
+                        ReadUnityCN(reader);
                     }
                     ReadBlocksInfoAndDirectory(reader);
                     using (var blocksStream = CreateBlocksStream(reader.FullPath))
@@ -385,28 +385,14 @@ namespace AnimeStudio
             Logger.Verbose($"Bundle header Info: {m_Header}");
         }
 
-        private void ReadManjuu(FileReader reader)
-        {
-            if ((m_Header.flags & ArchiveFlags.UnityCNEncryption) != 0)
-            {
-                Logger.Verbose($"Manjuu encryption flag exist, file is encrypted, attempting to decrypt");
-                if (Game.Type.IsAzurPromiliaCBT2())
-                {
-                    try
-                    {
-                        AzurPromilia = new ManjuuUtils(reader);
-                    }
-                    catch (Exception)
-                    {
-                        
-                        throw new IOException($"Failed to initialize ManjuuUtils, the file may be corrupted or the key is incorrect");
-                    }
-                }
-            }
-        }
-
         private void ReadUnityCN(FileReader reader)
         {
+            if(Game.Type.IsAzurPromiliaCBT2() && (m_Header.flags & ArchiveFlags.UnityCNEncryption) != 0)
+            {
+                UnityCN = new UnityCN(reader);
+                return;
+            }
+
             Logger.Verbose($"Attempting to decrypt file {reader.FileName} with UnityCN encryption");
             ArchiveFlags mask;
 
@@ -681,7 +667,7 @@ namespace AnimeStudio
                                 if (Game.Type.IsAzurPromiliaCBT2() && ((int)blockInfo.flags & 0x100) != 0)
                                 {
                                     Logger.Verbose($"Decrypting block with AzurPromilia CBT2...");
-                                    AzurPromilia.DecryptBlock(compressedBytes, compressedSize, i);
+                                    UnityCN.DecryptBlock(compressedBytes, compressedSize, i);
                                 }
                                 if (Game.Type.IsNetEase() && i == 0)
                                 {
