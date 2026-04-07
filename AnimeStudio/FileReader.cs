@@ -249,7 +249,7 @@ namespace AnimeStudio
                         break;
                 }
             }
-            if (reader.FileType == FileType.BundleFile && game.Type.IsBlockFile() || reader.FileType == FileType.ENCRFile || reader.FileType == FileType.Blb2File || reader.FileType == FileType.Blb3File || reader.FileType == FileType.HygFile || reader.FileType == FileType.VFSFile)
+            if (reader.FileType == FileType.BundleFile && game.Type.IsBlockFile() || reader.FileType == FileType.ENCRFile || reader.FileType == FileType.Blb2File || reader.FileType == FileType.Blb3File || reader.FileType == FileType.HygFile || reader.FileType == FileType.VFSFile || game.Type.IsAzurPromiliaCBT2())
             {
                 Logger.Verbose("File might have multiple bundles !!");
                 try
