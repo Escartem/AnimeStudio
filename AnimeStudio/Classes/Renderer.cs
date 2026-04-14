@@ -9,7 +9,6 @@ namespace AnimeStudio
     {
         public ushort firstSubMesh;
         public ushort subMeshCount;
-
         public StaticBatchInfo(ObjectReader reader)
         {
             firstSubMesh = reader.ReadUInt16();
@@ -24,9 +23,15 @@ namespace AnimeStudio
         public uint[] m_SubsetIndices;
         private bool isNewHeader = false;
 
-        public static bool HasPrope(SerializedType type) => type.Match("F622BC5EE0E86D7BDF8C912DD94DCBF5") || type.Match("9255FA54269ADD294011FDA525B5FCAC");
-        public static bool HasCullingDistance(SerializedType type) => type.Match("BFA28DBFE9993C2ABE21B3408666CFD3");
-        public static bool HasStreamingMipmapBias(SerializedType type) => type.Match("3086DE02B7269C6DE7E840C57C244649");
+        public static bool HasPrope(SerializedType type) =>
+            type.Match("F622BC5EE0E86D7BDF8C912DD94DCBF5") ||
+            type.Match("9255FA54269ADD294011FDA525B5FCAC");
+
+        public static bool HasCullingDistance(SerializedType type) =>
+            type.Match("BFA28DBFE9993C2ABE21B3408666CFD3");
+
+        public static bool HasStreamingMipmapBias(SerializedType type) =>
+            type.Match("3086DE02B7269C6DE7E840C57C244649");
 
         protected Renderer(ObjectReader reader) : base(reader)
         {
@@ -49,34 +54,42 @@ namespace AnimeStudio
                     {
                         CheckHeader(reader, 0x12);
                     }
+
                     var m_Enabled = reader.ReadBoolean();
                     var m_CastShadows = reader.ReadByte();
                     var m_ReceiveShadows = reader.ReadByte();
+
                     if (version[0] > 2017 || (version[0] == 2017 && version[1] >= 2)) //2017.2 and up
                     {
                         var m_DynamicOccludee = reader.ReadByte();
                     }
+
                     if (reader.Game.Type.IsBH3Group())
                     {
                         var m_AllowHalfResolution = reader.ReadByte();
                         int m_EnableGpuQuery = isNewHeader ? reader.ReadByte() : 0;
                     }
+
                     if (reader.Game.Type.IsGIGroup())
                     {
                         var m_ReceiveDecals = reader.ReadByte();
                         var m_EnableShadowCulling = reader.ReadByte();
                         var m_EnableGpuQuery = reader.ReadByte();
                         var m_AllowHalfResolution = reader.ReadByte();
+
                         if (!reader.Game.Type.IsGICB1())
                         {
                             if (reader.Game.Type.IsGI())
                             {
                                 var m_AllowPerMaterialProp = isNewHeader ? reader.ReadByte() : 0;
                             }
+
                             var m_IsRainOccluder = reader.ReadByte();
+
                             if (!reader.Game.Type.IsGICB2())
                             {
                                 var m_IsDynamicAOOccluder = reader.ReadByte();
+
                                 if (reader.Game.Type.IsGI())
                                 {
                                     var m_IsHQDynamicAOOccluder = reader.ReadByte();
@@ -84,10 +97,12 @@ namespace AnimeStudio
                                     var m_IsInteriorVolume = reader.ReadByte();
                                 }
                             }
+
                             if (!reader.Game.Type.IsGIPack())
                             {
                                 var m_IsDynamic = reader.ReadByte();
                             }
+
                             if (reader.Game.Type.IsGI())
                             {
                                 var m_UseTessellation = reader.ReadByte();
@@ -97,9 +112,11 @@ namespace AnimeStudio
                             }
                         }
                     }
+
                     if (version[0] >= 2021) //2021.1 and up
                     {
                         var m_StaticShadowCaster = reader.ReadByte();
+
                         if (reader.Game.Type.IsArknightsEndfieldGroup())
                         {
                             var m_RealtimeShadowCaster = reader.ReadByte();
@@ -107,29 +124,36 @@ namespace AnimeStudio
                             var m_CharacterIndex = reader.ReadByte();
                         }
                     }
+
                     var m_MotionVectors = reader.ReadByte();
                     var m_LightProbeUsage = reader.ReadByte();
                     var m_ReflectionProbeUsage = reader.ReadByte();
+
                     if (version[0] > 2019 || (version[0] == 2019 && version[1] >= 3)) //2019.3 and up
                     {
                         var m_RayTracingMode = reader.ReadByte();
                     }
+
                     if (version[0] >= 2020 || reader.Game.Type.IsZZZ()) //2020.1 and up
                     {
                         var m_RayTraceProcedural = reader.ReadByte();
                     }
+
                     if (reader.Game.Type.IsHYGCB1())
                     {
                         var m_UseOverrideAABBForCulling = reader.ReadByte();
                     }
+
                     if (reader.Game.Type.IsGI() || reader.Game.Type.IsGICB3() || reader.Game.Type.IsGICB3Pre())
                     {
                         var m_MeshShowQuality = reader.ReadByte();
                     }
+
                     if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
                     {
                         var m_RenderFoliageOccluder = reader.ReadByte();
                     }
+
                     reader.AlignStream();
                 }
                 else
@@ -158,6 +182,7 @@ namespace AnimeStudio
 
                 var m_LightmapIndex = reader.ReadUInt16();
                 var m_LightmapIndexDynamic = reader.ReadUInt16();
+
                 if (reader.Game.Type.IsGIGroup() && (m_LightmapIndex != 0xFFFF || m_LightmapIndexDynamic != 0xFFFF))
                 {
                     throw new Exception("Not Supported !! skipping....");
@@ -179,10 +204,12 @@ namespace AnimeStudio
                 var m_ViewDistanceRatio = reader.ReadSingle();
                 var m_ShaderLODDistanceRatio = reader.ReadSingle();
             }
+
             if (reader.Game.Type.IsHYGCB1())
             {
                 var m_ViewDistanceRatio = reader.ReadSingle();
             }
+
             var m_MaterialsSize = reader.ReadInt32();
             m_Materials = new List<PPtr<Material>>();
             for (int i = 0; i < m_MaterialsSize; i++)
@@ -205,7 +232,7 @@ namespace AnimeStudio
                     m_SubsetIndices = reader.ReadUInt32Array();
                 }
 
-                var m_StaticBatchRoot = new PPtr<Transform>(reader);
+                var m_StaticBatchRoot = new PPtr<GameObject>(reader);
             }
 
             if (reader.Game.Type.IsGIGroup())
@@ -225,7 +252,7 @@ namespace AnimeStudio
                     var m_UseLightProbes = reader.ReadBoolean();
                     reader.AlignStream();
 
-                    if (version[0] >= 5)//5.0 and up
+                    if (version[0] >= 5) //5.0 and up
                     {
                         var m_ReflectionProbeUsage = reader.ReadInt32();
                     }
@@ -254,11 +281,12 @@ namespace AnimeStudio
                 var m_SortingLayer2 = reader.ReadInt16();
                 var m_SortingOrder = reader.ReadInt16();
                 reader.AlignStream();
-                if (reader.Game.Type.IsGIGroup() || reader.Game.Type.IsBH3())
-                {
-                    var m_UseHighestMip = reader.ReadBoolean();
-                    reader.AlignStream();
-                }
+
+                // corrected:
+                // 0.5.0 dump places m_UseHighestMip here as part of the Renderer layout.
+                var m_UseHighestMip = reader.ReadBoolean();
+                reader.AlignStream();
+
                 if (reader.Game.Type.IsSR())
                 {
                     var RenderFlag = reader.ReadUInt32();
@@ -268,17 +296,20 @@ namespace AnimeStudio
                     }
                     reader.AlignStream();
                 }
+
                 if (reader.Game.Type.IsZZZ())
                 {
                     var m_NeedHizCulling = reader.ReadBoolean();
                     var m_HighShadingRate = reader.ReadBoolean();
                     var m_RayTracingLayerMask = reader.ReadBoolean();
                     reader.AlignStream();
+
                     if (HasCullingDistance(reader.serializedType))
                     {
                         var m_CullingDistance = reader.ReadSingle();
                     }
                 }
+
                 if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
                 {
                     var m_EnableCharacterOutline = reader.ReadBoolean();

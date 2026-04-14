@@ -587,23 +587,44 @@ namespace AnimeStudio
 
         private static Mesh GetMesh(Renderer meshR)
         {
+            if (meshR == null)
+            {
+                return null;
+            }
+
             if (meshR is SkinnedMeshRenderer sMesh)
             {
-                if (sMesh.m_Mesh.TryGet(out var m_Mesh))
+                if (sMesh.m_Mesh != null)
                 {
-                    return m_Mesh;
-                }
-            }
-            else
-            {
-                meshR.m_GameObject.TryGet(out var m_GameObject);
-                if (m_GameObject.m_MeshFilter != null)
-                {
-                    if (m_GameObject.m_MeshFilter.m_Mesh.TryGet(out var m_Mesh))
+                    if (!sMesh.m_Mesh.IsNull)
                     {
-                        return m_Mesh;
+                        if (sMesh.m_Mesh.TryGet(out var directMesh))
+                        {
+                            return directMesh;
+                        }
+
+                        return null;
                     }
                 }
+
+                if (sMesh.m_GameObject != null &&
+                    sMesh.m_GameObject.TryGet(out var sGameObject) &&
+                    sGameObject != null &&
+                    sGameObject.HasSkinnedMeshTessellationDataHolder())
+                {
+                    return TessellationMeshResolver.ResolveOriginalMesh(sMesh);
+                }
+
+                return null;
+            }
+
+            meshR.m_GameObject.TryGet(out var m_GameObject);
+            if (m_GameObject != null &&
+                m_GameObject.m_MeshFilter != null &&
+                m_GameObject.m_MeshFilter.m_Mesh != null &&
+                m_GameObject.m_MeshFilter.m_Mesh.TryGet(out var m_Mesh2))
+            {
+                return m_Mesh2;
             }
 
             return null;

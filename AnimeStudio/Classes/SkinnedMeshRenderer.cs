@@ -18,21 +18,24 @@ namespace AnimeStudio
         {
             int m_Quality = reader.ReadInt32();
             var m_UpdateWhenOffscreen = reader.ReadBoolean();
+
             if (!reader.Game.Type.IsHYGCB1())
             {
                 var m_SkinNormals = reader.ReadBoolean(); //3.1.0 and below
             }
+
             if (reader.Game.Type.IsHYGCB1())
             {
                 var m_UpdateBoundsWhenOffscreen = reader.ReadBoolean();
                 var m_SkinnedMotionVectors = reader.ReadBoolean();
                 var m_CanSkipSkinning = reader.ReadBoolean();
             }
+
             reader.AlignStream();
 
             if (version[0] == 2 && version[1] < 6) //2.6 down
             {
-                var m_DisableAnimationWhenOffscreen = new PPtr<Animation>(reader);
+                var m_DisableAnimationWhenOffscreen = new PPtr<Object>(reader);
             }
 
             m_Mesh = new PPtr<Mesh>(reader);

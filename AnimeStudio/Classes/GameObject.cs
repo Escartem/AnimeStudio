@@ -1,95 +1,168 @@
-﻿using AnimeStudio;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.Metrics;
 using System.Linq;
-using System.Text;
 
 namespace AnimeStudio
 {
     public sealed class GameObject : EditorExtension
     {
         public List<PPtr<Component>> m_Components;
+
         public string m_Name;
 
         public Transform m_Transform;
+
         public MeshRenderer m_MeshRenderer;
         public MeshFilter m_MeshFilter;
+
         public SkinnedMeshRenderer m_SkinnedMeshRenderer;
+
         public Animator m_Animator;
+
         public Animation m_Animation;
 
         public override string Name => m_Name;
+
         public GameObject(ObjectReader reader) : base(reader)
         {
             int m_Component_size = reader.ReadInt32();
+
             m_Components = new List<PPtr<Component>>();
             for (int i = 0; i < m_Component_size; i++)
             {
-                if ((version[0] == 5 && version[1] < 5) || version[0] < 5) //5.5 down
+                if ((version[0] == 5 && version[1] < 5) || version[0] < 5) // 5.5 down
                 {
-                    int first = reader.ReadInt32();
+                    reader.ReadInt32();
                 }
+
                 m_Components.Add(new PPtr<Component>(reader));
             }
 
-            var m_Layer = reader.ReadInt32();
+            _ = reader.ReadInt32(); // m_Layer
             m_Name = reader.ReadAlignedString();
         }
 
-        public bool HasModel() => HasMesh(m_Transform, new List<bool>());
-        private static bool HasMesh(Transform m_Transform, List<bool> meshes)
+        public bool HasSkinnedMeshTessellationDataHolder()
+        {
+            if (m_Components == null)
+            {
+                return false;
+            }
+
+            foreach (var componentPtr in m_Components)
+            {
+                if (componentPtr == null)
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(componentPtr.Name) &&
+                    string.Equals(componentPtr.Name, "MonoSkinnedMeshTessellationDataHolder", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if (componentPtr.TryGet(out var component) &&
+                    component != null &&
+                    string.Equals(component.Name, "MonoSkinnedMeshTessellationDataHolder", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public bool HasModel()
+        {
+            return HasMesh(m_Transform, new List<bool>());
+        }
+
+        private static bool HasMesh(Transform transform, List<bool> meshes)
         {
             try
             {
-                m_Transform.m_GameObject.TryGet(out var m_GameObject);
+                transform.m_GameObject.TryGet(out var gameObject);
 
-                if (m_GameObject.m_MeshRenderer != null)
+                if (gameObject.m_MeshRenderer != null)
                 {
-                    var mesh = GetMesh(m_GameObject.m_MeshRenderer);
+                    var mesh = GetMesh(gameObject.m_MeshRenderer);
                     meshes.Add(mesh != null);
                 }
 
-                if (m_GameObject.m_SkinnedMeshRenderer != null)
+                if (gameObject.m_SkinnedMeshRenderer != null)
                 {
-                    var mesh = GetMesh(m_GameObject.m_SkinnedMeshRenderer);
+                    var mesh = GetMesh(gameObject.m_SkinnedMeshRenderer);
                     meshes.Add(mesh != null);
                 }
 
-                foreach (var pptr in m_Transform.m_Children)
+                foreach (var childPtr in transform.m_Children)
                 {
-                    if (pptr.TryGet(out var child))
-                        meshes.Add(HasMesh(child, meshes));
-                }
-
-                return meshes.Any(x => x == true);
-            }
-            catch(Exception e)
-            {
-                Logger.Warning($"Unable to verify if {m_Transform?.Name} has meshes, skipping...");
-                return false;
-            }
-        }
-
-        private static Mesh GetMesh(Renderer meshR)
-        {
-            if (meshR is SkinnedMeshRenderer sMesh)
-            {
-                if (sMesh.m_Mesh.TryGet(out var m_Mesh))
-                {
-                    return m_Mesh;
-                }
-            }
-            else
-            {
-                meshR.m_GameObject.TryGet(out var m_GameObject);
-                if (m_GameObject.m_MeshFilter != null)
-                {
-                    if (m_GameObject.m_MeshFilter.m_Mesh.TryGet(out var m_Mesh))
+                    if (childPtr.TryGet(out var childTransform))
                     {
-                        return m_Mesh;
+                        HasMesh(childTransform, meshes);
                     }
                 }
+            }
+            catch
+            {
+                // Ignore broken hierarchy nodes and continue scanning children.
+            }
+
+            return meshes.Any(x => x);
+        }
+
+        public static Mesh GetMesh(MeshRenderer meshRenderer)
+        {
+            if (meshRenderer == null)
+            {
+                return null;
+            }
+
+            if (!meshRenderer.m_GameObject.TryGet(out var gameObject) || gameObject == null)
+            {
+                return null;
+            }
+
+            if (gameObject.m_MeshFilter == null || gameObject.m_MeshFilter.m_Mesh == null)
+            {
+                return null;
+            }
+
+            if (gameObject.m_MeshFilter.m_Mesh.TryGet(out var mesh))
+            {
+                return mesh;
+            }
+
+            return null;
+        }
+
+        public static Mesh GetMesh(SkinnedMeshRenderer skinnedMeshRenderer)
+        {
+            if (skinnedMeshRenderer == null)
+            {
+                return null;
+            }
+
+            if (skinnedMeshRenderer.m_Mesh != null)
+            {
+                if (!skinnedMeshRenderer.m_Mesh.IsNull)
+                {
+                    if (skinnedMeshRenderer.m_Mesh.TryGet(out var directMesh) && directMesh != null)
+                    {
+                        return directMesh;
+                    }
+
+                    return null;
+                }
+            }
+
+            if (skinnedMeshRenderer.m_GameObject != null &&
+                skinnedMeshRenderer.m_GameObject.TryGet(out var gameObject) &&
+                gameObject != null &&
+                gameObject.HasSkinnedMeshTessellationDataHolder())
+            {
+                return TessellationMeshResolver.ResolveOriginalMesh(skinnedMeshRenderer);
             }
 
             return null;

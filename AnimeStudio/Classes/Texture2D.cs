@@ -11,7 +11,6 @@ namespace AnimeStudio
         public StreamingInfo(ObjectReader reader)
         {
             var version = reader.version;
-
             if (version[0] >= 2020) //2020.1 and up
             {
                 offset = reader.ReadInt64();
@@ -35,15 +34,16 @@ namespace AnimeStudio
         public GLTextureSettings(ObjectReader reader)
         {
             var version = reader.version;
-
             m_FilterMode = reader.ReadInt32();
             m_Aniso = reader.ReadInt32();
             m_MipBias = reader.ReadSingle();
+
             if (reader.Game.Type.IsExAstris())
             {
                 var m_TextureGroup = reader.ReadInt32();
             }
-            if (version[0] >= 2017)//2017.x and up
+
+            if (version[0] >= 2017) //2017.x and up
             {
                 m_WrapMode = reader.ReadInt32(); //m_WrapU
                 int m_WrapV = reader.ReadInt32();
@@ -53,10 +53,12 @@ namespace AnimeStudio
             {
                 m_WrapMode = reader.ReadInt32();
             }
+
             if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
             {
                 var m_TextureGroup = reader.ReadUInt32();
             }
+
             if (reader.Game.Type.IsHYGCB1())
             {
                 var m_UseGlobalTrilinearSetting = reader.ReadInt32();
@@ -76,19 +78,25 @@ namespace AnimeStudio
         public ResourceReader image_data;
         public StreamingInfo m_StreamData;
 
-        private static bool HasGNFTexture(SerializedType type) => type.Match("1D52BB98AA5F54C67C22C39E8B2E400F");
-        private static bool HasExternalMipRelativeOffset(SerializedType type) => type.Match("1D52BB98AA5F54C67C22C39E8B2E400F", "5390A985F58D5524F95DB240E8789704");
+        private static bool HasGNFTexture(SerializedType type) =>
+            type.Match("1D52BB98AA5F54C67C22C39E8B2E400F");
+
+        private static bool HasExternalMipRelativeOffset(SerializedType type) =>
+            type.Match("1D52BB98AA5F54C67C22C39E8B2E400F", "5390A985F58D5524F95DB240E8789704");
+
         public Texture2D(ObjectReader reader) : base(reader)
         {
             m_Width = reader.ReadInt32();
             m_Height = reader.ReadInt32();
             var m_CompleteImageSize = reader.ReadInt32();
+
             if (version[0] >= 2020) //2020.1 and up
             {
                 var m_MipsStripped = reader.ReadInt32();
             }
+
             m_TextureFormat = (TextureFormat)reader.ReadInt32();
-  
+
             if (version[0] < 5 || (version[0] == 5 && version[1] < 2)) //5.2 down
             {
                 m_MipMap = reader.ReadBoolean();
@@ -97,31 +105,38 @@ namespace AnimeStudio
             {
                 m_MipCount = reader.ReadInt32();
             }
+
             if (version[0] > 2 || (version[0] == 2 && version[1] >= 6)) //2.6.0 and up
             {
                 var m_IsReadable = reader.ReadBoolean();
+
                 if (reader.Game.Type.IsGI() && HasGNFTexture(reader.serializedType))
                 {
                     var m_IsGNFTexture = reader.ReadBoolean();
                 }
             }
+
             if (version[0] >= 2020 || reader.Game.Type.IsZZZ()) //2020.1 and up
             {
                 var m_IsPreProcessed = reader.ReadBoolean();
             }
+
             if (version[0] > 2019 || (version[0] == 2019 && version[1] >= 3)) //2019.3 and up
             {
                 var m_IgnoreMasterTextureLimit = reader.ReadBoolean();
             }
+
             if (version[0] > 2022 || (version[0] == 2022 && version[1] >= 2)) //2022.2 and up
             {
                 reader.AlignStream(); //m_IgnoreMipmapLimit
                 var m_MipmapLimitGroupName = reader.ReadAlignedString();
             }
+
             if (reader.Game.Type.IsRewindingCadence())
             {
                 var m_IsDisableAutoUpload = reader.ReadBoolean();
             }
+
             if (version[0] >= 3) //3.0.0 - 5.4
             {
                 if (version[0] < 5 || (version[0] == 5 && version[1] <= 4))
@@ -129,6 +144,7 @@ namespace AnimeStudio
                     var m_ReadAllowed = reader.ReadBoolean();
                 }
             }
+
             if (version[0] > 2018 || (version[0] == 2018 && version[1] >= 2)) //2018.2 and up
             {
                 if (reader.Game.Type.IsHYGCB1())
@@ -137,51 +153,74 @@ namespace AnimeStudio
                 }
                 var m_StreamingMipmaps = reader.ReadBoolean();
             }
+
             reader.AlignStream();
+
+            int? textureGroup = null;
+
+            // Existing project-specific branch
             if (reader.Game.Type.IsGI() && HasGNFTexture(reader.serializedType))
             {
-                var m_TextureGroup = reader.ReadInt32();
+                textureGroup = reader.ReadInt32();
             }
+
             if (version[0] > 2018 || (version[0] == 2018 && version[1] >= 2)) //2018.2 and up
             {
                 var m_StreamingMipmapsPriority = reader.ReadInt32();
             }
+
+            // 0.5.0 dump layout:
+            // m_StreamingMipmapsPriority -> m_TextureGroup -> m_ImageCount -> m_TextureDimension
+            // Only read the common field if it was not already consumed by the GI/GNF branch above.
+            if (textureGroup is null)
+            {
+                textureGroup = reader.ReadInt32();
+            }
+
             if (reader.Game.Type.IsZZZ())
             {
                 var m_IsCompressed = reader.ReadBoolean();
                 reader.AlignStream();
             }
+
             if (reader.Game.Type.IsHYGCB1())
             {
                 reader.AlignStream();
             }
+
             var m_ImageCount = reader.ReadInt32();
             var m_TextureDimension = reader.ReadInt32();
             m_TextureSettings = new GLTextureSettings(reader);
+
             if (version[0] >= 3) //3.0 and up
             {
                 var m_LightmapFormat = reader.ReadInt32();
             }
+
             if (version[0] > 3 || (version[0] == 3 && version[1] >= 5)) //3.5.0 and up
             {
                 var m_ColorSpace = reader.ReadInt32();
             }
+
             if (version[0] > 2020 || (version[0] == 2020 && version[1] >= 2)) //2020.2 and up
             {
                 var m_PlatformBlob = reader.ReadUInt8Array();
                 reader.AlignStream();
             }
+
             var image_data_size = reader.ReadInt32();
-            if (image_data_size == 0 && ((version[0] == 5 && version[1] >= 3) || version[0] > 5))//5.3.0 and up
+            if (image_data_size == 0 && ((version[0] == 5 && version[1] >= 3) || version[0] > 5)) //5.3.0 and up
             {
                 if (reader.Game.Type.IsGI() && HasExternalMipRelativeOffset(reader.serializedType))
                 {
                     var m_externalMipRelativeOffset = reader.ReadUInt32();
                 }
+
                 if (reader.Game.Type.IsZZZ())
                 {
                     var m_ExternalMipRelativeIndex = reader.ReadUInt32();
                 }
+
                 m_StreamData = new StreamingInfo(reader);
             }
 
@@ -221,10 +260,10 @@ namespace AnimeStudio
         RGBAFloat = 20, // RGB color and alpha texture format, 32-bit floats per channel.
         YUY2 = 21, // A format that uses the YUV color space and is often used for video encoding or playback.
         RGB9e5Float = 22, // RGB HDR format, with 9 bit mantissa per channel and a 5 bit shared exponent.
-        BC4 = 26, // Compressed one channel (R) texture format.
-        BC5 = 27, // Compressed two-channel (RG) texture format.
         BC6H = 24, // HDR compressed color texture format.
         BC7 = 25, // High quality compressed color texture format.
+        BC4 = 26, // Compressed one channel (R) texture format.
+        BC5 = 27, // Compressed two-channel (RG) texture format.
         DXT1Crunched = 28, // Compressed color texture format with Crunch compression for smaller storage sizes.
         DXT5Crunched = 29, // Compressed color with alpha channel texture format with Crunch compression for smaller storage sizes.
         PVRTC_RGB2 = 30, // PowerVR (iOS) 2 bits/pixel compressed color texture format.
