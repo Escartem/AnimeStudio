@@ -20,6 +20,9 @@ namespace AnimeStudio
         public CancellationTokenSource tokenSource = new CancellationTokenSource();
         public List<SerializedFile> assetsFileList = new List<SerializedFile>();
 
+        internal List<string> temporaryFiles = new List<string>();
+        private readonly object temporaryFilesLock = new object();
+
         internal Dictionary<string, int> assetsFileIndexCache = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         internal Dictionary<string, BinaryReader> resourceFileReaders = new Dictionary<string, BinaryReader>(StringComparer.OrdinalIgnoreCase);
 
@@ -369,21 +372,8 @@ namespace AnimeStudio
                     {
                         try
                         {
-                            Stream splitStream = new MemoryStream();
-                            int i = 0;
-                            while (true)
-                            {
-                                string path = $"{basePath}.split{i++}";
-                                ZipArchiveEntry entry = archive.GetEntry(path);
-                                if (entry == null)
-                                    break;
-                                using (Stream entryStream = entry.Open())
-                                {
-                                    entryStream.CopyTo(splitStream);
-                                }
-                            }
-                            splitStream.Seek(0, SeekOrigin.Begin);
-                            FileReader entryReader = new FileReader(basePath, splitStream);
+                            string tempPath = MergeZipSplitEntriesToTempFile(archive, basePath);
+                            FileReader entryReader = new FileReader(tempPath);
                             entryReader = entryReader.PreProcessing(Game);
                             LoadFile(entryReader);
                         }
@@ -399,16 +389,9 @@ namespace AnimeStudio
                     {
                         try
                         {
+                            string tempPath = ExtractZipEntryToTempFile(entry);
                             string dummyPath = Path.Combine(Path.GetDirectoryName(reader.FullPath), reader.FileName, entry.FullName);
-                            Logger.Verbose("Create a new stream to store the deflated stream in and keep the data for later extraction");
-                            Stream streamReader = new MemoryStream();
-                            using (Stream entryStream = entry.Open())
-                            {
-                                entryStream.CopyTo(streamReader);
-                            }
-                            streamReader.Position = 0;
-
-                            FileReader entryReader = new FileReader(dummyPath, streamReader);
+                            FileReader entryReader = new FileReader(dummyPath, new FileStream(tempPath, FileMode.Open, FileAccess.Read, FileShare.Read));
                             entryReader = entryReader.PreProcessing(Game);
                             LoadFile(entryReader);
                             if (entryReader.FileType == FileType.ResourceFile)
@@ -434,6 +417,71 @@ namespace AnimeStudio
                 reader.Dispose();
             }
         }
+
+        private string CreateTempFilePath(string originalName)
+        {
+            string tempRoot = Path.Combine(Path.GetTempPath(), "AnimeStudio");
+
+            if (!Directory.Exists(tempRoot))
+            {
+                Directory.CreateDirectory(tempRoot);
+            }
+
+            string safeName = string.IsNullOrWhiteSpace(originalName)
+                ? "temp.bin"
+                : originalName.Replace('/', '_').Replace('\\', '_').Replace(':', '_');
+
+            return Path.Combine(tempRoot, $"{Guid.NewGuid():N}_{safeName}");
+        }
+
+        private string ExtractZipEntryToTempFile(ZipArchiveEntry entry)
+        {
+            string tempPath = CreateTempFilePath(entry.FullName);
+
+            using (Stream entryStream = entry.Open())
+            using (FileStream fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.Read))
+            {
+                entryStream.CopyTo(fs);
+            }
+
+            lock (temporaryFilesLock)
+            {
+                temporaryFiles.Add(tempPath);
+            }
+
+            return tempPath;
+        }
+
+        private string MergeZipSplitEntriesToTempFile(ZipArchive archive, string basePath)
+        {
+            string tempPath = CreateTempFilePath(basePath);
+
+            using (FileStream fs = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.Read))
+            {
+                int i = 0;
+
+                while (true)
+                {
+                    string path = $"{basePath}.split{i++}";
+                    ZipArchiveEntry entry = archive.GetEntry(path);
+                    if (entry == null)
+                        break;
+
+                    using (Stream entryStream = entry.Open())
+                    {
+                        entryStream.CopyTo(fs);
+                    }
+                }
+            }
+
+            lock (temporaryFilesLock)
+            {
+                temporaryFiles.Add(tempPath);
+            }
+
+            return tempPath;
+        }
+
         private void LoadBlockFile(FileReader reader)
         {
             Logger.Info("Loading " + reader.FullPath);
@@ -610,6 +658,24 @@ namespace AnimeStudio
             }
             resourceFileReaders.Clear();
 
+            lock (temporaryFilesLock)
+            {
+                foreach (var temporaryFile in temporaryFiles)
+                {
+                    try
+                    {
+                        if (File.Exists(temporaryFile))
+                        {
+                            File.Delete(temporaryFile);
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+                temporaryFiles.Clear();
+            }
+
             assetsFileIndexCache.Clear();
 
             tokenSource.Dispose();
@@ -619,78 +685,90 @@ namespace AnimeStudio
             // GC.Collect();
         }
 
-        private void ReadAssets()
-        {
-            Logger.Info("Read assets...");
+		private void ReadAssets()
+		{
+			Logger.Info("Read assets...");
 
-            var progressCount = assetsFileList.Sum(x => x.m_Objects.Count);
-            int i = 0;
-            Progress.Reset();
-            foreach (var assetsFile in assetsFileList)
-            {
-                foreach (var objectInfo in assetsFile.m_Objects)
-                {
-                    if (tokenSource.IsCancellationRequested)
-                    {
-                        Logger.Info("Reading assets has been cancelled !!");
-                        return;
-                    }
-                    var objectReader = new ObjectReader(assetsFile.reader, assetsFile, objectInfo, Game);
-                    try
-                    {
-                        Object obj = objectReader.type switch
-                        {
-                            ClassIDType.Animation when ClassIDType.Animation.CanParse() => new Animation(objectReader),
-                            ClassIDType.AnimationClip when ClassIDType.AnimationClip.CanParse() => new AnimationClip(objectReader),
-                            ClassIDType.Animator when ClassIDType.Animator.CanParse() => new Animator(objectReader),
-                            ClassIDType.AnimatorController when ClassIDType.AnimatorController.CanParse() => new AnimatorController(objectReader),
-                            ClassIDType.AnimatorOverrideController when ClassIDType.AnimatorOverrideController.CanParse() => new AnimatorOverrideController(objectReader),
-                            ClassIDType.AssetBundle when ClassIDType.AssetBundle.CanParse() => new AssetBundle(objectReader),
-                            ClassIDType.AudioClip when ClassIDType.AudioClip.CanParse() => new AudioClip(objectReader),
-                            ClassIDType.Avatar when ClassIDType.Avatar.CanParse() => new Avatar(objectReader),
-                            ClassIDType.Font when ClassIDType.Font.CanParse() => new Font(objectReader),
-                            ClassIDType.GameObject when ClassIDType.GameObject.CanParse() => new GameObject(objectReader),
-                            ClassIDType.IndexObject when ClassIDType.IndexObject.CanParse() => new IndexObject(objectReader),
-                            ClassIDType.Material when ClassIDType.Material.CanParse() => new Material(objectReader),
-                            ClassIDType.Mesh when ClassIDType.Mesh.CanParse() => new Mesh(objectReader),
-                            ClassIDType.MeshFilter when ClassIDType.MeshFilter.CanParse() => new MeshFilter(objectReader),
-                            ClassIDType.MeshRenderer when ClassIDType.MeshRenderer.CanParse() => new MeshRenderer(objectReader),
-                            ClassIDType.MiHoYoBinData when ClassIDType.MiHoYoBinData.CanParse() => new MiHoYoBinData(objectReader),
-                            ClassIDType.MonoBehaviour when ClassIDType.MonoBehaviour.CanParse() => new MonoBehaviour(objectReader),
-                            ClassIDType.MonoScript when ClassIDType.MonoScript.CanParse() => new MonoScript(objectReader),
-                            ClassIDType.MovieTexture when ClassIDType.MovieTexture.CanParse() => new MovieTexture(objectReader),
-                            ClassIDType.PlayerSettings when ClassIDType.PlayerSettings.CanParse() => new PlayerSettings(objectReader),
-                            ClassIDType.RectTransform when ClassIDType.RectTransform.CanParse() => new RectTransform(objectReader),
-                            ClassIDType.Shader when ClassIDType.Shader.CanParse() => new Shader(objectReader),
-                            ClassIDType.SkinnedMeshRenderer when ClassIDType.SkinnedMeshRenderer.CanParse() => new SkinnedMeshRenderer(objectReader),
-                            ClassIDType.Sprite when ClassIDType.Sprite.CanParse() => new Sprite(objectReader),
-                            ClassIDType.SpriteAtlas when ClassIDType.SpriteAtlas.CanParse() => new SpriteAtlas(objectReader),
-                            ClassIDType.TextAsset when ClassIDType.TextAsset.CanParse() => new TextAsset(objectReader),
-                            ClassIDType.Texture2D when ClassIDType.Texture2D.CanParse() => new Texture2D(objectReader),
-                            ClassIDType.Transform when ClassIDType.Transform.CanParse() => new Transform(objectReader),
-                            ClassIDType.VideoClip when ClassIDType.VideoClip.CanParse() => new VideoClip(objectReader),
-                            ClassIDType.ResourceManager when ClassIDType.ResourceManager.CanParse() => new ResourceManager(objectReader),
-                            ClassIDType.NapAssetBundleIndexAsset when ClassIDType.NapAssetBundleIndexAsset.CanParse() => new NapAssetBundleIndexAsset(objectReader),
-                            _ => new Object(objectReader),
-                        };
-                        assetsFile.AddObject(obj);
-                    }
-                    catch (Exception e)
-                    {
-                        var sb = new StringBuilder();
-                        sb.AppendLine("Unable to load object")
-                            .AppendLine($"Assets {assetsFile.fileName}")
-                            .AppendLine($"Path {assetsFile.originalPath}")
-                            .AppendLine($"Type {objectReader.type}")
-                            .AppendLine($"PathID {objectInfo.m_PathID}")
-                            .Append(e);
-                        Logger.Error(sb.ToString());
-                    }
+			var progressCount = assetsFileList.Sum(x => x.m_Objects.Count);
+			int i = 0;
 
-                    Progress.Report(++i, progressCount);
-                }
-            }
-        }
+			Progress.Reset();
+
+			foreach (var assetsFile in assetsFileList)
+			{
+				foreach (var objectInfo in assetsFile.m_Objects)
+				{
+					if (tokenSource.IsCancellationRequested)
+					{
+						Logger.Info("Reading assets has been cancelled !!");
+						return;
+					}
+
+					var objectReader = new ObjectReader(assetsFile.reader, assetsFile, objectInfo, Game);
+
+					try
+					{
+						Object obj = objectReader.type switch
+						{
+							ClassIDType.Animation when ClassIDType.Animation.CanParse() => new Animation(objectReader),
+							ClassIDType.AnimationClip when ClassIDType.AnimationClip.CanParse() => new AnimationClip(objectReader),
+							ClassIDType.Animator when ClassIDType.Animator.CanParse() => new Animator(objectReader),
+							ClassIDType.AnimatorController when ClassIDType.AnimatorController.CanParse() => new AnimatorController(objectReader),
+							ClassIDType.AnimatorOverrideController when ClassIDType.AnimatorOverrideController.CanParse() => new AnimatorOverrideController(objectReader),
+							ClassIDType.AssetBundle when ClassIDType.AssetBundle.CanParse() => new AssetBundle(objectReader),
+							ClassIDType.AudioClip when ClassIDType.AudioClip.CanParse() => new AudioClip(objectReader),
+							ClassIDType.Avatar when ClassIDType.Avatar.CanParse() => new Avatar(objectReader),
+							ClassIDType.Font when ClassIDType.Font.CanParse() => new Font(objectReader),
+							ClassIDType.GameObject when ClassIDType.GameObject.CanParse() => new GameObject(objectReader),
+							ClassIDType.IndexObject when ClassIDType.IndexObject.CanParse() => new IndexObject(objectReader),
+							ClassIDType.Material when ClassIDType.Material.CanParse() => new Material(objectReader),
+							ClassIDType.Mesh when ClassIDType.Mesh.CanParse() => new Mesh(objectReader),
+							ClassIDType.MeshFilter when ClassIDType.MeshFilter.CanParse() => new MeshFilter(objectReader),
+							ClassIDType.MeshRenderer when ClassIDType.MeshRenderer.CanParse() => new MeshRenderer(objectReader),
+							ClassIDType.MiHoYoBinData when ClassIDType.MiHoYoBinData.CanParse() => new MiHoYoBinData(objectReader),
+							ClassIDType.MonoBehaviour when ClassIDType.MonoBehaviour.CanParse() => new MonoBehaviour(objectReader),
+							ClassIDType.MonoScript when ClassIDType.MonoScript.CanParse() => new MonoScript(objectReader),
+							ClassIDType.MovieTexture when ClassIDType.MovieTexture.CanParse() => new MovieTexture(objectReader),
+							ClassIDType.PlayerSettings when ClassIDType.PlayerSettings.CanParse() => new PlayerSettings(objectReader),
+							ClassIDType.RectTransform when ClassIDType.RectTransform.CanParse() => new RectTransform(objectReader),
+							ClassIDType.Shader when ClassIDType.Shader.CanParse() => new Shader(objectReader),
+							ClassIDType.SkinnedMeshRenderer when ClassIDType.SkinnedMeshRenderer.CanParse() => new SkinnedMeshRenderer(objectReader),
+
+							// Custom classID from dump:
+							// classID{1169597823}: SkinnedMeshTessellationData
+							var t when (int)t == 1169597823 => new SkinnedMeshTessellationData(objectReader),
+
+							ClassIDType.Sprite when ClassIDType.Sprite.CanParse() => new Sprite(objectReader),
+							ClassIDType.SpriteAtlas when ClassIDType.SpriteAtlas.CanParse() => new SpriteAtlas(objectReader),
+							ClassIDType.TextAsset when ClassIDType.TextAsset.CanParse() => new TextAsset(objectReader),
+							ClassIDType.Texture2D when ClassIDType.Texture2D.CanParse() => new Texture2D(objectReader),
+							ClassIDType.Transform when ClassIDType.Transform.CanParse() => new Transform(objectReader),
+							ClassIDType.VideoClip when ClassIDType.VideoClip.CanParse() => new VideoClip(objectReader),
+							ClassIDType.ResourceManager when ClassIDType.ResourceManager.CanParse() => new ResourceManager(objectReader),
+							ClassIDType.NapAssetBundleIndexAsset when ClassIDType.NapAssetBundleIndexAsset.CanParse() => new NapAssetBundleIndexAsset(objectReader),
+
+							_ => new Object(objectReader),
+						};
+
+						assetsFile.AddObject(obj);
+					}
+					catch (Exception e)
+					{
+						var sb = new StringBuilder();
+						sb.AppendLine("Unable to load object")
+						  .AppendLine($"Assets {assetsFile.fileName}")
+						  .AppendLine($"Path {assetsFile.originalPath}")
+						  .AppendLine($"Type {objectReader.type}")
+						  .AppendLine($"PathID {objectInfo.m_PathID}")
+						  .Append(e);
+
+						Logger.Error(sb.ToString());
+					}
+
+					Progress.Report(++i, progressCount);
+				}
+			}
+		}
 
         private void ProcessAssets()
         {
