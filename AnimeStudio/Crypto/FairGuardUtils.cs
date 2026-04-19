@@ -79,7 +79,7 @@ namespace AnimeStudio
             }
 
             var seedInts = new uint[] { seedPart0, seedPart1, seedPart2, seedPart3, seedPart4 };
-            var seedBytes = MemoryMarshal.AsBytes<uint>(seedInts);
+            var seedBytes = MemoryMarshal.AsBytes(seedInts.AsSpan());
 
             var seed = GenerateSeed(seedBytes);
             var seedBuffer = BitConverter.GetBytes(seed);

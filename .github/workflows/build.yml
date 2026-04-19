@@ -21,7 +21,7 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
 
       - name: Nuget Restore
         run: nuget restore
@@ -36,19 +36,11 @@ jobs:
 
       - name: Prepare Artifacts
         run: |
-          mkdir output-net8\\AnimeStudio-net8-${{ github.sha }}
-          xcopy /E /I /Y .\dist\net8.0-windows\* output-net8\\AnimeStudio-net8-${{ github.sha }}\\
-          mkdir output-net9\\AnimeStudio-net9-${{ github.sha }}
-          xcopy /E /I /Y .\dist\net9.0-windows\* output-net9\\AnimeStudio-net9-${{ github.sha }}\\
+          mkdir output-net10\\AnimeStudio-net10-${{ github.sha }}
+          xcopy /E /I /Y .\dist\net10.0-windows\* output-net10\\AnimeStudio-net10-${{ github.sha }}\\
 
-      - name: Upload .NET 8 Artifact
+      - name: Upload .NET 10 Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AnimeStudio-net8
-          path: output-net8
-
-      - name: Upload .NET 9 Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: AnimeStudio-net9
-          path: output-net9
+          name: AnimeStudio-net10
+          path: output-net10
