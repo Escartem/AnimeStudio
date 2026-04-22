@@ -71,6 +71,11 @@ namespace AnimeStudio.GUI
 
         public static int ExtractFile(string fileName, string savePath)
         {
+            if (Game?.Type == GameType.AFKJourney && AFKJourneyUtils.IsSupportedSpecialFile(fileName))
+            {
+                return AFKJourneyUtils.TryExtractSpecialFile(fileName, savePath);
+            }
+
             int extractedCount = 0;
             var reader = new FileReader(fileName);
             reader = reader.PreProcessing(Game);
@@ -705,6 +710,16 @@ namespace AnimeStudio.GUI
                     StatusStripUpdate($"[{exportedCount}/{toExportCount}] Exporting {asset.TypeString}: {asset.Text}");
                     try
                     {
+                        if (asset.IsVirtual)
+                        {
+                            if (ExportVirtualAsset(asset, exportPath, exportType))
+                            {
+                                exportedCount++;
+                            }
+                            Progress.Report(++i, toExportCount);
+                            continue;
+                        }
+
                         switch (exportType)
                         {
                             case ExportType.Raw:

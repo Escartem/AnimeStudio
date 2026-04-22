@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace AnimeStudio
 {
@@ -78,6 +79,16 @@ namespace AnimeStudio
 
         private static bool HasGNFTexture(SerializedType type) => type.Match("1D52BB98AA5F54C67C22C39E8B2E400F");
         private static bool HasExternalMipRelativeOffset(SerializedType type) => type.Match("1D52BB98AA5F54C67C22C39E8B2E400F", "5390A985F58D5524F95DB240E8789704");
+        private static bool TypeTreeHasField(SerializedType type, string fieldName)
+        {
+            if (type?.m_Type?.m_Nodes == null)
+            {
+                return true;
+            }
+
+            return type.m_Type.m_Nodes.Any(node => node.m_Name == fieldName);
+        }
+
         public Texture2D(ObjectReader reader) : base(reader)
         {
             m_Width = reader.ReadInt32();
@@ -113,7 +124,8 @@ namespace AnimeStudio
             {
                 var m_IgnoreMasterTextureLimit = reader.ReadBoolean();
             }
-            if (version[0] > 2022 || (version[0] == 2022 && version[1] >= 2)) //2022.2 and up
+            var hasMipmapLimitGroupName = TypeTreeHasField(reader.serializedType, "m_MipmapLimitGroupName");
+            if (hasMipmapLimitGroupName && (version[0] > 2022 || (version[0] == 2022 && version[1] >= 2))) //2022.2 and up
             {
                 reader.AlignStream(); //m_IgnoreMipmapLimit
                 var m_MipmapLimitGroupName = reader.ReadAlignedString();
@@ -166,9 +178,19 @@ namespace AnimeStudio
             {
                 var m_ColorSpace = reader.ReadInt32();
             }
-            if (version[0] > 2020 || (version[0] == 2020 && version[1] >= 2)) //2020.2 and up
+            var hasPlatformBlob = TypeTreeHasField(reader.serializedType, "m_PlatformBlob");
+            if (hasPlatformBlob && (version[0] > 2020 || (version[0] == 2020 && version[1] >= 2))) //2020.2 and up
             {
-                var m_PlatformBlob = reader.ReadUInt8Array();
+                var blobLength = reader.ReadInt32();
+                var remainingBytes = reader.byteSize - (reader.Position - reader.byteStart);
+                if (blobLength > 0 && blobLength <= remainingBytes)
+                {
+                    var m_PlatformBlob = reader.ReadBytes(blobLength);
+                }
+                else if (blobLength > 0)
+                {
+                    reader.Position -= 4;
+                }
                 reader.AlignStream();
             }
             var image_data_size = reader.ReadInt32();

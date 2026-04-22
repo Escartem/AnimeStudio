@@ -71,6 +71,7 @@ namespace AnimeStudio
             Games.Add(index++, new Game(GameType.SchoolGirlStrikers, "Schoolgirl Strikers"));
             Games.Add(index++, new Game(GameType.ExAstris, "ExAstris"));
             Games.Add(index++, new Game(GameType.PerpetualNovelty, "Perpetual Novelty"));
+            Games.Add(index++, new Game(GameType.AFKJourney, "AFK Journey"));
             Games.Add(index++, new Game(GameType.RewindingCadence, "Rewinding Cadence"));
             
             // unity cn
@@ -235,6 +236,7 @@ namespace AnimeStudio
         SchoolGirlStrikers,
         ExAstris,
         PerpetualNovelty,
+        AFKJourney,
         PGR_GLB_KR,
         PGR_CN_JP_TW,
         Archeland_KalpaOfUniverse,

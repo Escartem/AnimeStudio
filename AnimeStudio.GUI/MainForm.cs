@@ -387,7 +387,7 @@ namespace AnimeStudio.GUI
             {
                 await Task.Run(() => assetsManager.LoadFiles(paths));
             }
-            BuildAssetStructures();
+            BuildAssetStructures(paths);
         }
 
         private async void loadFile_Click(object sender, EventArgs e)
@@ -405,7 +405,7 @@ namespace AnimeStudio.GUI
                     paths = File.ReadAllLines(paths[0]);
                 }
                 await Task.Run(() => assetsManager.LoadFiles(paths));
-                BuildAssetStructures();
+                BuildAssetStructures(paths);
             }
         }
 
@@ -424,7 +424,7 @@ namespace AnimeStudio.GUI
                 assetsManager.SpecifyUnityVersion = specifyUnityVersion.Text;
                 assetsManager.Game = Studio.Game;
                 await Task.Run(() => assetsManager.LoadFolder(openFolderDialog.Folder));
-                BuildAssetStructures();
+                BuildAssetStructures(openFolderDialog.Folder);
             }
         }
 
@@ -461,10 +461,15 @@ namespace AnimeStudio.GUI
             }
         }
 
-        private async void BuildAssetStructures()
+        private async void BuildAssetStructures(params string[] sourcePaths)
         {
             if (assetsManager.assetsFileList.Count == 0)
             {
+                if (Studio.Game?.Type == GameType.AFKJourney && BuildAFKJourneySpecialStructures(sourcePaths))
+                {
+                    return;
+                }
+
                 StatusStripUpdate("No Unity file can be loaded.");
                 return;
             }
@@ -515,6 +520,68 @@ namespace AnimeStudio.GUI
             typeMap.Clear();
             classesListView.EndUpdate();
 
+            PopulateTypeFilters();
+            var log = $"Finished loading {assetsManager.assetsFileList.Count} files with {visibleAssets.Count} exportable assets";
+            var m_ObjectsCount = assetsManager.assetsFileList.Sum(x => x.m_Objects.Count);
+            var objectsCount = assetsManager.assetsFileList.Sum(x => x.Objects.Count);
+            if (m_ObjectsCount != objectsCount)
+            {
+                log += $" and {m_ObjectsCount - objectsCount} assets failed to read";
+            }
+            StatusStripUpdate(log);
+        }
+
+        private bool BuildAFKJourneySpecialStructures(IEnumerable<string> sourcePaths)
+        {
+            var files = EnumerateAFKJourneySpecialFiles(sourcePaths).ToArray();
+            if (files.Length == 0)
+            {
+                return false;
+            }
+
+            foreach (var file in files)
+            {
+                var type = Path.GetExtension(file).Equals(".jsone", StringComparison.OrdinalIgnoreCase)
+                    ? ClassIDType.TextAsset
+                    : ClassIDType.Texture2D;
+                var container = Path.GetDirectoryName(file) ?? string.Empty;
+                var item = new AssetItem(Path.GetFileName(file), type, file, new FileInfo(file).Length, container);
+                item.InfoText = $"Path: {file}";
+                item.SetSubItems();
+                exportableAssets.Add(item);
+            }
+
+            visibleAssets = exportableAssets;
+            assetListView.VirtualListSize = visibleAssets.Count;
+            PopulateTypeFilters();
+            Text = $"AnimeStudio v{System.Windows.Forms.Application.ProductVersion} - AFK Journey loose assets";
+            StatusStripUpdate($"Loaded {visibleAssets.Count} AFK Journey loose files for preview.");
+            return true;
+        }
+
+        private static IEnumerable<string> EnumerateAFKJourneySpecialFiles(IEnumerable<string> sourcePaths)
+        {
+            foreach (var sourcePath in sourcePaths.Where(path => !string.IsNullOrEmpty(path)).Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (Directory.Exists(sourcePath))
+                {
+                    foreach (var file in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
+                    {
+                        if (AFKJourneyUtils.IsSupportedSpecialFile(file))
+                        {
+                            yield return file;
+                        }
+                    }
+                }
+                else if (File.Exists(sourcePath) && AFKJourneyUtils.IsSupportedSpecialFile(sourcePath))
+                {
+                    yield return sourcePath;
+                }
+            }
+        }
+
+        private void PopulateTypeFilters()
+        {
             var types = exportableAssets.Select(x => x.Type).Distinct().OrderBy(x => x.ToString()).ToArray();
             foreach (var type in types)
             {
@@ -529,14 +596,6 @@ namespace AnimeStudio.GUI
                 filterTypeToolStripMenuItem.DropDownItems.Add(typeItem);
             }
             allToolStripMenuItem.Checked = true;
-            var log = $"Finished loading {assetsManager.assetsFileList.Count} files with {assetListView.Items.Count} exportable assets";
-            var m_ObjectsCount = assetsManager.assetsFileList.Sum(x => x.m_Objects.Count);
-            var objectsCount = assetsManager.assetsFileList.Sum(x => x.Objects.Count);
-            if (m_ObjectsCount != objectsCount)
-            {
-                log += $" and {m_ObjectsCount - objectsCount} assets failed to read";
-            }
-            StatusStripUpdate(log);
         }
 
         private void typeToolStripMenuItem_Click(object sender, EventArgs e)
@@ -972,7 +1031,9 @@ namespace AnimeStudio.GUI
             {
                 if (tabControl2.SelectedIndex == 1)
                 {
-                    dumpTextBox.Text = DumpAsset(lastSelectedItem.Asset);
+                    dumpTextBox.Text = lastSelectedItem.IsVirtual
+                        ? lastSelectedItem.VirtualContent ?? lastSelectedItem.InfoText ?? lastSelectedItem.ExternalPath
+                        : DumpAsset(lastSelectedItem.Asset);
                 }
                 if (enablePreview.Checked)
                 {
@@ -1017,6 +1078,12 @@ namespace AnimeStudio.GUI
                 return;
             try
             {
+                if (assetItem.IsVirtual)
+                {
+                    PreviewVirtualAsset(assetItem);
+                    return;
+                }
+
                 switch (assetItem.Asset)
                 {
                     case GameObject m_GameObject when Properties.Settings.Default.enableModelPreview:
@@ -1077,6 +1144,43 @@ namespace AnimeStudio.GUI
             catch (Exception e)
             {
                 Logger.Error($"Preview {assetItem.Type}:{assetItem.Text} error\r\n{e.Message}\r\n{e.StackTrace}");
+            }
+        }
+
+        private void PreviewVirtualAsset(AssetItem assetItem)
+        {
+            switch (assetItem.Type)
+            {
+                case ClassIDType.Texture2D:
+                    var decoded = AFKJourneyUtils.DecodeDxtToBitmapData(assetItem.ExternalPath);
+                    FlipPixelsVertically(decoded.Pixels, decoded.Width, decoded.Height);
+                    assetItem.InfoText = $"Width: {decoded.Width}\nHeight: {decoded.Height}\nFormat: {decoded.Format}\nPath: {assetItem.ExternalPath}";
+                    PreviewTexture(new DirectBitmap(decoded.Pixels, decoded.Width, decoded.Height));
+                    StatusStripUpdate("AFK Journey loose DXT texture preview");
+                    break;
+                case ClassIDType.TextAsset:
+                    assetItem.VirtualContent ??= AFKJourneyUtils.DecryptJsoneToText(File.ReadAllBytes(assetItem.ExternalPath));
+                    assetItem.InfoText = $"Path: {assetItem.ExternalPath}";
+                    PreviewText(assetItem.VirtualContent);
+                    StatusStripUpdate("AFK Journey loose JSOne preview");
+                    break;
+                default:
+                    StatusStripUpdate("Unsupported AFK Journey loose asset preview.");
+                    break;
+            }
+        }
+
+        private static void FlipPixelsVertically(byte[] pixels, int width, int height)
+        {
+            var stride = width * 4;
+            var row = new byte[stride];
+            for (var y = 0; y < height / 2; y++)
+            {
+                var top = y * stride;
+                var bottom = (height - y - 1) * stride;
+                System.Buffer.BlockCopy(pixels, top, row, 0, stride);
+                System.Buffer.BlockCopy(pixels, bottom, pixels, top, stride);
+                System.Buffer.BlockCopy(row, 0, pixels, bottom, stride);
             }
         }
 
@@ -1724,8 +1828,12 @@ namespace AnimeStudio.GUI
 
                 if (assetListView.SelectedIndices.Count == 1)
                 {
-                    goToSceneHierarchyToolStripMenuItem.Visible = true;
-                    showOriginalFileToolStripMenuItem.Visible = true;
+                    var selectedAsset = (AssetItem)assetListView.Items[assetListView.SelectedIndices[0]];
+                    if (!selectedAsset.IsVirtual)
+                    {
+                        goToSceneHierarchyToolStripMenuItem.Visible = true;
+                        showOriginalFileToolStripMenuItem.Visible = true;
+                    }
                 }
                 if (assetListView.SelectedIndices.Count >= 1)
                 {
@@ -1769,6 +1877,11 @@ namespace AnimeStudio.GUI
         private void showOriginalFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             var selectasset = (AssetItem)assetListView.Items[assetListView.SelectedIndices[0]];
+            if (selectasset.IsVirtual || selectasset.SourceFile == null)
+            {
+                return;
+            }
+
             var args = $"/select, \"{selectasset.SourceFile.originalPath ?? selectasset.SourceFile.fullName}\"";
             var pfi = new ProcessStartInfo("explorer.exe", args);
             Process.Start(pfi);
