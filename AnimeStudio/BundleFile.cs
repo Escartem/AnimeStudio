@@ -7,7 +7,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Buffers;
-using System.Net.NetworkInformation;
 
 namespace AnimeStudio
 {
@@ -418,7 +417,6 @@ namespace AnimeStudio
             {
                 Logger.Verbose($"Encryption flag exist, file is encrypted, attempting to decrypt");
                 UnityCN = new UnityCN(reader);
-                
             }
         }
 
