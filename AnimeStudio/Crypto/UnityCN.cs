@@ -7,6 +7,7 @@ namespace AnimeStudio
     public class UnityCN
     {
         private const string Signature = "#$unity3dchina!@";
+        private const string ManjuuSignature = "#$manjuuunity*!@";
 
         private static ICryptoTransform Encryptor;
 
@@ -29,9 +30,9 @@ namespace AnimeStudio
 
             var str = Encoding.UTF8.GetString(signatureBytes);
             Logger.Verbose($"Decrypted signature is {str}");
-            if (str != Signature)
+            if (str != Signature && str != ManjuuSignature)
             {
-                throw new Exception($"Invalid Signature, Expected {Signature} but found {str} instead");
+                throw new Exception($"Invalid Signature, Expected {Signature} or {ManjuuSignature} but found {str} instead");
             }
 
             DecryptKey(infoKey, infoBytes);
@@ -57,6 +58,28 @@ namespace AnimeStudio
                 aes.Key = Convert.FromHexString(entry.Key);
 
                 Encryptor = aes.CreateEncryptor();
+                Logger.Verbose($"Decryptor initialized !!");
+            }
+            catch (Exception e)
+            {
+                Logger.Error($"[UnityCN] Invalid key !!\n{e.Message}");
+                return false;
+            }
+            return true;
+        }
+
+        public static bool SetKey(string Key)
+        {
+
+            Logger.Verbose($"Initializing decryptor with key {Key}");
+            try
+            {
+                using var aes = Aes.Create();
+                aes.Mode = CipherMode.ECB;
+                aes.Key = Convert.FromHexString(Key);
+
+                Encryptor = aes.CreateEncryptor();
+
                 Logger.Verbose($"Decryptor initialized !!");
             }
             catch (Exception e)
