@@ -1237,6 +1237,18 @@ namespace AnimeStudio
 
         public Shader(ObjectReader reader) : base(reader)
         {
+            if (reader.Game.Type == GameType.AFKJourney && version[0] >= 6000)
+            {
+                Logger.Verbose($"Skipping Shader manual parsing for Unity {version[0]}.{version[1]} and newer");
+                var remainingBytes = reader.byteSize - (reader.Position - reader.byteStart);
+                if (remainingBytes > 0)
+                {
+                    reader.ReadBytes((int)remainingBytes);
+                }
+
+                return;
+            }
+
             if (version[0] == 5 && version[1] >= 5 || version[0] > 5) //5.5 and up
             {
                 try

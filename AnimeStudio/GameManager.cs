@@ -89,9 +89,10 @@ namespace AnimeStudio
             }
 
             Games.Add(index++, new UnityCNGame(GameType.UnityCNCustomKey, new("UnityCN Custom Key", ""), GameCategory.Unity));
+            Games.Add(index++, new Game(GameType.AFKJourney, "AFK Journey"));
         }
         public static Game GetGameByType(GameType gameType) => Games.FirstOrDefault(x => x.Value.Type == gameType).Value;
-        public static Game GetGame(GameType gameType) => GetGame((int)gameType);
+        public static Game GetGame(GameType gameType) => GetGameByType(gameType);
         public static Game GetGame(int index)
         {
             if (!Games.TryGetValue(index, out var format))
@@ -262,6 +263,7 @@ namespace AnimeStudio
         UnityCNCustomKey,
         RewindingCadence,
         AzurPromiliaCBT2,
+        AFKJourney,
     }
 
 
