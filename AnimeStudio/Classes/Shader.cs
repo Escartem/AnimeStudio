@@ -950,7 +950,7 @@ namespace AnimeStudio
         {
             var version = reader.version;
 
-            if ((version[0] > 2020 || (version[0] == 2020 && version[1] >= 2)) && version[0] < 6000) //2020.2 to 2021.x
+            if (version[0] > 2020 || (version[0] == 2020 && version[1] >= 2)) //2020.2 and up
             {
                 int numEditorDataHash = reader.ReadInt32();
                 m_EditorDataHash = new List<Hash128>();
@@ -1237,7 +1237,7 @@ namespace AnimeStudio
 
         public Shader(ObjectReader reader) : base(reader)
         {
-            if (version[0] >= 6000)
+            if (reader.Game.Type == GameType.AFKJourney && version[0] >= 6000)
             {
                 Logger.Verbose($"Skipping Shader manual parsing for Unity {version[0]}.{version[1]} and newer");
                 var remainingBytes = reader.byteSize - (reader.Position - reader.byteStart);

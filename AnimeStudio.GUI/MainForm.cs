@@ -465,8 +465,13 @@ namespace AnimeStudio.GUI
         {
             if (assetsManager.assetsFileList.Count == 0)
             {
-                if (Studio.Game?.Type == GameType.AFKJourney && BuildAFKJourneySpecialStructures(sourcePaths))
+                if (Studio.Game?.Type == GameType.AFKJourney && AddAFKJourneySpecialAssets(sourcePaths) > 0)
                 {
+                    visibleAssets = exportableAssets;
+                    assetListView.VirtualListSize = visibleAssets.Count;
+                    PopulateTypeFilters();
+                    Text = $"AnimeStudio v{System.Windows.Forms.Application.ProductVersion} - AFK Journey loose assets";
+                    StatusStripUpdate($"Loaded {visibleAssets.Count} AFK Journey loose files for preview.");
                     return;
                 }
 
@@ -497,6 +502,12 @@ namespace AnimeStudio.GUI
             }
 
             Text = $"AnimeStudio v{System.Windows.Forms.Application.ProductVersion} - {productName} - {assetsManager.assetsFileList[0].unityVersion} - {assetsManager.assetsFileList[0].m_TargetPlatform}";
+
+            if (Studio.Game?.Type == GameType.AFKJourney)
+            {
+                AddAFKJourneySpecialAssets(sourcePaths);
+                visibleAssets = exportableAssets;
+            }
 
             assetListView.VirtualListSize = visibleAssets.Count;
 
@@ -531,51 +542,52 @@ namespace AnimeStudio.GUI
             StatusStripUpdate(log);
         }
 
-        private bool BuildAFKJourneySpecialStructures(IEnumerable<string> sourcePaths)
+        private int AddAFKJourneySpecialAssets(IEnumerable<string> sourcePaths)
         {
-            var files = EnumerateAFKJourneySpecialFiles(sourcePaths).ToArray();
-            if (files.Length == 0)
-            {
-                return false;
-            }
-
-            foreach (var file in files)
+            var added = 0;
+            var existing = new HashSet<string>(
+                exportableAssets.Where(asset => asset.IsVirtual && !string.IsNullOrEmpty(asset.ExternalPath)).Select(asset => asset.ExternalPath),
+                StringComparer.OrdinalIgnoreCase);
+            foreach (var (file, container) in EnumerateAFKJourneySpecialFiles(sourcePaths))
             {
                 var type = Path.GetExtension(file).Equals(".jsone", StringComparison.OrdinalIgnoreCase)
                     ? ClassIDType.TextAsset
                     : ClassIDType.Texture2D;
-                var container = Path.GetDirectoryName(file) ?? string.Empty;
+                if (!existing.Add(file))
+                {
+                    continue;
+                }
+
                 var item = new AssetItem(Path.GetFileName(file), type, file, new FileInfo(file).Length, container);
                 item.InfoText = $"Path: {file}";
                 item.SetSubItems();
                 exportableAssets.Add(item);
+                added++;
             }
 
-            visibleAssets = exportableAssets;
-            assetListView.VirtualListSize = visibleAssets.Count;
-            PopulateTypeFilters();
-            Text = $"AnimeStudio v{System.Windows.Forms.Application.ProductVersion} - AFK Journey loose assets";
-            StatusStripUpdate($"Loaded {visibleAssets.Count} AFK Journey loose files for preview.");
-            return true;
+            return added;
         }
 
-        private static IEnumerable<string> EnumerateAFKJourneySpecialFiles(IEnumerable<string> sourcePaths)
+        private static IEnumerable<(string File, string Container)> EnumerateAFKJourneySpecialFiles(IEnumerable<string> sourcePaths)
         {
             foreach (var sourcePath in sourcePaths.Where(path => !string.IsNullOrEmpty(path)).Distinct(StringComparer.OrdinalIgnoreCase))
             {
                 if (Directory.Exists(sourcePath))
                 {
+                    var root = Path.GetFullPath(sourcePath);
                     foreach (var file in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
                     {
-                        if (AFKJourneyUtils.IsSupportedSpecialFile(file))
+                        if (AFKJourneyUtils.IsPreviewableSpecialFile(file))
                         {
-                            yield return file;
+                            var directory = Path.GetDirectoryName(Path.GetFullPath(file)) ?? root;
+                            var container = Path.GetRelativePath(root, directory);
+                            yield return (file, container == "." ? string.Empty : container);
                         }
                     }
                 }
-                else if (File.Exists(sourcePath) && AFKJourneyUtils.IsSupportedSpecialFile(sourcePath))
+                else if (File.Exists(sourcePath) && AFKJourneyUtils.IsPreviewableSpecialFile(sourcePath))
                 {
-                    yield return sourcePath;
+                    yield return (sourcePath, string.Empty);
                 }
             }
         }

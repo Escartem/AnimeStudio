@@ -42,11 +42,16 @@ namespace AnimeStudio
 
         public static bool IsSupportedSpecialFile(string path)
         {
+            return IsPreviewableSpecialFile(path) || IsPkgPath(path);
+        }
+
+        public static bool IsPreviewableSpecialFile(string path)
+        {
             using var stream = File.OpenRead(path);
             Span<byte> header = stackalloc byte[12];
             var read = stream.Read(header);
             var data = header[..read];
-            return HasDxtHeader(data) || HasJsoneHeader(data) || IsPkgPath(path);
+            return HasDxtHeader(data) || (HasJsoneHeader(data) && Path.GetExtension(path).Equals(".jsone", StringComparison.OrdinalIgnoreCase));
         }
 
         public static int TryExtractSpecialFile(string path, string outputDirectory)
@@ -305,14 +310,15 @@ namespace AnimeStudio
                 entries = entries.Where(entry => FileSystemName.MatchesSimpleExpression(filterPattern, entry.Filename)).ToList();
             }
 
-            Directory.CreateDirectory(outputDirectory);
+            var outputRoot = Path.GetFullPath(outputDirectory);
+            Directory.CreateDirectory(outputRoot);
             var extracted = 0;
             using var stream = File.OpenRead(path);
             using var decompressor = new Decompressor();
             foreach (var entry in entries)
             {
                 stream.Position = entry.DataOffset;
-                var outputPath = Path.Combine(outputDirectory, entry.Filename.Replace('/', Path.DirectorySeparatorChar));
+                var outputPath = GetSafePkgOutputPath(outputRoot, entry.Filename);
                 Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
                 switch (entry.Method)
                 {
@@ -346,6 +352,32 @@ namespace AnimeStudio
         }
 
         private static bool IsPkgPath(string path) => Path.GetExtension(path).Equals(".pkg", StringComparison.OrdinalIgnoreCase);
+
+        private static string GetSafePkgOutputPath(string outputDirectory, string filename)
+        {
+            var normalized = filename.Replace('\\', '/');
+            if (Path.IsPathRooted(normalized))
+            {
+                throw new InvalidDataException($"Pkg entry has an absolute path: {filename}");
+            }
+
+            var parts = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0 || parts.Any(part => part == "." || part == ".."))
+            {
+                throw new InvalidDataException($"Pkg entry has an invalid path: {filename}");
+            }
+
+            var outputPath = Path.GetFullPath(Path.Combine(new[] { outputDirectory }.Concat(parts).ToArray()));
+            var outputRoot = outputDirectory.EndsWith(Path.DirectorySeparatorChar)
+                ? outputDirectory
+                : outputDirectory + Path.DirectorySeparatorChar;
+            if (!outputPath.StartsWith(outputRoot, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidDataException($"Pkg entry escapes the output directory: {filename}");
+            }
+
+            return outputPath;
+        }
 
         private static void SwapHalves(ReadOnlySpan<byte> source, Span<byte> destination)
         {

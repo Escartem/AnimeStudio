@@ -70,7 +70,10 @@ namespace AnimeStudio
                 Progress.Silent = true;
             }
 
-            files = OrderFilesForLoading(files);
+            if (Game?.Type == GameType.AFKJourney)
+            {
+                files = OrderFilesForLoading(files);
+            }
             var path = Path.GetDirectoryName(Path.GetFullPath(files[0]));
             MergeSplitAssets(path);
             var toReadFile = ProcessingSplitFiles(files.ToList());
@@ -94,7 +97,11 @@ namespace AnimeStudio
             }
 
             MergeSplitAssets(path, true);
-            var files = OrderFilesForLoading(Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)).ToList();
+            var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).ToList();
+            if (Game?.Type == GameType.AFKJourney)
+            {
+                files = OrderFilesForLoading(files).ToList();
+            }
             var toReadFile = ProcessingSplitFiles(files);
             Load(toReadFile);
 
@@ -649,7 +656,7 @@ namespace AnimeStudio
 
         public void CheckStrippedVersion(SerializedFile assetsFile)
         {
-            if (!assetsFile.IsVersionStripped && string.IsNullOrEmpty(SpecifyUnityVersion) && !string.IsNullOrEmpty(assetsFile.unityVersion) && assetsFile.unityVersion != "0.0.0")
+            if (Game?.Type == GameType.AFKJourney && !assetsFile.IsVersionStripped && string.IsNullOrEmpty(SpecifyUnityVersion) && !string.IsNullOrEmpty(assetsFile.unityVersion) && assetsFile.unityVersion != "0.0.0")
             {
                 SpecifyUnityVersion = assetsFile.unityVersion;
             }

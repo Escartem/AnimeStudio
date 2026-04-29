@@ -693,7 +693,11 @@ namespace AnimeStudio.GUI
                             }
                             break;
                         case AssetGroupOption.BySource: //source file
-                            if (string.IsNullOrEmpty(asset.SourceFile.originalPath))
+                            if (asset.IsVirtual)
+                            {
+                                exportPath = Path.Combine(savePath, Path.GetFileName(asset.ExternalPath) + "_export");
+                            }
+                            else if (string.IsNullOrEmpty(asset.SourceFile.originalPath))
                             {
                                 exportPath = Path.Combine(savePath, asset.SourceFile.fileName + "_export");
                             }

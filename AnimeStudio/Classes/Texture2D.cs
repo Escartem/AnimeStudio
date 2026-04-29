@@ -124,7 +124,7 @@ namespace AnimeStudio
             {
                 var m_IgnoreMasterTextureLimit = reader.ReadBoolean();
             }
-            var hasMipmapLimitGroupName = TypeTreeHasField(reader.serializedType, "m_MipmapLimitGroupName");
+            var hasMipmapLimitGroupName = reader.Game.Type != GameType.AFKJourney || TypeTreeHasField(reader.serializedType, "m_MipmapLimitGroupName");
             if (hasMipmapLimitGroupName && (version[0] > 2022 || (version[0] == 2022 && version[1] >= 2))) //2022.2 and up
             {
                 reader.AlignStream(); //m_IgnoreMipmapLimit
@@ -178,7 +178,7 @@ namespace AnimeStudio
             {
                 var m_ColorSpace = reader.ReadInt32();
             }
-            var hasPlatformBlob = TypeTreeHasField(reader.serializedType, "m_PlatformBlob");
+            var hasPlatformBlob = reader.Game.Type != GameType.AFKJourney || TypeTreeHasField(reader.serializedType, "m_PlatformBlob");
             if (hasPlatformBlob && (version[0] > 2020 || (version[0] == 2020 && version[1] >= 2))) //2020.2 and up
             {
                 var blobLength = reader.ReadInt32();

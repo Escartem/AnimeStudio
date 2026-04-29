@@ -71,7 +71,6 @@ namespace AnimeStudio
             Games.Add(index++, new Game(GameType.SchoolGirlStrikers, "Schoolgirl Strikers"));
             Games.Add(index++, new Game(GameType.ExAstris, "ExAstris"));
             Games.Add(index++, new Game(GameType.PerpetualNovelty, "Perpetual Novelty"));
-            Games.Add(index++, new Game(GameType.AFKJourney, "AFK Journey"));
             Games.Add(index++, new Game(GameType.RewindingCadence, "Rewinding Cadence"));
             
             // unity cn
@@ -89,9 +88,10 @@ namespace AnimeStudio
             }
 
             Games.Add(index++, new UnityCNGame(GameType.UnityCNCustomKey, new("UnityCN Custom Key", ""), GameCategory.Unity));
+            Games.Add(index++, new Game(GameType.AFKJourney, "AFK Journey"));
         }
         public static Game GetGameByType(GameType gameType) => Games.FirstOrDefault(x => x.Value.Type == gameType).Value;
-        public static Game GetGame(GameType gameType) => GetGame((int)gameType);
+        public static Game GetGame(GameType gameType) => GetGameByType(gameType);
         public static Game GetGame(int index)
         {
             if (!Games.TryGetValue(index, out var format))
@@ -236,7 +236,6 @@ namespace AnimeStudio
         SchoolGirlStrikers,
         ExAstris,
         PerpetualNovelty,
-        AFKJourney,
         PGR_GLB_KR,
         PGR_CN_JP_TW,
         Archeland_KalpaOfUniverse,
@@ -262,6 +261,7 @@ namespace AnimeStudio
         CatFantasy,
         UnityCNCustomKey,
         RewindingCadence,
+        AFKJourney,
     }
 
 
