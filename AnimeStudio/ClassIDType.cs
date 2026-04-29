@@ -404,6 +404,7 @@ namespace AnimeStudio
         LowerResBlitTexture = 1480428607,
         HGCapsuleBindingComponent = 1496140955,
         StreamingController = 1542919678,
+        RPGPointCloudGrassBlockData = 1561945121,
         RenderPassAttachment = 1571458007,
         TestObjectVectorPairStringBool = 1628831178,
         GridLayout = 1742807556,

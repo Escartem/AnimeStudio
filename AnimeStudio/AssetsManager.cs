@@ -656,6 +656,11 @@ namespace AnimeStudio
 
         public void CheckStrippedVersion(SerializedFile assetsFile)
         {
+            if (Game != null && Game.Type.IsAzurPromiliaCBT2() && assetsFile.IsVersionStripped)
+            {
+                SpecifyUnityVersion = "2022.3.62f3";
+            }
+
             if (Game?.Type == GameType.AFKJourney && !assetsFile.IsVersionStripped && string.IsNullOrEmpty(SpecifyUnityVersion) && !string.IsNullOrEmpty(assetsFile.unityVersion) && assetsFile.unityVersion != "0.0.0")
             {
                 SpecifyUnityVersion = assetsFile.unityVersion;
