@@ -110,13 +110,10 @@ namespace AnimeStudio
                 });
 
                 var pos = reader.Position;
-                reader.Position = flagInfoOffset;
+                reader.Position = flagInfoOffset + (i / 32) * 4;
                 var flag = reader.ReadUInt32();
-                if (i >= 0x20)
-                {
-                    flag = reader.ReadUInt32();
-                }
-                m_DirectoryInfo[i].flags = (uint)(flag & (1 << i)) * 4;
+
+                m_DirectoryInfo[i].flags = ((flag >> (i % 32)) & 1) != 0 ? 4u : 0u;
                 reader.Position = pos;
 
                 var pathOffset = reader.Position + reader.ReadInt64();
