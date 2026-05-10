@@ -13,7 +13,10 @@ You should look at the [official wiki](https://github.com/Escartem/AnimeStudio/w
 
 # How do I download this ?
 
-## [Download Studio for .NET 10 (recommended ✨)](https://nightly.link/Escartem/AnimeStudio/workflows/build/master/AnimeStudio-net10.zip)
+## Download Studio
+
+- **[.NET 10 Build (Recommended - Latest)](https://nightly.link/Escartem/AnimeStudio/workflows/build/master/AnimeStudio-net10.zip)** ✨
+- **[.NET 9 Build (Stable)](https://nightly.link/Escartem/AnimeStudio/workflows/build/master/AnimeStudio-net9.zip)**
 
 ---
 

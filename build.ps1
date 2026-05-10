@@ -2,7 +2,7 @@
 dotnet build AnimeStudio.Patcher -c Release -f net10.0
 $patcher = "AnimeStudio.Patcher\bin\Release\net10.0\AnimeStudio.Patcher.exe"
 
-foreach ($tfm in 'net10.0-windows') {
+foreach ($tfm in 'net9.0-windows', 'net10.0-windows') {
     # config
     $outputDir = ".\dist\$tfm"
     $configuration = 'Release'
