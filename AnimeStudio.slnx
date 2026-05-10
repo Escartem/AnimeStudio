@@ -1,0 +1,18 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="AnimeStudio.CLI/AnimeStudio.CLI.csproj" />
+  <Project Path="AnimeStudio.FBXNative/AnimeStudio.FBXNative.vcxproj">
+    <Build Project="false" />
+  </Project>
+  <Project Path="AnimeStudio.FBXWrapper/AnimeStudio.FBXWrapper.csproj" />
+  <Project Path="AnimeStudio.GUI/AnimeStudio.GUI.csproj" />
+  <Project Path="AnimeStudio.Oodle/AnimeStudio.Ooz.vcxproj" />
+  <Project Path="AnimeStudio.Patcher/AnimeStudio.Patcher.csproj" />
+  <Project Path="AnimeStudio.PInvoke/AnimeStudio.PInvoke.csproj" />
+  <Project Path="AnimeStudio.Utility/AnimeStudio.Utility.csproj" />
+  <Project Path="AnimeStudio/AnimeStudio.csproj" />
+</Solution>
