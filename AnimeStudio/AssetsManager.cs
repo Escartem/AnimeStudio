@@ -168,9 +168,50 @@ namespace AnimeStudio
 
         private void LoadFile(string fullName)
         {
+            if (Game?.Type == GameType.AFKJourney && AFKJourneyUtils.IsLpakPath(fullName))
+            {
+                if (LoadAfkJourneyLpakFile(fullName))
+                {
+                    return;
+                }
+            }
+
             var reader = new FileReader(fullName);
             reader = reader.PreProcessing(Game);
             LoadFile(reader);
+        }
+
+        private bool LoadAfkJourneyLpakFile(string fullName)
+        {
+            var chunks = AFKJourneyUtils.ScanLpakUnityFsChunks(fullName);
+            if (chunks.Count == 0)
+            {
+                Logger.Warning($"AFK Journey lpak {fullName} did not contain valid UnityFS chunks. Falling back to normal loading.");
+                return false;
+            }
+
+            Logger.Info($"Loading AFK Journey lpak {fullName} ({chunks.Count} UnityFS chunks)");
+            try
+            {
+                using var stream = File.Open(fullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                Progress.Reset();
+                for (var i = 0; i < chunks.Count; i++)
+                {
+                    var chunk = chunks[i];
+                    var chunkPath = AFKJourneyUtils.GetLpakChunkVirtualPath(fullName, chunk);
+                    Logger.Verbose($"Loading AFK Journey lpak chunk {i + 1}/{chunks.Count} at 0x{chunk.Offset:X8}, size 0x{chunk.Size:X8}");
+                    var chunkStream = new BoundedStream(stream, chunk.Offset, chunk.Size, leaveOpen: true);
+                    var reader = new FileReader(chunkPath, chunkStream);
+                    LoadGameBlockFile(reader, fullName, chunk.Offset, false);
+                    Progress.Report(i + 1, chunks.Count);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Error($"Error while reading AFK Journey lpak {fullName}", e);
+            }
+
+            return true;
         }
 
         private void LoadFile(FileReader reader)

@@ -24,12 +24,25 @@ namespace AnimeStudio
         ushort Method,
         long DataOffset);
 
+    public readonly record struct AFKJourneyUnityFsChunk(
+        int Index,
+        long Offset,
+        long Size,
+        uint Version,
+        string UnityVersion,
+        string UnityRevision,
+        uint CompressedBlocksInfoSize,
+        uint UncompressedBlocksInfoSize,
+        uint Flags);
+
     public static class AFKJourneyUtils
     {
         private static readonly byte[] JsoneMagic = { 0xFF, 0xFF, 0xFF, 0xFF };
         private static readonly byte[] ZipLocalHeader = { 0x50, 0x4B, 0x03, 0x04 };
+        private static readonly byte[] UnityFsMagic = Encoding.ASCII.GetBytes("UnityFS\0");
         private static readonly byte[] BlowfishKey = Encoding.ASCII.GetBytes("b8c0aeff2944d1614d6bc63dc6b0a537");
         private const int ScanChunkSize = 64 * 1024 * 1024;
+        private const int UnityFsScanChunkSize = 8 * 1024 * 1024;
         private const int ScanOverlap = 256;
         private const byte FmtEtc1Rgb = 0x0A;
         private const byte FmtEtc1Rgba = 0x0B;
@@ -39,6 +52,7 @@ namespace AnimeStudio
 
         public static bool HasDxtHeader(ReadOnlySpan<byte> data) => data.Length >= 3 && data[0] == (byte)'D' && data[1] == (byte)'X' && data[2] == (byte)'T';
         public static bool HasJsoneHeader(ReadOnlySpan<byte> data) => data.Length >= 4 && data[..4].SequenceEqual(JsoneMagic);
+        public static bool IsLpakPath(string path) => Path.GetExtension(path).Equals(".lpak", StringComparison.OrdinalIgnoreCase);
 
         public static bool IsSupportedSpecialFile(string path)
         {
@@ -79,6 +93,178 @@ namespace AnimeStudio
             }
 
             return 0;
+        }
+
+        public static List<AFKJourneyUnityFsChunk> ScanLpakUnityFsChunks(string path)
+        {
+            var chunks = new List<AFKJourneyUnityFsChunk>();
+            if (!IsLpakPath(path) || !File.Exists(path))
+            {
+                return chunks;
+            }
+
+            var fileInfo = new FileInfo(path);
+            using var stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            var offsets = FindUnityFsOffsets(stream);
+            var nextAllowedOffset = 0L;
+
+            foreach (var offset in offsets)
+            {
+                if (offset < nextAllowedOffset)
+                {
+                    continue;
+                }
+
+                if (!TryReadUnityFsChunkHeader(stream, offset, fileInfo.Length, chunks.Count, out var chunk))
+                {
+                    continue;
+                }
+
+                chunks.Add(chunk);
+                nextAllowedOffset = chunk.Offset + chunk.Size;
+            }
+
+            return chunks;
+        }
+
+        public static string GetLpakChunkVirtualPath(string path, AFKJourneyUnityFsChunk chunk)
+        {
+            var directory = Path.GetDirectoryName(Path.GetFullPath(path)) ?? string.Empty;
+            var stem = Path.GetFileNameWithoutExtension(path);
+            var chunkName = $"{stem}__{chunk.Index:D5}__0x{chunk.Offset:X16}.bundle";
+            return Path.Combine(directory, Path.GetFileName(path) + "_chunks", chunkName);
+        }
+
+        private static List<long> FindUnityFsOffsets(Stream stream)
+        {
+            var offsets = new List<long>();
+            var previous = Array.Empty<byte>();
+            var buffer = new byte[UnityFsScanChunkSize];
+            long absolute = 0;
+
+            stream.Position = 0;
+            while (true)
+            {
+                var read = stream.Read(buffer, 0, buffer.Length);
+                if (read <= 0)
+                {
+                    break;
+                }
+
+                var data = new byte[previous.Length + read];
+                if (previous.Length > 0)
+                {
+                    Buffer.BlockCopy(previous, 0, data, 0, previous.Length);
+                }
+                Buffer.BlockCopy(buffer, 0, data, previous.Length, read);
+
+                var searchOffset = 0;
+                while (searchOffset < data.Length)
+                {
+                    var found = data.AsSpan(searchOffset).IndexOf(UnityFsMagic);
+                    if (found < 0)
+                    {
+                        break;
+                    }
+
+                    found += searchOffset;
+                    offsets.Add(absolute - previous.Length + found);
+                    searchOffset = found + 1;
+                }
+
+                absolute += read;
+                var keep = Math.Min(UnityFsMagic.Length - 1, data.Length);
+                previous = new byte[keep];
+                Buffer.BlockCopy(data, data.Length - keep, previous, 0, keep);
+            }
+
+            return offsets;
+        }
+
+        private static bool TryReadUnityFsChunkHeader(Stream stream, long offset, long fileSize, int index, out AFKJourneyUnityFsChunk chunk)
+        {
+            chunk = default;
+
+            try
+            {
+                stream.Position = offset;
+                Span<byte> magic = stackalloc byte[8];
+                if (stream.Read(magic) != magic.Length || !magic.SequenceEqual(UnityFsMagic))
+                {
+                    return false;
+                }
+
+                using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+                var version = ReadUInt32BigEndian(reader);
+                var unityVersion = ReadNullTerminatedString(reader, 256);
+                var unityRevision = ReadNullTerminatedString(reader, 256);
+                var size = ReadInt64BigEndian(reader);
+                var compressedBlocksInfoSize = ReadUInt32BigEndian(reader);
+                var uncompressedBlocksInfoSize = ReadUInt32BigEndian(reader);
+                var flags = ReadUInt32BigEndian(reader);
+
+                if (size <= 0 || offset + size > fileSize)
+                {
+                    return false;
+                }
+
+                if (version == 0 || string.IsNullOrEmpty(unityVersion) || string.IsNullOrEmpty(unityRevision))
+                {
+                    return false;
+                }
+
+                chunk = new AFKJourneyUnityFsChunk(
+                    index,
+                    offset,
+                    size,
+                    version,
+                    unityVersion,
+                    unityRevision,
+                    compressedBlocksInfoSize,
+                    uncompressedBlocksInfoSize,
+                    flags);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string ReadNullTerminatedString(BinaryReader reader, int maxBytes)
+        {
+            var bytes = new List<byte>();
+            for (var i = 0; i < maxBytes; i++)
+            {
+                var value = reader.ReadByte();
+                if (value == 0)
+                {
+                    return Encoding.UTF8.GetString(bytes.ToArray());
+                }
+                bytes.Add(value);
+            }
+
+            throw new InvalidDataException("UnityFS header string is not null terminated.");
+        }
+
+        private static uint ReadUInt32BigEndian(BinaryReader reader)
+        {
+            Span<byte> data = stackalloc byte[4];
+            if (reader.Read(data) != data.Length)
+            {
+                throw new EndOfStreamException();
+            }
+            return BinaryPrimitives.ReadUInt32BigEndian(data);
+        }
+
+        private static long ReadInt64BigEndian(BinaryReader reader)
+        {
+            Span<byte> data = stackalloc byte[8];
+            if (reader.Read(data) != data.Length)
+            {
+                throw new EndOfStreamException();
+            }
+            return BinaryPrimitives.ReadInt64BigEndian(data);
         }
 
         public static string DecryptJsoneToText(byte[] data)
