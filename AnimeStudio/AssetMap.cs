@@ -8,7 +8,7 @@ namespace AnimeStudio
 {
     public static class StringCache
     {
-        private static readonly Dictionary<string, string> _cache = new(StringComparer.Ordinal);
+        private static readonly HashSet<string> _cache = new(StringComparer.Ordinal);
         public static string Get(string value)
         {
             if (value == null) return null;
@@ -16,7 +16,7 @@ namespace AnimeStudio
             if (_cache.TryGetValue(value, out var cached))
                 return cached;
 
-            _cache[value] = value;
+            _cache.Add(value);
             return value;
         }
     }
