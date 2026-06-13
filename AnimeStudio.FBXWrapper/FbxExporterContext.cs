@@ -550,6 +550,11 @@ namespace AnimeStudio.FbxInterop
                     AsFbxAnimAddRotationKey(pAnimContext, rotation.time, value.X, value.Y, value.Z);
                 }
 
+                foreach (var rotation in track.EulerRotations)
+                {
+                    AsFbxAnimAddRotationKey(pAnimContext, rotation.time, rotation.value.X, rotation.value.Y, rotation.value.Z);
+                }
+
                 foreach (var translation in track.Translations)
                 {
                     var value = translation.value;
@@ -558,7 +563,10 @@ namespace AnimeStudio.FbxInterop
 
                 AsFbxAnimEndKeyModify(pAnimContext);
 
-                AsFbxAnimApplyEulerFilter(pAnimContext, _exportOptions.filterPrecision);
+                if (track.EulerRotations.Count == 0)
+                {
+                    AsFbxAnimApplyEulerFilter(pAnimContext, _exportOptions.filterPrecision);
+                }
 
                 var blendShape = track.BlendShape;
 

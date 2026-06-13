@@ -257,6 +257,7 @@ namespace AnimeStudio
         public string Path { get; set; }
         public List<ImportedKeyframe<Vector3>> Scalings = new List<ImportedKeyframe<Vector3>>();
         public List<ImportedKeyframe<Quaternion>> Rotations = new List<ImportedKeyframe<Quaternion>>();
+        public List<ImportedKeyframe<Vector3>> EulerRotations = new List<ImportedKeyframe<Vector3>>();
         public List<ImportedKeyframe<Vector3>> Translations = new List<ImportedKeyframe<Vector3>>();
         public ImportedBlendShape BlendShape;
     }
