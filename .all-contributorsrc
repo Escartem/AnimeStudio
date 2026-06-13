@@ -1,0 +1,197 @@
+{
+  "projectName": "AnimeStudio",
+  "projectOwner": "Escartem",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": true,
+  "commitConvention": "angular",
+  "contributors": [
+    {
+      "login": "hrothgar234567",
+      "name": "hrothgar234567",
+      "avatar_url": "https://avatars.githubusercontent.com/u/215089974?v=4",
+      "profile": "https://github.com/hrothgar234567",
+      "contributions": [
+        "code",
+        "review",
+        "ideas",
+        "question",
+        "platform",
+        "security"
+      ]
+    },
+    {
+      "login": "Eleiyas",
+      "name": "Elliot Bastiani",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16349939?v=4",
+      "profile": "https://soundcloud.com/eleiyas/",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "yarik0chka",
+      "name": "yarik0chka",
+      "avatar_url": "https://avatars.githubusercontent.com/u/64433879?v=4",
+      "profile": "https://github.com/yarik0chka",
+      "contributions": [
+        "code",
+        "bug",
+        "question"
+      ]
+    },
+    {
+      "login": "Manashiku",
+      "name": "manashiku",
+      "avatar_url": "https://avatars.githubusercontent.com/u/46613923?v=4",
+      "profile": "https://www.youtube.com/c/Manashiku",
+      "contributions": [
+        "code",
+        "bug"
+      ]
+    },
+    {
+      "login": "Razmoth",
+      "name": "Razmoth",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32140579?v=4",
+      "profile": "https://github.com/Razmoth",
+      "contributions": [
+        "code",
+        "bug",
+        "ideas",
+        "research"
+      ]
+    },
+    {
+      "login": "Dimbreath",
+      "name": "Dimbreath",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1474840?v=4",
+      "profile": "https://github.com/Dimbreath",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "LukeFZ",
+      "name": "Luke",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17146677?v=4",
+      "profile": "https://github.com/LukeFZ",
+      "contributions": [
+        "bug",
+        "security"
+      ]
+    },
+    {
+      "login": "aelurum",
+      "name": "VaDiM",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6244109?v=4",
+      "profile": "https://github.com/aelurum",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "festivities",
+      "name": "festivity",
+      "avatar_url": "https://avatars.githubusercontent.com/u/77230051?v=4",
+      "profile": "https://festivity.moe/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "MiemieMethod",
+      "name": "方法放寒假",
+      "avatar_url": "https://avatars.githubusercontent.com/u/40489495?v=4",
+      "profile": "https://github.com/MiemieMethod",
+      "contributions": [
+        "code",
+        "platform"
+      ]
+    },
+    {
+      "login": "jokelbaf",
+      "name": "JokelBaf",
+      "avatar_url": "https://avatars.githubusercontent.com/u/60827680?v=4",
+      "profile": "https://github.com/jokelbaf",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "formagGinoo",
+      "name": "formagGino",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67542068?v=4",
+      "profile": "https://github.com/formagGinoo",
+      "contributions": [
+        "code",
+        "platform"
+      ]
+    },
+    {
+      "login": "hashblen",
+      "name": "Hashblen",
+      "avatar_url": "https://avatars.githubusercontent.com/u/62646051?v=4",
+      "profile": "https://github.com/hashblen",
+      "contributions": [
+        "bug",
+        "code"
+      ]
+    },
+    {
+      "login": "Sieluna",
+      "name": "Sieluna",
+      "avatar_url": "https://avatars.githubusercontent.com/u/88884784?v=4",
+      "profile": "https://github.com/Sieluna",
+      "contributions": [
+        "code",
+        "infra"
+      ]
+    },
+    {
+      "login": "1004452714",
+      "name": "DarkFlameMaster",
+      "avatar_url": "https://avatars.githubusercontent.com/u/28773469?v=4",
+      "profile": "https://github.com/1004452714",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "SherkeyXD",
+      "name": "SherkeyXD",
+      "avatar_url": "https://avatars.githubusercontent.com/u/57581480?v=4",
+      "profile": "https://github.com/SherkeyXD",
+      "contributions": [
+        "code",
+        "bug"
+      ]
+    },
+    {
+      "login": "djpadbit",
+      "name": "djpadbit",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9431263?v=4",
+      "profile": "https://github.com/djpadbit",
+      "contributions": [
+        "code",
+        "platform"
+      ]
+    },
+    {
+      "login": "tserj",
+      "name": "tserj",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17748861?v=4",
+      "profile": "https://github.com/tserj",
+      "contributions": [
+        "bug"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "linkToUsage": false
+}
