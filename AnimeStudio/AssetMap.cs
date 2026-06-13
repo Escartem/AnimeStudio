@@ -1,5 +1,4 @@
 ﻿using MessagePack;
-using SevenZip;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,17 +8,15 @@ namespace AnimeStudio
 {
     public static class StringCache
     {
-        private static readonly Dictionary<uint, string> _cache = new();
+        private static readonly HashSet<string> _cache = new(StringComparer.Ordinal);
         public static string Get(string value)
         {
             if (value == null) return null;
 
-            uint key = CRC.CalculateDigestUTF8(value);
-
-            if (_cache.TryGetValue(key, out var cached))
+            if (_cache.TryGetValue(value, out var cached))
                 return cached;
 
-            _cache[key] = value;
+            _cache.Add(value);
             return value;
         }
     }
