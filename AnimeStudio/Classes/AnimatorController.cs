@@ -747,6 +747,7 @@ namespace AnimeStudio
         public Vector3[] m_PositionValues;
         public Vector4[] m_QuaternionValues;
         public Vector3[] m_ScaleValues;
+        public int[] m_EntityIdValues;
 
         public ValueArray(ObjectReader reader)
         {
@@ -778,6 +779,10 @@ namespace AnimeStudio
                     m_IntValues = reader.ReadInt32Array();
                     m_BoolValues = reader.ReadBooleanArray();
                     reader.AlignStream();
+                    if (version[0] > 6000 || (version[0] == 6000 && version[1] >= 2)) // 6000.2 and up
+                    {
+                        m_EntityIdValues = reader.ReadInt32Array();
+                    }
                 }
             }
         }

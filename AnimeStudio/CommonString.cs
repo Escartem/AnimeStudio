@@ -114,7 +114,9 @@ namespace AnimeStudio
             {1121, "m_PrefabInstance"},
             {1138, "m_PrefabAsset"},
             {1152, "FileSize"},
-            {1161, "Hash128"}
+            {1161, "Hash128"},
+            {1188, "fixed_array"},
+            {1200, "EntityId"},
         };
     }
 }
