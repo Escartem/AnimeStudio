@@ -62,6 +62,14 @@ namespace AnimeStudio
             Logger.Verbose("Cleared AssetsHelper successfully !!");
         }
 
+        public static void UnloadCABMap()
+        {
+            CABMap.Clear();
+            Offsets.Clear();
+            BaseFolder = string.Empty;
+            Logger.Info("CABMap unloaded.");
+        }
+
         public static void ClearOffsets()
         {
             Offsets.Clear();
@@ -734,6 +742,261 @@ namespace AnimeStudio
 
             Logger.Info($"Map build successfully !! {collision} collisions found");
             await ExportAssetsMap(assets, game, mapName, savePath, exportListType);
+        }
+
+        public static async Task BuildMap(string[] files, string baseFolder, Game game, string filePath, ExportListType format, bool includeAsset, bool includeCab, ClassIDType[] typeFilters = null, Regex[] nameFilters = null, Regex[] containerFilters = null)
+        {
+            Logger.Info("Building map...");
+            try
+            {
+                CABMap.Clear();
+                Progress.Reset();
+                var collision = 0;
+                BaseFolder = baseFolder;
+                assetsManager.Game = game;
+                var assets = new List<AssetEntry>();
+                foreach (var file in LoadFiles(files))
+                {
+                    if (includeCab) BuildCABMap(file, ref collision);
+                    if (includeAsset) BuildAssetMap(file, assets, typeFilters, nameFilters, containerFilters);
+                }
+                if (includeAsset) UpdateContainers(assets, game);
+                if (includeCab && collision > 0) Logger.Info($"{collision} CAB name collisions found");
+                await SaveMapBundle(assets, game, filePath, format, includeAsset, includeCab);
+                Logger.Info("Map built successfully!");
+            }
+            catch (Exception e)
+            {
+                Logger.Warning($"Map was not built: {e}");
+            }
+        }
+
+        private static Task SaveMapBundle(List<AssetEntry> assets, Game game, string filePath, ExportListType format, bool includeAsset, bool includeCab)
+        {
+            return Task.Run(() =>
+            {
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+                var dir = Path.GetDirectoryName(Path.GetFullPath(filePath));
+                if (!string.IsNullOrEmpty(dir)) Directory.CreateDirectory(dir);
+
+                var cabData = includeCab ? new CabMapData
+                {
+                    BaseFolder = BaseFolder,
+                    Entries = CABMap.ToDictionary(kv => kv.Key, kv => new CabEntry { Path = kv.Value.Path, Offset = kv.Value.Offset, Dependencies = kv.Value.Dependencies }, StringComparer.OrdinalIgnoreCase)
+                } : null;
+                var assetData = includeAsset ? new AssetMap { GameType = game.Type, AssetEntries = assets } : null;
+                var bundle = new MapBundle { HasAssetMap = includeAsset, HasCabMap = includeCab, AssetData = assetData, CabData = cabData };
+
+                switch (format)
+                {
+                    case ExportListType.MessagePack:
+                        using (var f = File.Create(filePath))
+                            MessagePackSerializer.Serialize(f, bundle, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
+                        break;
+                    case ExportListType.JSON:
+                        using (var writer = File.CreateText(filePath))
+                        {
+                            var serializer = new JsonSerializer { Formatting = Newtonsoft.Json.Formatting.Indented };
+                            serializer.Converters.Add(new StringEnumConverter());
+                            serializer.Serialize(writer, bundle);
+                        }
+                        break;
+                    case ExportListType.XML:
+                        var xmlSettings = new XmlWriterSettings { Indent = true };
+                        using (var writer = XmlWriter.Create(filePath, xmlSettings))
+                        {
+                            writer.WriteStartDocument();
+                            writer.WriteStartElement("MapBundle");
+                            writer.WriteAttributeString("hasAssetMap", includeAsset.ToString().ToLower());
+                            writer.WriteAttributeString("hasCabMap", includeCab.ToString().ToLower());
+                            writer.WriteAttributeString("createdAt", DateTime.UtcNow.ToString("s"));
+                            if (includeCab)
+                            {
+                                writer.WriteStartElement("CabMap");
+                                writer.WriteAttributeString("baseFolder", BaseFolder);
+                                foreach (var kv in CABMap)
+                                {
+                                    writer.WriteStartElement("Cab");
+                                    writer.WriteAttributeString("name", kv.Key);
+                                    writer.WriteElementString("Path", kv.Value.Path);
+                                    writer.WriteElementString("Offset", kv.Value.Offset.ToString());
+                                    writer.WriteStartElement("Dependencies");
+                                    foreach (var dep in kv.Value.Dependencies) writer.WriteElementString("Dep", dep);
+                                    writer.WriteEndElement();
+                                    writer.WriteEndElement();
+                                }
+                                writer.WriteEndElement();
+                            }
+                            if (includeAsset)
+                            {
+                                writer.WriteStartElement("Assets");
+                                writer.WriteAttributeString("gameType", game.Type.ToString());
+                                foreach (var asset in assets)
+                                {
+                                    writer.WriteStartElement("Asset");
+                                    writer.WriteElementString("Name", asset.Name);
+                                    writer.WriteElementString("Container", asset.Container);
+                                    writer.WriteStartElement("Type");
+                                    writer.WriteAttributeString("id", ((int)asset.Type).ToString());
+                                    writer.WriteValue(asset.Type.ToString());
+                                    writer.WriteEndElement();
+                                    writer.WriteElementString("PathID", asset.PathID.ToString());
+                                    writer.WriteElementString("Source", asset.Source);
+                                    writer.WriteEndElement();
+                                }
+                                writer.WriteEndElement();
+                            }
+                            writer.WriteEndElement();
+                            writer.WriteEndDocument();
+                        }
+                        break;
+                }
+                Logger.Info($"Saved map to {filePath}");
+            });
+        }
+
+        public static (bool loadedCab, bool loadedAsset) LoadMap(string path)
+        {
+            var name = Path.GetFileNameWithoutExtension(path);
+            var ext = Path.GetExtension(path).ToLower();
+            Logger.Info($"Loading {name}...");
+            try
+            {
+                if (ext == ".bin")
+                    return (LoadCABMap(path), false);
+
+                var bytes = File.ReadAllBytes(path);
+
+                if (ext == ".map")
+                {
+                    try
+                    {
+                        var bundle = MessagePackSerializer.Deserialize<MapBundle>(bytes, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
+                        if (bundle.HasAssetMap || bundle.HasCabMap)
+                            return ApplyBundle(bundle);
+                    }
+                    catch { }
+                    var legacyMap = MessagePackSerializer.Deserialize<AssetMap>(bytes, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
+                    ResourceMap.LoadDirect(legacyMap);
+                    Logger.Info($"Loaded AssetMap with {legacyMap.AssetEntries.Count} assets");
+                    return (false, true);
+                }
+                if (ext == ".json")
+                {
+                    var json = System.Text.Encoding.UTF8.GetString(bytes);
+                    if (json.Contains("\"HasAssetMap\""))
+                    {
+                        var bundle = JsonConvert.DeserializeObject<MapBundle>(json);
+                        if (bundle?.HasAssetMap == true || bundle?.HasCabMap == true)
+                            return ApplyBundle(bundle);
+                    }
+                    var legacyMap = JsonConvert.DeserializeObject<AssetMap>(json);
+                    ResourceMap.LoadDirect(legacyMap);
+                    Logger.Info($"Loaded AssetMap with {legacyMap.AssetEntries.Count} assets");
+                    return (false, true);
+                }
+                if (ext == ".xml")
+                    return LoadXmlBundle(path);
+
+                Logger.Warning($"Unsupported map format: {ext}");
+                return (false, false);
+            }
+            catch (Exception e)
+            {
+                Logger.Warning($"Failed to load {name}: {e.Message}");
+                return (false, false);
+            }
+        }
+
+        private static (bool, bool) ApplyBundle(MapBundle bundle)
+        {
+            bool loadedCab = false, loadedAsset = false;
+            if (bundle.HasCabMap && bundle.CabData != null)
+            {
+                CABMap.Clear();
+                BaseFolder = bundle.CabData.BaseFolder ?? string.Empty;
+                foreach (var kv in bundle.CabData.Entries)
+                    CABMap[kv.Key] = new Entry { Path = kv.Value.Path, Offset = kv.Value.Offset, Dependencies = kv.Value.Dependencies };
+                Logger.Info($"Loaded CABMap with {CABMap.Count} entries");
+                loadedCab = true;
+            }
+            if (bundle.HasAssetMap && bundle.AssetData != null)
+            {
+                ResourceMap.LoadDirect(bundle.AssetData);
+                Logger.Info($"Loaded AssetMap with {bundle.AssetData.AssetEntries.Count} assets");
+                loadedAsset = true;
+            }
+            return (loadedCab, loadedAsset);
+        }
+
+        private static (bool, bool) LoadXmlBundle(string path)
+        {
+            bool loadedCab = false, loadedAsset = false;
+            var bytes = File.ReadAllBytes(path);
+
+            using (var ms = new MemoryStream(bytes))
+            using (var xmlReader = XmlReader.Create(ms))
+            {
+                if (!xmlReader.ReadToFollowing("MapBundle")) return (false, false);
+                var hasAssetMap = bool.TryParse(xmlReader.GetAttribute("hasAssetMap"), out var a) && a;
+                var hasCabMap = bool.TryParse(xmlReader.GetAttribute("hasCabMap"), out var c) && c;
+
+                if (hasCabMap && xmlReader.ReadToFollowing("CabMap"))
+                {
+                    var baseFolder = xmlReader.GetAttribute("baseFolder") ?? string.Empty;
+                    CABMap.Clear();
+                    BaseFolder = baseFolder;
+                    while (xmlReader.ReadToFollowing("Cab"))
+                    {
+                        var cabName = xmlReader.GetAttribute("name");
+                        string cabPath = null, offsetStr = null;
+                        var deps = new List<string>();
+                        using var sub = xmlReader.ReadSubtree();
+                        while (sub.Read())
+                        {
+                            if (sub.NodeType != XmlNodeType.Element) continue;
+                            if (sub.Name == "Path") cabPath = sub.ReadElementContentAsString();
+                            else if (sub.Name == "Offset") offsetStr = sub.ReadElementContentAsString();
+                            else if (sub.Name == "Dep") deps.Add(sub.ReadElementContentAsString());
+                        }
+                        if (cabName != null && cabPath != null)
+                            CABMap[cabName] = new Entry { Path = cabPath, Offset = long.TryParse(offsetStr, out var off) ? off : 0, Dependencies = deps };
+                    }
+                    Logger.Info($"Loaded CABMap with {CABMap.Count} entries");
+                    loadedCab = true;
+                }
+
+                if (hasAssetMap)
+                {
+                    using var ms2 = new MemoryStream(bytes);
+                    using var xmlReader2 = XmlReader.Create(ms2);
+                    if (xmlReader2.ReadToFollowing("Assets"))
+                    {
+                        var gameTypeStr = xmlReader2.GetAttribute("gameType") ?? "Normal";
+                        Enum.TryParse<GameType>(gameTypeStr, out var gameType);
+                        var entries = new List<AssetEntry>();
+                        while (xmlReader2.ReadToFollowing("Asset"))
+                        {
+                            var entry = new AssetEntry();
+                            using var sub = xmlReader2.ReadSubtree();
+                            while (sub.Read())
+                            {
+                                if (sub.NodeType != XmlNodeType.Element) continue;
+                                if (sub.Name == "Name") entry.Name = sub.ReadElementContentAsString();
+                                else if (sub.Name == "Container") entry.Container = sub.ReadElementContentAsString();
+                                else if (sub.Name == "Type") { if (Enum.TryParse<ClassIDType>(sub.ReadElementContentAsString(), true, out var t)) entry.Type = t; }
+                                else if (sub.Name == "PathID") { long.TryParse(sub.ReadElementContentAsString(), out var pid); entry.PathID = pid; }
+                                else if (sub.Name == "Source") entry.Source = sub.ReadElementContentAsString();
+                            }
+                            entries.Add(entry);
+                        }
+                        ResourceMap.LoadDirect(new AssetMap { GameType = gameType, AssetEntries = entries });
+                        Logger.Info($"Loaded AssetMap with {entries.Count} assets");
+                        loadedAsset = true;
+                    }
+                }
+            }
+            return (loadedCab, loadedAsset);
         }
     }
 }

@@ -82,4 +82,28 @@ namespace AnimeStudio
             return matches.Count(x => x == true) == filters.Count;
         }
     }
+
+    [MessagePackObject]
+    public class CabEntry
+    {
+        [Key(0)] public string Path { get; set; }
+        [Key(1)] public long Offset { get; set; }
+        [Key(2)] public List<string> Dependencies { get; set; }
+    }
+
+    [MessagePackObject]
+    public class CabMapData
+    {
+        [Key(0)] public string BaseFolder { get; set; }
+        [Key(1)] public Dictionary<string, CabEntry> Entries { get; set; }
+    }
+
+    [MessagePackObject]
+    public class MapBundle
+    {
+        [Key(0)] public bool HasAssetMap { get; set; }
+        [Key(1)] public bool HasCabMap { get; set; }
+        [Key(2)] public AssetMap AssetData { get; set; }
+        [Key(3)] public CabMapData CabData { get; set; }
+    }
 }
