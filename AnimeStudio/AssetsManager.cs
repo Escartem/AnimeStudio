@@ -70,6 +70,10 @@ namespace AnimeStudio
                 Progress.Silent = true;
             }
 
+            if (Game?.Type == GameType.AFKJourney)
+            {
+                files = OrderFilesForLoading(files);
+            }
             var path = Path.GetDirectoryName(Path.GetFullPath(files[0]));
             MergeSplitAssets(path);
             var toReadFile = ProcessingSplitFiles(files.ToList());
@@ -94,6 +98,10 @@ namespace AnimeStudio
 
             MergeSplitAssets(path, true);
             var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).ToList();
+            if (Game?.Type == GameType.AFKJourney)
+            {
+                files = OrderFilesForLoading(files).ToList();
+            }
             var toReadFile = ProcessingSplitFiles(files);
             Load(toReadFile);
 
@@ -139,11 +147,71 @@ namespace AnimeStudio
             }
         }
 
+        private static string[] OrderFilesForLoading(IEnumerable<string> files)
+        {
+            return files
+                .OrderBy(file => GetLoadPriority(Path.GetFileName(file)))
+                .ThenBy(file => new FileInfo(file).Length)
+                .ThenBy(file => file, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+        }
+
+        private static int GetLoadPriority(string fileName)
+        {
+            return fileName.ToLowerInvariant() switch
+            {
+                "globalgamemanagers" => 0,
+                "data.unity3d" => 1,
+                _ => 2,
+            };
+        }
+
         private void LoadFile(string fullName)
         {
+            if (Game?.Type == GameType.AFKJourney && AFKJourneyUtils.IsLpakPath(fullName))
+            {
+                if (LoadAfkJourneyLpakFile(fullName))
+                {
+                    return;
+                }
+            }
+
             var reader = new FileReader(fullName);
             reader = reader.PreProcessing(Game);
             LoadFile(reader);
+        }
+
+        private bool LoadAfkJourneyLpakFile(string fullName)
+        {
+            var chunks = AFKJourneyUtils.ScanLpakUnityFsChunks(fullName);
+            if (chunks.Count == 0)
+            {
+                Logger.Warning($"AFK Journey lpak {fullName} did not contain valid UnityFS chunks. Falling back to normal loading.");
+                return false;
+            }
+
+            Logger.Info($"Loading AFK Journey lpak {fullName} ({chunks.Count} UnityFS chunks)");
+            try
+            {
+                using var stream = File.Open(fullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                Progress.Reset();
+                for (var i = 0; i < chunks.Count; i++)
+                {
+                    var chunk = chunks[i];
+                    var chunkPath = AFKJourneyUtils.GetLpakChunkVirtualPath(fullName, chunk);
+                    Logger.Verbose($"Loading AFK Journey lpak chunk {i + 1}/{chunks.Count} at 0x{chunk.Offset:X8}, size 0x{chunk.Size:X8}");
+                    var chunkStream = new BoundedStream(stream, chunk.Offset, chunk.Size, leaveOpen: true);
+                    var reader = new FileReader(chunkPath, chunkStream);
+                    LoadGameBlockFile(reader, fullName, chunk.Offset, false);
+                    Progress.Report(i + 1, chunks.Count);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Error($"Error while reading AFK Journey lpak {fullName}", e);
+            }
+
+            return true;
         }
 
         private void LoadFile(FileReader reader)
@@ -272,6 +340,7 @@ namespace AnimeStudio
 
         private void LoadAssetsFromMemory(FileReader reader, string originalPath, string unityVersion = null, long originalOffset = 0)
         {
+            unityVersion = ResolveUnityVersionHint(originalPath, unityVersion);
             Logger.Verbose($"Loading asset file {reader.FileName} with version {unityVersion} from {originalPath} at offset 0x{originalOffset:X8}");
             if (!assetsFileListHash.Contains(reader.FileName))
             {
@@ -280,7 +349,7 @@ namespace AnimeStudio
                     var assetsFile = new SerializedFile(reader, this);
                     assetsFile.originalPath = originalPath;
                     assetsFile.offset = originalOffset;
-                    if (!string.IsNullOrEmpty(unityVersion) && assetsFile.header.m_Version < SerializedFileFormatVersion.Unknown_7)
+                    if (!string.IsNullOrEmpty(unityVersion) && (assetsFile.header.m_Version < SerializedFileFormatVersion.Unknown_7 || assetsFile.IsVersionStripped || assetsFile.unityVersion == "0.0.0"))
                     {
                         assetsFile.SetVersion(unityVersion);
                     }
@@ -297,6 +366,51 @@ namespace AnimeStudio
             }
             else
                 Logger.Info($"Skipping {originalPath} ({reader.FileName})");
+        }
+
+        private string ResolveUnityVersionHint(string originalPath, string unityVersion)
+        {
+            if (!string.IsNullOrEmpty(unityVersion) && unityVersion != "0.0.0")
+            {
+                return unityVersion;
+            }
+
+            if (!string.IsNullOrEmpty(SpecifyUnityVersion))
+            {
+                return SpecifyUnityVersion;
+            }
+
+            if (Game?.Type != GameType.AFKJourney || string.IsNullOrEmpty(originalPath))
+            {
+                return unityVersion;
+            }
+
+            try
+            {
+                var directory = Path.GetDirectoryName(Path.GetFullPath(originalPath));
+                while (!string.IsNullOrEmpty(directory))
+                {
+                    var globalGameManagersPath = Path.Combine(directory, "globalgamemanagers");
+                    if (File.Exists(globalGameManagersPath))
+                    {
+                        using var versionReader = new FileReader(globalGameManagersPath);
+                        var versionFile = new SerializedFile(versionReader, this);
+                        if (!string.IsNullOrEmpty(versionFile.unityVersion) && versionFile.unityVersion != "0.0.0")
+                        {
+                            Logger.Verbose($"Resolved AFK Journey Unity version {versionFile.unityVersion} from {globalGameManagersPath}");
+                            return versionFile.unityVersion;
+                        }
+                    }
+
+                    directory = Path.GetDirectoryName(directory);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Verbose($"Failed to resolve AFK Journey Unity version from install root: {ex.Message}");
+            }
+
+            return unityVersion;
         }
 
         private void LoadWebFile(FileReader reader)
@@ -583,7 +697,16 @@ namespace AnimeStudio
 
         public void CheckStrippedVersion(SerializedFile assetsFile)
         {
-            if(Game.Type.IsAzurPromiliaCBT2() && assetsFile.IsVersionStripped) SpecifyUnityVersion = "2022.3.62f3";
+            if (Game != null && Game.Type.IsAzurPromiliaCBT2() && assetsFile.IsVersionStripped)
+            {
+                SpecifyUnityVersion = "2022.3.62f3";
+            }
+
+            if (Game?.Type == GameType.AFKJourney && !assetsFile.IsVersionStripped && string.IsNullOrEmpty(SpecifyUnityVersion) && !string.IsNullOrEmpty(assetsFile.unityVersion) && assetsFile.unityVersion != "0.0.0")
+            {
+                SpecifyUnityVersion = assetsFile.unityVersion;
+            }
+
             if (assetsFile.IsVersionStripped && string.IsNullOrEmpty(SpecifyUnityVersion))
             {
                 throw new Exception("The Unity version has been stripped, please set the version in the options");

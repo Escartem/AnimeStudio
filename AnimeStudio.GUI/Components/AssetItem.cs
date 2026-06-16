@@ -15,6 +15,9 @@ namespace AnimeStudio.GUI
         public string InfoText;
         public string UniqueID;
         public GameObjectTreeNode TreeNode;
+        public bool IsVirtual;
+        public string ExternalPath;
+        public string VirtualContent;
 
         public AssetItem(Object asset)
         {
@@ -26,6 +29,21 @@ namespace AnimeStudio.GUI
             m_PathID = asset.m_PathID;
             FullSize = asset.byteSize;
             Hash = asset.GetHash();
+        }
+
+        public AssetItem(string name, ClassIDType type, string externalPath, long fullSize, string container = "")
+        {
+            Asset = null;
+            SourceFile = null;
+            Text = name;
+            Type = type;
+            TypeString = type.ToString();
+            m_PathID = 0;
+            FullSize = fullSize;
+            Hash = string.Empty;
+            Container = container;
+            IsVirtual = true;
+            ExternalPath = externalPath;
         }
 
         public void SetSubItems()
