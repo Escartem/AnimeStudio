@@ -10,7 +10,9 @@
   </Project>
   <Project Path="AnimeStudio.FBXWrapper/AnimeStudio.FBXWrapper.csproj" />
   <Project Path="AnimeStudio.GUI/AnimeStudio.GUI.csproj" />
-  <Project Path="AnimeStudio.Oodle/AnimeStudio.Ooz.vcxproj" Id="b6748219-a0e7-46bb-ae38-5343961cb36a" />
+  <Project Path="AnimeStudio.Oodle/AnimeStudio.Ooz.vcxproj" Id="b6748219-a0e7-46bb-ae38-5343961cb36a">
+    <Build Project="false" />
+  </Project>
   <Project Path="AnimeStudio.Patcher/AnimeStudio.Patcher.csproj" />
   <Project Path="AnimeStudio.PInvoke/AnimeStudio.PInvoke.csproj" />
   <Project Path="AnimeStudio.Utility/AnimeStudio.Utility.csproj" />
