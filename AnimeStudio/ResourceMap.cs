@@ -3,6 +3,9 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using MemoryPack;
+using MemoryPack.Streaming;
 
 namespace AnimeStudio
 {
@@ -31,27 +34,46 @@ namespace AnimeStudio
                 Logger.Info(string.Format("Parsing...."));
                 try
                 {
-                    var extension = Path.GetExtension(path).ToLower();
-                    using var stream = File.OpenRead(path);
-                    
-                    if (extension == ".map")
-                    {
-                        // Deserialize map
-                        Instance = MessagePackSerializer.Deserialize<AssetMap>(stream, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
-                    }
-                    else if (extension == ".json")
-                    {
-                        // Deserialize json
-                        using var reader = new StreamReader(stream);
-                        var jsonContent = reader.ReadToEnd();
-                        var parsed = JsonConvert.DeserializeObject<AssetMap>(jsonContent);
+                    string             extension = Path.GetExtension(path).ToLower();
+                    using FileStream   stream    = File.OpenRead(path);
+                    ReadOnlySpan<byte> bytes     = File.ReadAllBytes(path);
 
-                        Instance = new AssetMap
+                    switch(extension)
+                    {
+                        case ".map":
                         {
-                            GameType = parsed.GameType,
-                            AssetEntries = parsed.AssetEntries
-                        };
-                    }   
+                            // Deserialize map
+                            Instance = MessagePackSerializer.Deserialize<AssetMap>
+                                    (stream,
+                                     MessagePackSerializerOptions.Standard.WithCompression
+                                             (MessagePackCompression.Lz4BlockArray));
+                            break;
+                        }
+
+                        case ".json":
+                        {
+                            // Deserialize json
+                            using var reader      = new StreamReader(stream);
+                            string    jsonContent = reader.ReadToEnd();
+                            AssetMap  parsed      = JsonConvert.DeserializeObject<AssetMap>(jsonContent);
+
+                            Instance = new AssetMap
+                            {
+                                    GameType     = parsed.GameType,
+                                    AssetEntries = parsed.AssetEntries
+                            };
+                            break;
+                        }
+                        case ".memory":
+                        {
+                            List<AssetMap> assetMaps = MemoryPackSerializer.Deserialize<List<AssetMap>>
+                                    (bytes);
+
+                            AssetMap assetMap = assetMaps.FirstOrDefault();
+                            Instance = assetMap;
+                            break;
+                        }
+                    }
                 }
                 catch (Exception e)
                 {

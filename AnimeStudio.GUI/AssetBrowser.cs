@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -16,17 +15,17 @@ namespace AnimeStudio.GUI
 {
     partial class AssetBrowser : Form
     {
-        private readonly MainForm _parent;
-        private readonly List<AssetEntry> _assetEntries;
-        private readonly List<AssetEntry> _backupAssetEntries;
-        private readonly List<AssetEntry> _firstAssetEntries;
-        private readonly List<AssetEntry> _secondAssetEntries;
+        private readonly List<AssetEntry>          _assetEntries;
+        private readonly List<AssetEntry>          _backupAssetEntries;
         private readonly Dictionary<string, Regex> _filters;
+        private readonly List<AssetEntry>          _firstAssetEntries;
+        private readonly MainForm                  _parent;
+        private readonly List<AssetEntry>          _secondAssetEntries;
+        private          DataGridViewColumn        _sortedColumn;
 
-        private SortOrder _sortOrder;
-        private DataGridViewColumn _sortedColumn;
-        private List<String> types = new();
+        private SortOrder    _sortOrder;
         private List<String> selectedTypes = new();
+        private List<string> types         = new List<string>();
 
         public AssetBrowser(MainForm form)
         {
@@ -44,7 +43,11 @@ namespace AnimeStudio.GUI
         {
             loadAssetMap.Enabled = false;
 
-            var openFileDialog = new OpenFileDialog() { Multiselect = false, Filter = "MessagePack AssetMap File|*.map|JSON AssetMap File|*.json" };
+            var openFileDialog = new OpenFileDialog
+            {
+                    Multiselect = false, Filter = "MessagePack AssetMap File|*" +
+                                                  ".map|JSON AssetMap File|*.json|MemoryPack AssetMap File|*.memory"
+            };
             if (openFileDialog.ShowDialog(this) == DialogResult.OK)
             {
                 try
@@ -172,12 +175,14 @@ namespace AnimeStudio.GUI
             _parent.TopMost = false;
             _parent.Focus();
         }
+
         private void clear_Click(object sender, EventArgs e)
         {
             Clear();
             updateButtons();
             Logger.Info($"Cleared !!");
         }
+
         private void loadSelected_Click(object sender, EventArgs e)
         {
             var files = assetDataGridView.SelectedRows.Cast<DataGridViewRow>()
@@ -210,6 +215,7 @@ namespace AnimeStudio.GUI
                 _parent.Invoke(() => _parent.LoadPaths(files, filePaths.ToArray()));
             }
         }
+
         private async void exportSelected_Click(object sender, EventArgs e)
         {
             var saveFolderDialog = new OpenFolderDialog();
@@ -245,6 +251,7 @@ namespace AnimeStudio.GUI
                 StatusStripUpdate = statusStripUpdate;
             }
         }
+
         private void BuildAssetData(List<AssetItem> exportableAssets, AssetEntry[] entries)
         {
             var objectAssetItemDic = new Dictionary<Object, AssetItem>();
@@ -284,6 +291,7 @@ namespace AnimeStudio.GUI
             exportableAssets.Clear();
             exportableAssets.AddRange(matches);
         }
+
         private void ProcessAssetData(Object asset, List<AssetItem> exportableAssets, Dictionary<Object, AssetItem> objectAssetItemDic, List<(PPtr<Object>, string)> mihoyoBinDataNames, List<(PPtr<Object>, string)> containers)
         {
             var assetItem = new AssetItem(asset);
@@ -388,6 +396,7 @@ namespace AnimeStudio.GUI
             assetDataGridView.RowCount = _assetEntries.Count;
             assetDataGridView.Refresh();
         }
+
         private void TryAddFilter(string name, string value)
         {
             Regex regex;
@@ -410,6 +419,7 @@ namespace AnimeStudio.GUI
                 _filters[name] = regex;
             }
         }
+
         private void NameTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (sender is TextBox textBox && e.KeyChar == (char)Keys.Enter)
@@ -417,6 +427,7 @@ namespace AnimeStudio.GUI
                 FilterAssetDataGrid();
             }
         }
+
         private void ContainerTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (sender is TextBox textBox && e.KeyChar == (char)Keys.Enter)
@@ -424,6 +435,7 @@ namespace AnimeStudio.GUI
                 FilterAssetDataGrid();
             }
         }
+
         private void SourceTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (sender is TextBox textBox && e.KeyChar == (char)Keys.Enter)
@@ -431,6 +443,7 @@ namespace AnimeStudio.GUI
                 FilterAssetDataGrid();
             }
         }
+
         private void PathTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (sender is TextBox textBox && e.KeyChar == (char)Keys.Enter)
@@ -438,6 +451,7 @@ namespace AnimeStudio.GUI
                 FilterAssetDataGrid();
             }
         }
+
         private void HashTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (sender is TextBox textBox && e.KeyChar == (char)Keys.Enter)
@@ -445,6 +459,7 @@ namespace AnimeStudio.GUI
                 FilterAssetDataGrid();
             }
         }
+
         private void AssetDataGridView_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
         {
             if (_assetEntries.Count != 0 && e.RowIndex <= _assetEntries.Count)
@@ -462,6 +477,7 @@ namespace AnimeStudio.GUI
                 };
             }
         }
+
         private void AssetListView_ColumnHeaderMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
             if (e.ColumnIndex <= assetDataGridView.Columns.Count)
@@ -511,11 +527,13 @@ namespace AnimeStudio.GUI
                 assetDataGridView.Refresh();
             }
         }
+
         private void AssetBrowser_FormClosing(object sender, FormClosingEventArgs e)
         {
             Clear();
             base.OnClosing(e);
         }
+
         public void Clear()
         {
             ResourceMap.Clear();
@@ -699,7 +717,5 @@ namespace AnimeStudio.GUI
 
             popup.ShowDialog(this);
         }
-
-       
     }
 }

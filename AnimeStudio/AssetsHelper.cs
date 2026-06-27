@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using MemoryPack;
 using MemoryPack.Streaming;
 using MessagePack;
 using Newtonsoft.Json;
@@ -615,12 +616,10 @@ namespace AnimeStudio
                 case ExportListType.MemoryPack:
                 {
                     using FileStream stream = File.OpenRead(mapName);
-                    ValueTask<List<AssetMap>> assetMaps = MemoryPackStreamingSerializer.DeserializeAsync<AssetMap>
-                            (stream).ToListAsync();
+                    AssetMap assetMap = MemoryPackStreamingSerializer.DeserializeAsync<AssetMap>
+                            (stream).FirstAsync().GetAwaiter().GetResult();
 
-                    foreach (AssetMap assetMap in assetMaps.GetAwaiter().GetResult())
-                    {
-                        foreach (AssetEntry entry in assetMap.AssetEntries)
+                    foreach (AssetEntry entry in assetMap.AssetEntries)
                         {
                             if(entry == null) continue;
 
@@ -633,7 +632,7 @@ namespace AnimeStudio
                             if(isNameMatch && isContainerMatch && isTypeMatch)
                                 matches.Add(entry.Source ?? string.Empty);
                         }
-                    }
+                    
                 }
                     break;
             }
@@ -738,17 +737,17 @@ namespace AnimeStudio
                              if(exportListType.HasFlag(ExportListType.MemoryPack))
                              {
                                  filename = Path.Combine(savePath, $"{name}.memory");
-                                 using FileStream file = File.Create(filename);
                                  var assetMap = new AssetMap
                                  {
                                          GameType     = game.Type,
                                          AssetEntries = toExportAssets
                                  };
-                                 await MemoryPackStreamingSerializer.SerializeAsync
-                                         (file,
-                                          toExportAssets.Count,
-                                          toExportAssets,
-                                          10000);
+
+                                 var assetMaps = new List<AssetMap>();
+                                 assetMaps.Add(assetMap);
+
+                                 byte[] data = MemoryPackSerializer.Serialize(assetMaps);
+                                 File.WriteAllBytes(filename, data);
                              }
 
                              Logger.Info($"Finished buidling AssetMap with {toExportAssets.Count} assets.");
