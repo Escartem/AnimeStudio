@@ -1,16 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Collections.Generic;
-using System.Threading;
-using System.Globalization;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json;
-using System.Text.RegularExpressions;
-using System.Xml;
 using System.Text;
-using MessagePack;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using MemoryPack.Streaming;
+using MessagePack;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace AnimeStudio
 {
@@ -18,7 +20,7 @@ namespace AnimeStudio
     {
         public const string MapName = "Maps";
 
-        public static bool Minimal = true;
+        public static bool                    Minimal     = true;
         public static CancellationTokenSource tokenSource = new CancellationTokenSource();
 
         private static string BaseFolder = "";
@@ -27,13 +29,6 @@ namespace AnimeStudio
         private static AssetsManager assetsManager = new AssetsManager() { Silent = true, SkipProcess = true, ResolveDependencies = false };
 
         public static Dictionary<ulong, string> Paths { get; set; } = new Dictionary<ulong, string>();
-
-        public record Entry
-        {
-            public string Path { get; set; }
-            public long Offset { get; set; }
-            public List<string> Dependencies { get; set; }
-        }
 
         public static void SetUnityVersion(string version)
         {
@@ -317,7 +312,7 @@ namespace AnimeStudio
                 };
                 CABMap.Add(cab, entry);
             }
-        } 
+        }
 
         public static async Task BuildAssetMap(string[] files, string mapName, Game game, string savePath, ExportListType exportListType, ClassIDType[] typeFilters = null, Regex[] nameFilters = null, Regex[] containerFilters = null)
         {
@@ -527,7 +522,12 @@ namespace AnimeStudio
             }));
         }
 
-        public static string[] ParseAssetMap(string mapName, ExportListType mapType, ClassIDType[] typeFilter, Regex[] nameFilter, Regex[] containerFilter)
+        public static string[] ParseAssetMap
+        (string mapName,
+         ExportListType mapType,
+         ClassIDType[] typeFilter,
+         Regex[] nameFilter,
+         Regex[] containerFilter)
         {
             var matches = new HashSet<string>();
 
@@ -595,7 +595,7 @@ namespace AnimeStudio
                         using var file = new StreamReader(stream);
                         using var reader = new JsonTextReader(file);
 
-                        var serializer = new JsonSerializer() { Formatting = Newtonsoft.Json.Formatting.Indented };
+                        var serializer = new JsonSerializer { Formatting = Formatting.Indented };
                         serializer.Converters.Add(new StringEnumConverter());
 
                         var entries = serializer.Deserialize<List<AssetEntry>>(reader);
@@ -610,10 +610,34 @@ namespace AnimeStudio
                             }
                         }
                     }
+                    
+                    break;
+                case ExportListType.MemoryPack:
+                {
+                    using FileStream stream = File.OpenRead(mapName);
+                    ValueTask<List<AssetMap>> assetMaps = MemoryPackStreamingSerializer.DeserializeAsync<AssetMap>
+                            (stream).ToListAsync();
 
+                    foreach (AssetMap assetMap in assetMaps.GetAwaiter().GetResult())
+                    {
+                        foreach (AssetEntry entry in assetMap.AssetEntries)
+                        {
+                            if(entry == null) continue;
+
+                            bool isNameMatch = nameFilter.Length == 0 || nameFilter.Any
+                                    (x => x.IsMatch(entry.Name ?? string.Empty));
+                            bool isContainerMatch = containerFilter.Length == 0 || containerFilter.Any
+                                    (x => x.IsMatch(entry.Container ?? string.Empty));
+                            bool isTypeMatch = typeFilter.Length == 0 || typeFilter.Any(x => x == entry.Type);
+
+                            if(isNameMatch && isContainerMatch && isTypeMatch)
+                                matches.Add(entry.Source ?? string.Empty);
+                        }
+                    }
+                }
                     break;
             }
-
+            
             return matches.ToArray();
         }
 
@@ -648,72 +672,90 @@ namespace AnimeStudio
 
         private static Task ExportAssetsMap(List<AssetEntry> toExportAssets, Game game, string name, string savePath, ExportListType exportListType)
         {
-            return Task.Run(() =>
-            {
-                Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+            return Task.Run
+                    (async () =>
+                     {
+                         Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 
-                Progress.Reset();
+                         Progress.Reset();
 
-                string filename = string.Empty;
-                if (exportListType.Equals(ExportListType.None))
-                {
-                    Logger.Info($"No export list type has been selected, skipping...");
-                }
-                else
-                {
-                    if (exportListType.HasFlag(ExportListType.XML))
-                    {
-                        filename = Path.Combine(savePath, $"{name}.xml");
-                        var xmlSettings = new XmlWriterSettings() { Indent = true };
-                        using XmlWriter writer = XmlWriter.Create(filename, xmlSettings);
-                        writer.WriteStartDocument();
-                        writer.WriteStartElement("Assets");
-                        writer.WriteAttributeString("filename", filename);
-                        writer.WriteAttributeString("createdAt", DateTime.UtcNow.ToString("s"));
-                        foreach (var asset in toExportAssets)
-                        {
-                            writer.WriteStartElement("Asset");
-                            writer.WriteElementString("Name", asset.Name);
-                            writer.WriteElementString("Container", asset.Container);
-                            writer.WriteStartElement("Type");
-                            writer.WriteAttributeString("id", ((int)asset.Type).ToString());
-                            writer.WriteValue(asset.Type.ToString());
-                            writer.WriteEndElement();
-                            writer.WriteElementString("PathID", asset.PathID.ToString());
-                            writer.WriteElementString("Source", asset.Source);
-                            writer.WriteEndElement();
-                        }
-                        writer.WriteEndElement();
-                        writer.WriteEndDocument();
-                    }
-                    if (exportListType.HasFlag(ExportListType.JSON))
-                    {
-                        filename = Path.Combine(savePath, $"{name}.json");
-                        using StreamWriter file = File.CreateText(filename);
-                        var serializer = new JsonSerializer() { Formatting = Newtonsoft.Json.Formatting.Indented };
-                        serializer.Converters.Add(new StringEnumConverter());
-                        serializer.Serialize(file, new
-                        {
-                            GameType = game.Type,
-                            AssetEntries = toExportAssets
-                        });
-                    }
-                    if (exportListType.HasFlag(ExportListType.MessagePack))
-                    {
-                        filename = Path.Combine(savePath, $"{name}.map");
-                        using var file = File.Create(filename);
-                        var assetMap = new AssetMap
-                        {
-                            GameType = game.Type,
-                            AssetEntries = toExportAssets
-                        };
-                        MessagePackSerializer.Serialize(file, assetMap, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
-                    }
+                         string filename = string.Empty;
+                         if (exportListType.Equals(ExportListType.None))
+                         {
+                             Logger.Info($"No export list type has been selected, skipping...");
+                         }
+                         else
+                         {
+                             if (exportListType.HasFlag(ExportListType.XML))
+                             {
+                                 filename = Path.Combine(savePath, $"{name}.xml");
+                                 var xmlSettings = new XmlWriterSettings() { Indent = true };
+                                 using XmlWriter writer = XmlWriter.Create(filename, xmlSettings);
+                                 writer.WriteStartDocument();
+                                 writer.WriteStartElement("Assets");
+                                 writer.WriteAttributeString("filename", filename);
+                                 writer.WriteAttributeString("createdAt", DateTime.UtcNow.ToString("s"));
+                                 foreach (var asset in toExportAssets)
+                                 {
+                                     writer.WriteStartElement("Asset");
+                                     writer.WriteElementString("Name", asset.Name);
+                                     writer.WriteElementString("Container", asset.Container);
+                                     writer.WriteStartElement("Type");
+                                     writer.WriteAttributeString("id", ((int)asset.Type).ToString());
+                                     writer.WriteValue(asset.Type.ToString());
+                                     writer.WriteEndElement();
+                                     writer.WriteElementString("PathID", asset.PathID.ToString());
+                                     writer.WriteElementString("Source", asset.Source);
+                                     writer.WriteEndElement();
+                                 }
+                                 writer.WriteEndElement();
+                                 writer.WriteEndDocument();
+                             }
+                             if (exportListType.HasFlag(ExportListType.JSON))
+                             {
+                                 filename = Path.Combine(savePath, $"{name}.json");
+                                 using StreamWriter file       = File.CreateText(filename);
+                                 var serializer = new JsonSerializer { Formatting = Formatting.Indented };
+                                 serializer.Converters.Add(new StringEnumConverter());
+                                 serializer.Serialize(file, new
+                                 {
+                                         GameType = game.Type,
+                                         AssetEntries = toExportAssets
+                                 });
+                             }
+                             if (exportListType.HasFlag(ExportListType.MessagePack))
+                             {
+                                 filename = Path.Combine(savePath, $"{name}.map");
+                                 using var file = File.Create(filename);
+                                 var assetMap = new AssetMap
+                                 {
+                                         GameType = game.Type,
+                                         AssetEntries = toExportAssets
+                                 };
+                                 MessagePackSerializer.Serialize(file, assetMap, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
+                             }
 
-                    Logger.Info($"Finished buidling AssetMap with {toExportAssets.Count} assets.");
-                }
-            });
+                             if(exportListType.HasFlag(ExportListType.MemoryPack))
+                             {
+                                 filename = Path.Combine(savePath, $"{name}.memory");
+                                 using FileStream file = File.Create(filename);
+                                 var assetMap = new AssetMap
+                                 {
+                                         GameType     = game.Type,
+                                         AssetEntries = toExportAssets
+                                 };
+                                 await MemoryPackStreamingSerializer.SerializeAsync
+                                         (file,
+                                          toExportAssets.Count,
+                                          toExportAssets,
+                                          10000);
+                             }
+
+                             Logger.Info($"Finished buidling AssetMap with {toExportAssets.Count} assets.");
+                         }
+                     });
         }
+
         public static async Task BuildBoth(string[] files, string mapName, string baseFolder, Game game, string savePath, ExportListType exportListType, ClassIDType[] typeFilters = null, Regex[] nameFilters = null, Regex[] containerFilters = null)
         {
             Logger.Info($"Building Both...");
@@ -735,5 +777,16 @@ namespace AnimeStudio
             Logger.Info($"Map build successfully !! {collision} collisions found");
             await ExportAssetsMap(assets, game, mapName, savePath, exportListType);
         }
+
+        #region Nested type: Entry
+
+        public record Entry
+        {
+            public string       Path         { get; set; }
+            public long         Offset       { get; set; }
+            public List<string> Dependencies { get; set; }
+        }
+
+        #endregion
     }
 }

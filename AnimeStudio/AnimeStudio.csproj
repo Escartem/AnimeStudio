@@ -11,8 +11,10 @@
         <PackageReference Include="Kyaru.Texture2DDecoder" Version="0.17.1"/>
         <PackageReference Include="Kyaru.Texture2DDecoder.Windows" Version="0.2.0"/>
 		<PackageReference Include="MemoryPack" Version="1.21.4"/>
+		<PackageReference Include="MemoryPack.Streaming" Version="1.21.4"/>
         <PackageReference Include="MessagePack" Version="3.1.7"/>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="System.Linq.Async" Version="7.0.1"/>
         <PackageReference Include="ZstdSharp.Port" Version="0.8.8"/>
 		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7"/>
 	</ItemGroup>

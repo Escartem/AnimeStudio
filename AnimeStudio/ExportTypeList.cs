@@ -8,6 +8,7 @@ namespace AnimeStudio
         None,
         MessagePack,
         XML,
-        JSON = 4,
+        JSON       = 4,
+        MemoryPack = 8
     }
 }
