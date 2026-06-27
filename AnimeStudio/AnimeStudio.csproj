@@ -10,6 +10,7 @@
 		<PackageReference Include="K4os.Hash.xxHash" Version="1.0.8" />
         <PackageReference Include="Kyaru.Texture2DDecoder" Version="0.17.1"/>
         <PackageReference Include="Kyaru.Texture2DDecoder.Windows" Version="0.2.0"/>
+		<PackageReference Include="MemoryPack" Version="1.21.4"/>
         <PackageReference Include="MessagePack" Version="3.1.7"/>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
         <PackageReference Include="ZstdSharp.Port" Version="0.8.8"/>
