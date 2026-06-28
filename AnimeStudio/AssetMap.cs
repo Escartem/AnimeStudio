@@ -20,6 +20,11 @@ namespace AnimeStudio
             _cache.Add(value);
             return value;
         }
+
+        public static void Clear()
+        {
+            _cache.Clear();
+        }
     }
 
     [MessagePackObject, MemoryPackable]
@@ -67,7 +72,7 @@ namespace AnimeStudio
         [Key(5)]
         public string Hash {
             get => _hash;
-            set => _hash = StringCache.Get(value);
+            set => _hash = value;
         }
 
         [Key(6)]

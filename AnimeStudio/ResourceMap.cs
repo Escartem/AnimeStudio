@@ -37,13 +37,14 @@ namespace AnimeStudio
                     string             extension = Path.GetExtension(path).ToLower();
                     using FileStream   stream    = File.OpenRead(path);
                     ReadOnlySpan<byte> bytes     = File.ReadAllBytes(path);
+                    AssetMap           newMap    = null;
 
                     switch(extension)
                     {
                         case ".map":
                         {
                             // Deserialize map
-                            Instance = MessagePackSerializer.Deserialize<AssetMap>
+                            newMap = MessagePackSerializer.Deserialize<AssetMap>
                                     (stream,
                                      MessagePackSerializerOptions.Standard.WithCompression
                                              (MessagePackCompression.Lz4BlockArray));
@@ -57,7 +58,7 @@ namespace AnimeStudio
                             string    jsonContent = reader.ReadToEnd();
                             AssetMap  parsed      = JsonConvert.DeserializeObject<AssetMap>(jsonContent);
 
-                            Instance = new AssetMap
+                            newMap = new AssetMap
                             {
                                     GameType     = parsed.GameType,
                                     AssetEntries = parsed.AssetEntries
@@ -70,10 +71,19 @@ namespace AnimeStudio
                                     (bytes);
 
                             AssetMap assetMap = assetMaps.FirstOrDefault();
-                            Instance = assetMap;
+                            newMap = assetMap;
                             break;
                         }
                     }
+
+                    if (newMap == null)
+                    {
+                        Logger.Error("AssetMap was not loaded");
+                        return -1;
+                    }
+
+                    StringCache.Clear();
+                    Instance = newMap;
                 }
                 catch (Exception e)
                 {
@@ -94,6 +104,7 @@ namespace AnimeStudio
         {
             Instance.GameType = GameType.Normal;
             Instance.AssetEntries = new List<AssetEntry>();
+            StringCache.Clear();
         }
     }
 }
