@@ -64,6 +64,8 @@ namespace AnimeStudio.GUI
                     _sortedColumn = null;
 
                     _firstAssetEntries.Clear();
+                    _secondAssetEntries.Clear();
+                    _backupAssetEntries.Clear();
                     _firstAssetEntries.AddRange(ResourceMap.GetEntries());
 
                     updateDisplay();
@@ -538,6 +540,11 @@ namespace AnimeStudio.GUI
         {
             ResourceMap.Clear();
             _assetEntries.Clear();
+            _backupAssetEntries.Clear();
+            _firstAssetEntries.Clear();
+            _secondAssetEntries.Clear();
+            selectedTypes.Clear();
+            types.Clear();
             assetDataGridView.Rows.Clear();
         }
 
