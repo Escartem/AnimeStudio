@@ -486,34 +486,33 @@ namespace AnimeStudio.GUI
         {
             foreach (var pptr in gameObject.m_Components)
             {
-                if (pptr.TryGet(out var m_Component))
+                if (!pptr.TryGet(out var m_Component))
                 {
-                    if (context.ObjectAssetItems.TryGetValue(m_Component, out var componentAssetItem))
-                    {
-                        componentAssetItem.TreeNode = currentNode;
-                    }
-
-                    if (m_Component is MeshFilter m_MeshFilter)
-                    {
-                        if (m_MeshFilter.m_Mesh.TryGet(out var m_Mesh))
-                        {
-                            if (context.ObjectAssetItems.TryGetValue(m_Mesh, out var meshAssetItem))
-                            {
-                                meshAssetItem.TreeNode = currentNode;
-                            }
-                        }
-                    }
-                    else if (m_Component is SkinnedMeshRenderer m_SkinnedMeshRenderer)
-                    {
-                        if (m_SkinnedMeshRenderer.m_Mesh.TryGet(out var m_Mesh))
-                        {
-                            if (context.ObjectAssetItems.TryGetValue(m_Mesh, out var meshAssetItem))
-                            {
-                                meshAssetItem.TreeNode = currentNode;
-                            }
-                        }
-                    }
+                    continue;
                 }
+
+                AssignTreeNode(m_Component, currentNode, context);
+                AssignMeshTreeNode(m_Component, currentNode, context);
+            }
+        }
+
+        private static void AssignTreeNode(Object asset, GameObjectTreeNode currentNode, AssetDataBuildContext context)
+        {
+            if (context.ObjectAssetItems.TryGetValue(asset, out var assetItem))
+            {
+                assetItem.TreeNode = currentNode;
+            }
+        }
+
+        private static void AssignMeshTreeNode(Object component, GameObjectTreeNode currentNode, AssetDataBuildContext context)
+        {
+            if (component is MeshFilter m_MeshFilter && m_MeshFilter.m_Mesh.TryGet(out var meshFromFilter))
+            {
+                AssignTreeNode(meshFromFilter, currentNode, context);
+            }
+            else if (component is SkinnedMeshRenderer m_SkinnedMeshRenderer && m_SkinnedMeshRenderer.m_Mesh.TryGet(out var meshFromRenderer))
+            {
+                AssignTreeNode(meshFromRenderer, currentNode, context);
             }
         }
 
