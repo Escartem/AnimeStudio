@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using MemoryPack;
 using MessagePack;
@@ -36,6 +35,18 @@ namespace AnimeStudio
     [MessagePackObject, MemoryPackable]
     public partial record AssetEntry
     {
+        private static readonly Dictionary<string, Func<AssetEntry, string>> PropertyExtractors = new
+                Dictionary<string, Func<AssetEntry, string>>(StringComparer.OrdinalIgnoreCase)
+                {
+                        { nameof(Name), r => r.Name },
+                        { nameof(Container), r => r.Container },
+                        { nameof(Source), r => r.Source },
+                        { nameof(PathID), r => r.PathID.ToString() },
+                        { nameof(Type), r => r.Type.ToString() },
+                        { nameof(Hash), r => r.Hash ?? string.Empty },
+                        { "SHA256Hash", r => r.Hash ?? string.Empty }
+                };
+
         private string _container;
         private string _hash;
         private string _name;
@@ -76,20 +87,20 @@ namespace AnimeStudio
 
         public bool Matches(Dictionary<string, Regex> filters)
         {
-            var matches = new List<bool>();
-            foreach(var filter in filters)
+            if(filters is null || filters.Count == 0)
+                return true;
+
+            foreach (KeyValuePair<string, Regex> kvp in filters)
             {
-                matches.Add(filter.Key switch
-                {
-                    string value when value.Equals(nameof(Name), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Name),
-                    string value when value.Equals(nameof(Container), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Container),
-                    string value when value.Equals(nameof(Source), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Source),
-                    string value when value.Equals(nameof(PathID), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(PathID.ToString()),
-                    string value when value.Equals(nameof (Type), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Type.ToString()),
-                    string value when value.Equals(nameof(Hash), StringComparison.OrdinalIgnoreCase) || value.Equals("SHA256Hash", StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Hash ?? String.Empty)
-                });
+                if(!PropertyExtractors.TryGetValue(kvp.Key, out Func<AssetEntry, string> extractor))
+                    return false;
+
+
+                if(!kvp.Value.IsMatch(extractor(this)))
+                    return false;
             }
-            return matches.Count(x => x == true) == filters.Count;
+
+            return true;
         }
     }
 }
