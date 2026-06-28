@@ -557,25 +557,30 @@ namespace AnimeStudio.GUI
                         continue;
                     }
 
-                    var assetItem = new AssetItem(asset);
-
-                    context.ObjectAssetItems.Add(asset, assetItem);
-                    assetItem.UniqueID = "#" + i;
-                    var exportable = ConfigureAssetItemAndReturnExportable(asset, assetItem, context);
-
-                    if (assetItem.Text == "")
-                    {
-                        assetItem.Text = assetItem.TypeString + assetItem.UniqueID;
-                    }
-                    if (displayAll || exportable)
-                    {
-                        exportableAssets.Add(assetItem);
-                    }
+                    AddAssetItem(asset, context, displayAll, i);
                     Progress.Report(++i, context.ObjectCount);
                 }
             }
 
             return true;
+        }
+
+        private static void AddAssetItem(Object asset, AssetDataBuildContext context, bool displayAll, int index)
+        {
+            var assetItem = new AssetItem(asset);
+
+            context.ObjectAssetItems.Add(asset, assetItem);
+            assetItem.UniqueID = "#" + index;
+            var exportable = ConfigureAssetItemAndReturnExportable(asset, assetItem, context);
+
+            if (assetItem.Text == "")
+            {
+                assetItem.Text = assetItem.TypeString + assetItem.UniqueID;
+            }
+            if (displayAll || exportable)
+            {
+                exportableAssets.Add(assetItem);
+            }
         }
 
         private static bool ApplyAssetPostProcessing(AssetDataBuildContext context)
