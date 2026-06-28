@@ -15,6 +15,7 @@ namespace AnimeStudio.GUI
         public string InfoText;
         public string UniqueID;
         public GameObjectTreeNode TreeNode;
+        private bool subItemsInitialized;
 
         public AssetItem(Object asset)
         {
@@ -30,6 +31,11 @@ namespace AnimeStudio.GUI
 
         public void SetSubItems()
         {
+            if (subItemsInitialized)
+            {
+                return;
+            }
+
             SubItems.AddRange(new[]
             {
                 Container, //Container
@@ -38,6 +44,28 @@ namespace AnimeStudio.GUI
                 FullSize.ToString(), //Size
                 Hash, //Hash
             });
+            subItemsInitialized = true;
+        }
+
+        public string GetColumnText(int column)
+        {
+            return column switch
+            {
+                0 => Text,
+                1 => Container,
+                2 => TypeString,
+                3 => m_PathID.ToString(),
+                4 => FullSize.ToString(),
+                5 => Hash,
+                _ => string.Empty,
+            };
+        }
+
+        public bool MatchesListSearch(System.Text.RegularExpressions.Regex regex)
+        {
+            return regex.IsMatch(Text)
+                || regex.IsMatch(Container)
+                || regex.IsMatch(m_PathID.ToString());
         }
     }
 }

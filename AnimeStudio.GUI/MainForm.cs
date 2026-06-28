@@ -716,7 +716,9 @@ namespace AnimeStudio.GUI
         {
             if (e.ItemIndex < visibleAssets.Count)
             {
-                e.Item = visibleAssets[e.ItemIndex];
+                var item = visibleAssets[e.ItemIndex];
+                item.SetSubItems();
+                e.Item = item;
             }
         }
 
@@ -914,8 +916,8 @@ namespace AnimeStudio.GUI
             {
                 visibleAssets.Sort((a, b) =>
                 {
-                    var at = a.SubItems[sortColumn].Text;
-                    var bt = b.SubItems[sortColumn].Text;
+                    var at = a.GetColumnText(sortColumn);
+                    var bt = b.GetColumnText(sortColumn);
                     return reverseSort ? bt.CompareTo(at) : at.CompareTo(bt);
                 });
             }
@@ -2068,10 +2070,7 @@ namespace AnimeStudio.GUI
                     listSearch.Text = "";
                 }
                 var regex = new Regex(listSearch.Text, RegexOptions.IgnoreCase);
-                visibleAssets = visibleAssets.FindAll(
-                    x => regex.IsMatch(x.Text) ||
-                    regex.IsMatch(x.SubItems[1].Text) ||
-                    regex.IsMatch(x.SubItems[3].Text));
+                visibleAssets = visibleAssets.FindAll(x => x.MatchesListSearch(regex));
             }
             assetListView.VirtualListSize = visibleAssets.Count;
             assetListView.EndUpdate();
@@ -2228,7 +2227,10 @@ namespace AnimeStudio.GUI
                             if (!string.IsNullOrEmpty(path))
                             {
                                 asset.Container = path;
-                                asset.SubItems[1].Text = path;
+                                if (asset.SubItems.Count > 1)
+                                {
+                                    asset.SubItems[1].Text = path;
+                                }
                                 if (asset.Type == ClassIDType.MiHoYoBinData)
                                 {
                                     asset.Text = Path.GetFileNameWithoutExtension(path);

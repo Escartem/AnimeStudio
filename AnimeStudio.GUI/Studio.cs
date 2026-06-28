@@ -670,16 +670,6 @@ namespace AnimeStudio.GUI
                     UpdateContainers();
                 }
             }
-            foreach (var tmp in exportableAssets)
-            {
-                if (assetsManager.tokenSource.IsCancellationRequested)
-                {
-                    Logger.Info("Processing subitems been cancelled !!");
-                    return false;
-                }
-                tmp.SetSubItems();
-            }
-
             return true;
         }
 
