@@ -165,19 +165,32 @@ namespace AnimeStudio
 
         public string ReadStringToNull(int maxLength = 32767)
         {
-            var bytes = new List<byte>();
-            int count = 0;
-            while (Remaining > 0 && count < maxLength)
+            var length = (int)Math.Min(Remaining, maxLength);
+            if (length <= 0)
             {
-                var b = ReadByte();
-                if (b == 0)
-                {
-                    break;
-                }
-                bytes.Add(b);
-                count++;
+                return string.Empty;
             }
-            return Encoding.UTF8.GetString(bytes.ToArray());
+
+            var bytes = ArrayPool<byte>.Shared.Rent(length);
+            var count = 0;
+            try
+            {
+                while (count < length)
+                {
+                    var b = ReadByte();
+                    if (b == 0)
+                    {
+                        break;
+                    }
+                    bytes[count++] = b;
+                }
+
+                return Encoding.UTF8.GetString(bytes, 0, count);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(bytes);
+            }
         }
 
         public Quaternion ReadQuaternion()
