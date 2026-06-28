@@ -459,18 +459,18 @@ namespace AnimeStudio.GUI
             {
                 if (pptr.TryGet(out var m_Component))
                 {
-                    if (context.ObjectAssetItems.ContainsKey(m_Component))
+                    if (context.ObjectAssetItems.TryGetValue(m_Component, out var componentAssetItem))
                     {
-                        context.ObjectAssetItems[m_Component].TreeNode = currentNode;
+                        componentAssetItem.TreeNode = currentNode;
                     }
 
                     if (m_Component is MeshFilter m_MeshFilter)
                     {
                         if (m_MeshFilter.m_Mesh.TryGet(out var m_Mesh))
                         {
-                            if (context.ObjectAssetItems.ContainsKey(m_Mesh))
+                            if (context.ObjectAssetItems.TryGetValue(m_Mesh, out var meshAssetItem))
                             {
-                                context.ObjectAssetItems[m_Mesh].TreeNode = currentNode;
+                                meshAssetItem.TreeNode = currentNode;
                             }
                         }
                     }
@@ -478,9 +478,9 @@ namespace AnimeStudio.GUI
                     {
                         if (m_SkinnedMeshRenderer.m_Mesh.TryGet(out var m_Mesh))
                         {
-                            if (context.ObjectAssetItems.ContainsKey(m_Mesh))
+                            if (context.ObjectAssetItems.TryGetValue(m_Mesh, out var meshAssetItem))
                             {
-                                context.ObjectAssetItems[m_Mesh].TreeNode = currentNode;
+                                meshAssetItem.TreeNode = currentNode;
                             }
                         }
                     }
@@ -574,9 +574,9 @@ namespace AnimeStudio.GUI
                     }
                     if (pptr.TryGet(out var obj))
                     {
-                        if (context.ObjectAssetItems.ContainsKey(obj))
+                        if (context.ObjectAssetItems.TryGetValue(obj, out var assetItem))
                         {
-                            context.ObjectAssetItems[obj].Container = container;
+                            assetItem.Container = container;
                         }
                     }
                 }
