@@ -508,6 +508,13 @@ namespace AnimeStudio.GUI
         private static bool BuildExportableAssetItems(AssetDataBuildContext context)
         {
             int i = 0;
+            var displayAll = Properties.Settings.Default.displayAll;
+            var hasFilterData = context.FastAssetFilterKeys.Count > 0;
+            if (displayAll && exportableAssets.Capacity < context.ObjectCount)
+            {
+                exportableAssets.Capacity = context.ObjectCount;
+            }
+
             foreach (var assetsFile in assetsManager.assetsFileList)
             {
                 foreach (var asset in assetsFile.Objects)
@@ -518,12 +525,12 @@ namespace AnimeStudio.GUI
                         return false;
                     }
 
-                    var assetItem = new AssetItem(asset);
-
-                    if (asset is not AssetBundle && asset is not ResourceManager && IsMissingFromFilter(assetItem.SourceFile.fullName, assetItem.Text, assetItem.m_PathID, assetItem.Type, context.FastAssetFilterKeys))
+                    if (hasFilterData && asset is not AssetBundle && asset is not ResourceManager && IsMissingFromFilter(asset.assetsFile.fullName, asset.Name, asset.m_PathID, asset.type, context.FastAssetFilterKeys))
                     {
                         continue;
                     }
+
+                    var assetItem = new AssetItem(asset);
 
                     context.ObjectAssetItems.Add(asset, assetItem);
                     assetItem.UniqueID = "#" + i;
@@ -533,7 +540,7 @@ namespace AnimeStudio.GUI
                     {
                         assetItem.Text = assetItem.TypeString + assetItem.UniqueID;
                     }
-                    if (Properties.Settings.Default.displayAll || exportable)
+                    if (displayAll || exportable)
                     {
                         exportableAssets.Add(assetItem);
                     }
