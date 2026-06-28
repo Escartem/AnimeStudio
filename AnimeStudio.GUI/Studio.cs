@@ -676,11 +676,6 @@ namespace AnimeStudio.GUI
                     default:
                         for (int k = preloadIndex; k < preloadEnd; k++)
                         {
-                            string containerName = m_Container.Key;
-                            if (int.TryParse(m_Container.Key, out _) && Properties.Settings.Default.useBundleContainerName)
-                            {
-                                containerName = context.AssetBundleName;
-                            }
                             try
                             {
                                 context.Containers.Add((assetBundle.m_PreloadTable[k], m_Container.Key));
