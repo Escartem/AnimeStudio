@@ -300,6 +300,8 @@ namespace AnimeStudio.GUI
             }
         }
 
+        #region Build asset data
+
         private sealed class AssetDataBuildContext
         {
             public int ObjectCount { get; }
@@ -754,6 +756,8 @@ namespace AnimeStudio.GUI
             return true;
         }
 
+        #endregion
+
         public static Dictionary<string, SortedDictionary<int, TypeTreeItem>> BuildClassStructure()
         {
             var typeMap = new Dictionary<string, SortedDictionary<int, TypeTreeItem>>();
@@ -795,6 +799,8 @@ namespace AnimeStudio.GUI
             return typeMap;
         }
 
+        #region Export assets
+
         public static Task ExportAssets(string savePath, List<AssetItem> toExportAssets, ExportType exportType, bool openAfterExport)
         {
             return Task.Run(() =>
@@ -805,86 +811,21 @@ namespace AnimeStudio.GUI
                 int exportedCount = 0;
                 int i = 0;
                 Progress.Reset();
+                var assetGroupOption = (AssetGroupOption)Properties.Settings.Default.assetGroupOption;
                 foreach (var asset in toExportAssets)
                 {
-                    string exportPath;
-                    switch ((AssetGroupOption)Properties.Settings.Default.assetGroupOption)
-                    {
-                        case AssetGroupOption.ByType: //type name
-                            exportPath = Path.Combine(savePath, asset.TypeString);
-                            break;
-                        case AssetGroupOption.ByContainer: //container path
-                            if (!string.IsNullOrEmpty(asset.Container))
-                            {
-                                exportPath = Path.HasExtension(asset.Container) ? Path.Combine(savePath, Path.GetDirectoryName(asset.Container)) : Path.Combine(savePath, asset.Container);
-                            }
-                            else
-                            {
-                                exportPath = savePath;
-                            }
-                            break;
-                        case AssetGroupOption.BySource: //source file
-                            if (string.IsNullOrEmpty(asset.SourceFile.originalPath))
-                            {
-                                exportPath = Path.Combine(savePath, asset.SourceFile.fileName + "_export");
-                            }
-                            else
-                            {
-                                exportPath = Path.Combine(savePath, Path.GetFileName(asset.SourceFile.originalPath) + "_export", asset.SourceFile.fileName);
-                            }
-                            break;
-                        default:
-                            exportPath = savePath;
-                            break;
-                    }
-                    exportPath += Path.DirectorySeparatorChar;
+                    var exportPath = GetAssetExportPath(savePath, asset, assetGroupOption);
                     StatusStripUpdate($"[{exportedCount}/{toExportCount}] Exporting {asset.TypeString}: {asset.Text}");
-                    try
+
+                    if (TryExportAsset(asset, exportPath, exportType))
                     {
-                        switch (exportType)
-                        {
-                            case ExportType.Raw:
-                                if (ExportRawFile(asset, exportPath))
-                                {
-                                    exportedCount++;
-                                }
-                                break;
-                            case ExportType.Dump:
-                                if (ExportDumpFile(asset, exportPath))
-                                {
-                                    exportedCount++;
-                                }
-                                break;
-                            case ExportType.Convert:
-                                if (ExportConvertFile(asset, exportPath))
-                                {
-                                    exportedCount++;
-                                }
-                                break;
-                            case ExportType.JSON:
-                                if (ExportJSONFile(asset, exportPath))
-                                {
-                                    exportedCount++;
-                                }
-                                break;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error($"Export {asset.Type}:{asset.Text} error\r\n{ex.Message}\r\n{ex.StackTrace}");
+                        exportedCount++;
                     }
 
                     Progress.Report(++i, toExportCount);
                 }
 
-                var statusText = exportedCount == 0 ? "Nothing exported." : $"Finished exporting {exportedCount} assets.";
-
-                if (toExportCount > exportedCount)
-                {
-                    statusText += $" {toExportCount - exportedCount} assets skipped (not extractable or files already exist)";
-                }
-
-                StatusStripUpdate(statusText);
+                StatusStripUpdate(GetExportAssetsStatus(toExportCount, exportedCount));
 
                 if (openAfterExport && exportedCount > 0)
                 {
@@ -892,6 +833,89 @@ namespace AnimeStudio.GUI
                 }
             });
         }
+
+        private static string GetAssetExportPath(string savePath, AssetItem asset, AssetGroupOption assetGroupOption)
+        {
+            string exportPath;
+            switch (assetGroupOption)
+            {
+                case AssetGroupOption.ByType:
+                    exportPath = Path.Combine(savePath, asset.TypeString);
+                    break;
+                case AssetGroupOption.ByContainer:
+                    exportPath = GetContainerExportPath(savePath, asset);
+                    break;
+                case AssetGroupOption.BySource:
+                    exportPath = GetSourceExportPath(savePath, asset);
+                    break;
+                default:
+                    exportPath = savePath;
+                    break;
+            }
+
+            return exportPath + Path.DirectorySeparatorChar;
+        }
+
+        private static string GetContainerExportPath(string savePath, AssetItem asset)
+        {
+            if (string.IsNullOrEmpty(asset.Container))
+            {
+                return savePath;
+            }
+
+            return Path.HasExtension(asset.Container)
+                ? Path.Combine(savePath, Path.GetDirectoryName(asset.Container))
+                : Path.Combine(savePath, asset.Container);
+        }
+
+        private static string GetSourceExportPath(string savePath, AssetItem asset)
+        {
+            if (string.IsNullOrEmpty(asset.SourceFile.originalPath))
+            {
+                return Path.Combine(savePath, asset.SourceFile.fileName + "_export");
+            }
+
+            return Path.Combine(savePath, Path.GetFileName(asset.SourceFile.originalPath) + "_export", asset.SourceFile.fileName);
+        }
+
+        private static bool TryExportAsset(AssetItem asset, string exportPath, ExportType exportType)
+        {
+            try
+            {
+                switch (exportType)
+                {
+                    case ExportType.Raw:
+                        return ExportRawFile(asset, exportPath);
+                    case ExportType.Dump:
+                        return ExportDumpFile(asset, exportPath);
+                    case ExportType.Convert:
+                        return ExportConvertFile(asset, exportPath);
+                    case ExportType.JSON:
+                        return ExportJSONFile(asset, exportPath);
+                    default:
+                        return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Export {asset.Type}:{asset.Text} error\r\n{ex.Message}\r\n{ex.StackTrace}");
+                return false;
+            }
+        }
+
+        private static string GetExportAssetsStatus(int toExportCount, int exportedCount)
+        {
+            var statusText = exportedCount == 0 ? "Nothing exported." : $"Finished exporting {exportedCount} assets.";
+
+            if (toExportCount > exportedCount)
+            {
+                statusText += $" {toExportCount - exportedCount} assets skipped (not extractable or files already exist)";
+            }
+
+            return statusText;
+        }
+
+        #endregion
 
         public static Task ExportAssetsList(string savePath, List<AssetItem> toExportAssets, ExportListType exportListType)
         {
