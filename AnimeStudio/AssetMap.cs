@@ -35,18 +35,6 @@ namespace AnimeStudio
     [MessagePackObject, MemoryPackable]
     public partial record AssetEntry
     {
-        private static readonly Dictionary<string, Func<AssetEntry, string>> PropertyExtractors = new
-                Dictionary<string, Func<AssetEntry, string>>(StringComparer.OrdinalIgnoreCase)
-                {
-                        { nameof(Name), r => r.Name },
-                        { nameof(Container), r => r.Container },
-                        { nameof(Source), r => r.Source },
-                        { nameof(PathID), r => r.PathID.ToString() },
-                        { nameof(Type), r => r.Type.ToString() },
-                        { nameof(Hash), r => r.Hash ?? string.Empty },
-                        { "SHA256Hash", r => r.Hash ?? string.Empty }
-                };
-
         private string _container;
         private string _hash;
         private string _name;
@@ -92,15 +80,56 @@ namespace AnimeStudio
 
             foreach (KeyValuePair<string, Regex> kvp in filters)
             {
-                if(!PropertyExtractors.TryGetValue(kvp.Key, out Func<AssetEntry, string> extractor))
+                var regex = kvp.Value;
+                if (string.IsNullOrEmpty(regex.ToString()))
+                    continue;
+
+                if(!TryGetFilterValue(kvp.Key, out var value))
                     return false;
 
-
-                if(!kvp.Value.IsMatch(extractor(this)))
+                if(!regex.IsMatch(value))
                     return false;
             }
 
             return true;
+        }
+
+        private bool TryGetFilterValue(string key, out string value)
+        {
+            if (string.Equals(key, nameof(Name), StringComparison.OrdinalIgnoreCase))
+            {
+                value = Name;
+                return true;
+            }
+            if (string.Equals(key, nameof(Container), StringComparison.OrdinalIgnoreCase))
+            {
+                value = Container;
+                return true;
+            }
+            if (string.Equals(key, nameof(Source), StringComparison.OrdinalIgnoreCase))
+            {
+                value = Source;
+                return true;
+            }
+            if (string.Equals(key, nameof(PathID), StringComparison.OrdinalIgnoreCase))
+            {
+                value = PathID.ToString();
+                return true;
+            }
+            if (string.Equals(key, nameof(Type), StringComparison.OrdinalIgnoreCase))
+            {
+                value = Type.ToString();
+                return true;
+            }
+            if (string.Equals(key, nameof(Hash), StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, "SHA256Hash", StringComparison.OrdinalIgnoreCase))
+            {
+                value = Hash ?? string.Empty;
+                return true;
+            }
+
+            value = null;
+            return false;
         }
     }
 }
