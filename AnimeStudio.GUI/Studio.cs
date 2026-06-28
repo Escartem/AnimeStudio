@@ -377,62 +377,9 @@ namespace AnimeStudio.GUI
 
                         if (obj is GameObject m_GameObject)
                         {
-                            if (!treeNodeDictionary.TryGetValue(m_GameObject, out var currentNode))
-                            {
-                                currentNode = new GameObjectTreeNode(m_GameObject);
-                                treeNodeDictionary.Add(m_GameObject, currentNode);
-                            }
-
-                            foreach (var pptr in m_GameObject.m_Components)
-                            {
-                                if (pptr.TryGet(out var m_Component))
-                                {
-                                    if (context.ObjectAssetItems.ContainsKey(m_Component))
-                                    {
-                                        context.ObjectAssetItems[m_Component].TreeNode = currentNode;
-                                    }
-
-                                    if (m_Component is MeshFilter m_MeshFilter)
-                                    {
-                                        if (m_MeshFilter.m_Mesh.TryGet(out var m_Mesh))
-                                        {
-                                            if (context.ObjectAssetItems.ContainsKey(m_Mesh))
-                                            {
-                                                context.ObjectAssetItems[m_Mesh].TreeNode = currentNode;
-                                            }
-                                        }
-                                    }
-                                    else if (m_Component is SkinnedMeshRenderer m_SkinnedMeshRenderer)
-                                    {
-                                        if (m_SkinnedMeshRenderer.m_Mesh.TryGet(out var m_Mesh))
-                                        {
-                                            if (context.ObjectAssetItems.ContainsKey(m_Mesh))
-                                            {
-                                                context.ObjectAssetItems[m_Mesh].TreeNode = currentNode;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            var parentNode = assetsFileNode;
-
-                            if (m_GameObject.m_Transform != null)
-                            {
-                                if (m_GameObject.m_Transform.m_Father.TryGet(out var m_Father))
-                                {
-                                    if (m_Father.m_GameObject.TryGet(out var parentGameObject))
-                                    {
-                                        if (!treeNodeDictionary.TryGetValue(parentGameObject, out var parentGameObjectNode))
-                                        {
-                                            parentGameObjectNode = new GameObjectTreeNode(parentGameObject);
-                                            treeNodeDictionary.Add(parentGameObject, parentGameObjectNode);
-                                        }
-                                        parentNode = parentGameObjectNode;
-                                    }
-                                }
-                            }
-
+                            var currentNode = GetOrCreateGameObjectNode(m_GameObject, treeNodeDictionary);
+                            AssignAssetTreeNodes(m_GameObject, currentNode, context);
+                            var parentNode = GetParentTreeNode(m_GameObject, assetsFileNode, treeNodeDictionary);
                             parentNode.Nodes.Add(currentNode);
                         }
                     }
@@ -462,6 +409,68 @@ namespace AnimeStudio.GUI
             treeNodeDictionary.Clear();
 
             return treeNodeCollection;
+        }
+
+        private static GameObjectTreeNode GetOrCreateGameObjectNode(GameObject gameObject, Dictionary<GameObject, GameObjectTreeNode> treeNodeDictionary)
+        {
+            if (!treeNodeDictionary.TryGetValue(gameObject, out var currentNode))
+            {
+                currentNode = new GameObjectTreeNode(gameObject);
+                treeNodeDictionary.Add(gameObject, currentNode);
+            }
+
+            return currentNode;
+        }
+
+        private static void AssignAssetTreeNodes(GameObject gameObject, GameObjectTreeNode currentNode, AssetDataBuildContext context)
+        {
+            foreach (var pptr in gameObject.m_Components)
+            {
+                if (pptr.TryGet(out var m_Component))
+                {
+                    if (context.ObjectAssetItems.ContainsKey(m_Component))
+                    {
+                        context.ObjectAssetItems[m_Component].TreeNode = currentNode;
+                    }
+
+                    if (m_Component is MeshFilter m_MeshFilter)
+                    {
+                        if (m_MeshFilter.m_Mesh.TryGet(out var m_Mesh))
+                        {
+                            if (context.ObjectAssetItems.ContainsKey(m_Mesh))
+                            {
+                                context.ObjectAssetItems[m_Mesh].TreeNode = currentNode;
+                            }
+                        }
+                    }
+                    else if (m_Component is SkinnedMeshRenderer m_SkinnedMeshRenderer)
+                    {
+                        if (m_SkinnedMeshRenderer.m_Mesh.TryGet(out var m_Mesh))
+                        {
+                            if (context.ObjectAssetItems.ContainsKey(m_Mesh))
+                            {
+                                context.ObjectAssetItems[m_Mesh].TreeNode = currentNode;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static TreeNode GetParentTreeNode(GameObject gameObject, TreeNode assetsFileNode, Dictionary<GameObject, GameObjectTreeNode> treeNodeDictionary)
+        {
+            if (gameObject.m_Transform != null)
+            {
+                if (gameObject.m_Transform.m_Father.TryGet(out var m_Father))
+                {
+                    if (m_Father.m_GameObject.TryGet(out var parentGameObject))
+                    {
+                        return GetOrCreateGameObjectNode(parentGameObject, treeNodeDictionary);
+                    }
+                }
+            }
+
+            return assetsFileNode;
         }
 
         private static bool BuildExportableAssetItems(AssetDataBuildContext context)
@@ -580,40 +589,7 @@ namespace AnimeStudio.GUI
                     return ClassIDType.PlayerSettings.CanExport();
                 case AssetBundle m_AssetBundle:
                     context.AssetBundleName = m_AssetBundle.Name;
-                    if (!SkipContainer)
-                    {
-                        foreach (var m_Container in m_AssetBundle.m_Container)
-                        {
-                            var preloadIndex = m_Container.Value.preloadIndex;
-                            var preloadSize = m_Container.Value.preloadSize;
-                            var preloadEnd = preloadIndex + preloadSize;
-
-                            switch (preloadIndex)
-                            {
-                                case int n when n < 0:
-                                    Logger.Warning($"preloadIndex {preloadIndex} is out of preloadTable range");
-                                    break;
-                                default:
-                                    for (int k = preloadIndex; k < preloadEnd; k++)
-                                    {
-                                        string containerName = m_Container.Key;
-                                        if (int.TryParse(m_Container.Key, out _) && Properties.Settings.Default.useBundleContainerName)
-                                        {
-                                            containerName = context.AssetBundleName;
-                                        }
-                                        try
-                                        {
-                                            context.Containers.Add((m_AssetBundle.m_PreloadTable[k], m_Container.Key));
-                                        } catch
-                                        {
-                                            Logger.Info($"Failed to add container {m_Container.Key}");
-                                        }
-                                    }
-                                    break;
-                            }
-                        }
-                    }
-
+                    AddAssetBundleContainers(m_AssetBundle, context);
                     return ClassIDType.AssetBundle.CanExport();
                 case IndexObject m_IndexObject:
                     foreach(var index in m_IndexObject.AssetMap)
@@ -644,6 +620,45 @@ namespace AnimeStudio.GUI
                     return true;
                 default:
                     return false;
+            }
+        }
+
+        private static void AddAssetBundleContainers(AssetBundle assetBundle, AssetDataBuildContext context)
+        {
+            if (SkipContainer)
+            {
+                return;
+            }
+
+            foreach (var m_Container in assetBundle.m_Container)
+            {
+                var preloadIndex = m_Container.Value.preloadIndex;
+                var preloadSize = m_Container.Value.preloadSize;
+                var preloadEnd = preloadIndex + preloadSize;
+
+                switch (preloadIndex)
+                {
+                    case int n when n < 0:
+                        Logger.Warning($"preloadIndex {preloadIndex} is out of preloadTable range");
+                        break;
+                    default:
+                        for (int k = preloadIndex; k < preloadEnd; k++)
+                        {
+                            string containerName = m_Container.Key;
+                            if (int.TryParse(m_Container.Key, out _) && Properties.Settings.Default.useBundleContainerName)
+                            {
+                                containerName = context.AssetBundleName;
+                            }
+                            try
+                            {
+                                context.Containers.Add((assetBundle.m_PreloadTable[k], m_Container.Key));
+                            } catch
+                            {
+                                Logger.Info($"Failed to add container {m_Container.Key}");
+                            }
+                        }
+                        break;
+                }
             }
         }
 
