@@ -384,12 +384,13 @@ namespace AnimeStudio.GUI
             var treeNodeDictionary = new Dictionary<GameObject, GameObjectTreeNode>();
             int j = 0;
             Progress.Reset();
-            var files = assetsManager.assetsFileList.GroupBy(x => x.originalPath ?? string.Empty).OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.ToList());
-            foreach (var (file, assetsFiles) in files)
+            var files = assetsManager.assetsFileList.GroupBy(x => x.originalPath ?? string.Empty).OrderBy(x => x.Key).ToList();
+            foreach (var fileGroup in files)
             {
+                var file = fileGroup.Key;
                 var fileNode = !string.IsNullOrEmpty(file) ? new TreeNode(Path.GetFileName(file)) : null; //RootNode
 
-                foreach (var assetsFile in assetsFiles)
+                foreach (var assetsFile in fileGroup)
                 {
                     var assetsFileNode = new TreeNode(assetsFile.fileName);
 
