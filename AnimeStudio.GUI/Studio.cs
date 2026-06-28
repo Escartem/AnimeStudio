@@ -401,9 +401,7 @@ namespace AnimeStudio.GUI
                             return null;
                         }
 
-                        var assetItem = new AssetItem(obj);
-
-                        if (obj is not GameObject && IsMissingFromFilter(assetItem.SourceFile.fullName, assetItem.Text, assetItem.m_PathID, assetItem.Type, context.FastAssetFilterKeys))
+                        if (obj is not GameObject && IsMissingFromFilter(obj.assetsFile.fullName, obj.Name, obj.m_PathID, obj.type, context.FastAssetFilterKeys))
                         {
                             continue;
                         }
