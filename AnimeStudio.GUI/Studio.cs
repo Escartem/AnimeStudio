@@ -334,6 +334,19 @@ namespace AnimeStudio.GUI
             visibleAssets = exportableAssets;
 
             StatusStripUpdate("Building tree structure...");
+            var treeNodeCollection = BuildSceneTree(context);
+            context.ObjectAssetItems.Clear();
+
+            if (treeNodeCollection == null)
+            {
+                return (string.Empty, Array.Empty<TreeNode>().ToList());
+            }
+
+            return (context.ProductName, treeNodeCollection);
+        }
+
+        private static List<TreeNode> BuildSceneTree(AssetDataBuildContext context)
+        {
             var treeNodeCollection = new List<TreeNode>();
             var treeNodeDictionary = new Dictionary<GameObject, GameObjectTreeNode>();
             int j = 0;
@@ -352,7 +365,7 @@ namespace AnimeStudio.GUI
                         if (assetsManager.tokenSource.IsCancellationRequested)
                         {
                             Logger.Info("Building tree structure been cancelled !!");
-                            return (string.Empty, Array.Empty<TreeNode>().ToList());
+                            return null;
                         }
 
                         var assetItem = new AssetItem(obj);
@@ -448,9 +461,7 @@ namespace AnimeStudio.GUI
             }
             treeNodeDictionary.Clear();
 
-            context.ObjectAssetItems.Clear();
-
-            return (context.ProductName, treeNodeCollection);
+            return treeNodeCollection;
         }
 
         private static bool BuildExportableAssetItems(AssetDataBuildContext context)
