@@ -36,7 +36,6 @@ namespace AnimeStudio
                 {
                     string             extension = Path.GetExtension(path).ToLower();
                     using FileStream   stream    = File.OpenRead(path);
-                    ReadOnlySpan<byte> bytes     = File.ReadAllBytes(path);
                     AssetMap           newMap    = null;
 
                     switch(extension)
@@ -67,6 +66,7 @@ namespace AnimeStudio
                         }
                         case ".memory":
                         {
+                            ReadOnlySpan<byte> bytes = File.ReadAllBytes(path);
                             List<AssetMap> assetMaps = MemoryPackSerializer.Deserialize<List<AssetMap>>
                                     (bytes);
 
