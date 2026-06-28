@@ -967,89 +967,97 @@ namespace AnimeStudio.GUI
             });
         }
 
+        #region Export split objects
+
         public static Task ExportSplitObjects(string savePath, TreeNodeCollection nodes)
         {
             return Task.Run(() =>
             {
-                var exportNodes = GetNodes(nodes);
-                var count = exportNodes.Cast<TreeNode>().Sum(x => x.Nodes.Count);
+                var exportNodes = GetSplitExportNodes(nodes).ToList();
+                var count = exportNodes.Sum(x => x.Nodes.Count);
                 int k = 0;
                 Progress.Reset();
-                foreach (TreeNode node in exportNodes)
-                {
-                    //遍历一级子节点
-                    foreach (GameObjectTreeNode j in node.Nodes)
-                    {
-                        //收集所有子节点
-                        var gameObjects = new List<GameObject>();
-                        CollectNode(j, gameObjects);
-                        //跳过一些不需要导出的object
-                        if (gameObjects.All(x => x.m_SkinnedMeshRenderer == null && x.m_MeshFilter == null))
-                        {
-                            Progress.Report(++k, count);
-                            continue;
-                        }
-                        //处理非法文件名
-                        var filename = FixFileName(j.Text);
-                        if (node.Parent != null) 
-                        {
-                            filename = Path.Combine(FixFileName(node.Parent.Text), filename);
-                        }
-                        //每个文件存放在单独的文件夹
-                        var targetPath = $"{savePath}{filename}{Path.DirectorySeparatorChar}";
-                        //重名文件处理
-                        for (int i = 1; ; i++)
-                        {
-                            if (Directory.Exists(targetPath))
-                            {
-                                targetPath = $"{savePath}{filename} ({i}){Path.DirectorySeparatorChar}";
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                        Directory.CreateDirectory(targetPath);
-                        //导出FBX
-                        StatusStripUpdate($"Exporting {filename}.fbx");
-                        try
-                        {
-                            ExportGameObject(j.gameObject, targetPath);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Error($"Export GameObject:{j.Text} error\r\n{ex.Message}\r\n{ex.StackTrace}");
-                        }
 
+                foreach (var node in exportNodes)
+                {
+                    foreach (GameObjectTreeNode childNode in node.Nodes)
+                    {
+                        ExportSplitObject(savePath, node, childNode);
                         Progress.Report(++k, count);
-                        StatusStripUpdate($"Finished exporting {filename}.fbx");
                     }
                 }
+
                 if (Properties.Settings.Default.openAfterExport)
                 {
                     OpenFolderInExplorer(savePath);
                 }
                 StatusStripUpdate("Finished");
-
-                IEnumerable<TreeNode> GetNodes(TreeNodeCollection nodes)
-                {
-                    foreach(TreeNode node in nodes)
-                    {
-                        var subNodes = node.Nodes.OfType<TreeNode>().ToArray();
-                        if (subNodes.Length == 0)
-                        {
-                            yield return node;
-                        }
-                        else
-                        {
-                            foreach (TreeNode subNode in subNodes)
-                            {
-                                yield return subNode;
-                            }
-                        }
-                    }
-                }
             });
+        }
+
+        private static IEnumerable<TreeNode> GetSplitExportNodes(TreeNodeCollection nodes)
+        {
+            foreach (TreeNode node in nodes)
+            {
+                if (node.Nodes.Count == 0)
+                {
+                    yield return node;
+                    continue;
+                }
+
+                foreach (TreeNode subNode in node.Nodes)
+                {
+                    yield return subNode;
+                }
+            }
+        }
+
+        private static void ExportSplitObject(string savePath, TreeNode parentNode, GameObjectTreeNode node)
+        {
+            var gameObjects = new List<GameObject>();
+            CollectNode(node, gameObjects);
+            if (gameObjects.All(x => x.m_SkinnedMeshRenderer == null && x.m_MeshFilter == null))
+            {
+                return;
+            }
+
+            var filename = GetSplitObjectFileName(parentNode, node);
+            var targetPath = GetUniqueSplitObjectTargetPath(savePath, filename);
+            Directory.CreateDirectory(targetPath);
+
+            StatusStripUpdate($"Exporting {filename}.fbx");
+            try
+            {
+                ExportGameObject(node.gameObject, targetPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Export GameObject:{node.Text} error\r\n{ex.Message}\r\n{ex.StackTrace}");
+            }
+
+            StatusStripUpdate($"Finished exporting {filename}.fbx");
+        }
+
+        private static string GetSplitObjectFileName(TreeNode parentNode, GameObjectTreeNode node)
+        {
+            var filename = FixFileName(node.Text);
+            if (parentNode.Parent != null)
+            {
+                filename = Path.Combine(FixFileName(parentNode.Parent.Text), filename);
+            }
+
+            return filename;
+        }
+
+        private static string GetUniqueSplitObjectTargetPath(string savePath, string filename)
+        {
+            var targetPath = $"{savePath}{filename}{Path.DirectorySeparatorChar}";
+            for (int i = 1; Directory.Exists(targetPath); i++)
+            {
+                targetPath = $"{savePath}{filename} ({i}){Path.DirectorySeparatorChar}";
+            }
+
+            return targetPath;
         }
 
         private static void CollectNode(GameObjectTreeNode node, List<GameObject> gameObjects)
@@ -1060,6 +1068,8 @@ namespace AnimeStudio.GUI
                 CollectNode(i, gameObjects);
             }
         }
+
+        #endregion
 
         public static Task ExportAnimatorWithAnimationClip(AssetItem animator, List<AssetItem> animationList, string exportPath)
         {
