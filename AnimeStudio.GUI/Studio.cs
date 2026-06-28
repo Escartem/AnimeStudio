@@ -394,6 +394,7 @@ namespace AnimeStudio.GUI
         {
             var treeNodeCollection = new List<TreeNode>();
             var treeNodeDictionary = new Dictionary<GameObject, GameObjectTreeNode>();
+            var hasFilterData = context.FastAssetFilterKeys.Count > 0;
             int j = 0;
             Progress.Reset();
             var files = assetsManager.assetsFileList.GroupBy(x => x.originalPath ?? string.Empty).OrderBy(x => x.Key).ToList();
@@ -414,18 +415,21 @@ namespace AnimeStudio.GUI
                             return null;
                         }
 
-                        if (obj is not GameObject && IsMissingFromFilter(obj.Name, obj.m_PathID, obj.type, context.FastAssetFilterKeys))
+                        if (obj is not GameObject)
                         {
+                            if (hasFilterData && IsMissingFromFilter(obj.Name, obj.m_PathID, obj.type, context.FastAssetFilterKeys))
+                            {
+                                continue;
+                            }
+
                             continue;
                         }
 
-                        if (obj is GameObject m_GameObject)
-                        {
-                            var currentNode = GetOrCreateGameObjectNode(m_GameObject, treeNodeDictionary);
-                            AssignAssetTreeNodes(m_GameObject, currentNode, context);
-                            var parentNode = GetParentTreeNode(m_GameObject, assetsFileNode, treeNodeDictionary);
-                            parentNode.Nodes.Add(currentNode);
-                        }
+                        var m_GameObject = (GameObject)obj;
+                        var currentNode = GetOrCreateGameObjectNode(m_GameObject, treeNodeDictionary);
+                        AssignAssetTreeNodes(m_GameObject, currentNode, context);
+                        var parentNode = GetParentTreeNode(m_GameObject, assetsFileNode, treeNodeDictionary);
+                        parentNode.Nodes.Add(currentNode);
                     }
 
                     // TODO: need to do proper cleaning of list to only include filtered assets when required
