@@ -307,6 +307,7 @@ namespace AnimeStudio.GUI
             public List<(PPtr<Object> PPtr, string Name)> MiHoYoBinDataNames { get; } = new List<(PPtr<Object>, string)>();
             public List<(PPtr<Object> PPtr, string Container)> Containers { get; } = new List<(PPtr<Object>, string)>();
             public HashSet<AssetFilterKey> FastAssetFilterKeys { get; }
+            private readonly Dictionary<ClassIDType, bool> canExportCache = new Dictionary<ClassIDType, bool>();
             public string AssetBundleName { get; set; } = "";
             public string ProductName { get; set; }
 
@@ -317,6 +318,17 @@ namespace AnimeStudio.GUI
                 FastAssetFilterKeys = assetsManager.FilterData.Items
                     .Select(x => new AssetFilterKey(x.Name, x.PathID, x.Type))
                     .ToHashSet();
+            }
+
+            public bool CanExport(ClassIDType type)
+            {
+                if (!canExportCache.TryGetValue(type, out var canExport))
+                {
+                    canExport = type.CanExport();
+                    canExportCache.Add(type, canExport);
+                }
+
+                return canExport;
             }
         }
 
@@ -402,7 +414,7 @@ namespace AnimeStudio.GUI
                             return null;
                         }
 
-                        if (obj is not GameObject && IsMissingFromFilter(obj.assetsFile.fullName, obj.Name, obj.m_PathID, obj.type, context.FastAssetFilterKeys))
+                        if (obj is not GameObject && IsMissingFromFilter(obj.Name, obj.m_PathID, obj.type, context.FastAssetFilterKeys))
                         {
                             continue;
                         }
@@ -525,7 +537,7 @@ namespace AnimeStudio.GUI
                         return false;
                     }
 
-                    if (hasFilterData && asset is not AssetBundle && asset is not ResourceManager && IsMissingFromFilter(asset.assetsFile.fullName, asset.Name, asset.m_PathID, asset.type, context.FastAssetFilterKeys))
+                    if (hasFilterData && asset is not AssetBundle && asset is not ResourceManager && IsMissingFromFilter(asset.Name, asset.m_PathID, asset.type, context.FastAssetFilterKeys))
                     {
                         continue;
                     }
@@ -614,49 +626,60 @@ namespace AnimeStudio.GUI
                 case Texture2D m_Texture2D:
                     if (!string.IsNullOrEmpty(m_Texture2D.m_StreamData?.path))
                         assetItem.FullSize = asset.byteSize + m_Texture2D.m_StreamData.size;
-                    return ClassIDType.Texture2D.CanExport();
+                    return context.CanExport(ClassIDType.Texture2D);
                 case AudioClip m_AudioClip:
                     if (!string.IsNullOrEmpty(m_AudioClip.m_Source))
                         assetItem.FullSize = asset.byteSize + m_AudioClip.m_Size;
-                    return ClassIDType.AudioClip.CanExport();
+                    return context.CanExport(ClassIDType.AudioClip);
                 case VideoClip m_VideoClip:
                     if (!string.IsNullOrEmpty(m_VideoClip.m_OriginalPath))
                         assetItem.FullSize = asset.byteSize + m_VideoClip.m_ExternalResources.m_Size;
-                    return ClassIDType.VideoClip.CanExport();
+                    return context.CanExport(ClassIDType.VideoClip);
                 case PlayerSettings m_PlayerSettings:
                     context.ProductName = m_PlayerSettings.productName;
-                    return ClassIDType.PlayerSettings.CanExport();
+                    return context.CanExport(ClassIDType.PlayerSettings);
                 case AssetBundle m_AssetBundle:
                     context.AssetBundleName = m_AssetBundle.Name;
                     AddAssetBundleContainers(m_AssetBundle, context);
-                    return ClassIDType.AssetBundle.CanExport();
+                    return context.CanExport(ClassIDType.AssetBundle);
                 case IndexObject m_IndexObject:
                     foreach(var index in m_IndexObject.AssetMap)
                     {
                         context.MiHoYoBinDataNames.Add((index.Value.Object, index.Key));
                     }
 
-                    return ClassIDType.IndexObject.CanExport();
+                    return context.CanExport(ClassIDType.IndexObject);
                 case ResourceManager m_ResourceManager:
                     foreach (var m_Container in m_ResourceManager.m_Container)
                     {
                         context.Containers.Add((m_Container.Value, m_Container.Key));
                     }
 
-                    return ClassIDType.ResourceManager.CanExport();
-                case Mesh _ when ClassIDType.Mesh.CanExport():
-                case TextAsset _ when ClassIDType.TextAsset.CanExport():
-                case AnimationClip _ when ClassIDType.AnimationClip.CanExport():
-                case Font _ when ClassIDType.Font.CanExport():
-                case MovieTexture _ when ClassIDType.MovieTexture.CanExport():
-                case Sprite _ when ClassIDType.Sprite.CanExport():
-                case Material _ when ClassIDType.Material.CanExport():
-                case MiHoYoBinData _ when ClassIDType.MiHoYoBinData.CanExport():
-                case NapAssetBundleIndexAsset _ when ClassIDType.NapAssetBundleIndexAsset.CanExport():
-                case Shader _ when ClassIDType.Shader.CanExport():
-                case Animator _ when ClassIDType.Animator.CanExport():
-                case MonoBehaviour _ when ClassIDType.MonoBehaviour.CanExport():
-                    return true;
+                    return context.CanExport(ClassIDType.ResourceManager);
+                case Mesh _:
+                    return context.CanExport(ClassIDType.Mesh);
+                case TextAsset _:
+                    return context.CanExport(ClassIDType.TextAsset);
+                case AnimationClip _:
+                    return context.CanExport(ClassIDType.AnimationClip);
+                case Font _:
+                    return context.CanExport(ClassIDType.Font);
+                case MovieTexture _:
+                    return context.CanExport(ClassIDType.MovieTexture);
+                case Sprite _:
+                    return context.CanExport(ClassIDType.Sprite);
+                case Material _:
+                    return context.CanExport(ClassIDType.Material);
+                case MiHoYoBinData _:
+                    return context.CanExport(ClassIDType.MiHoYoBinData);
+                case NapAssetBundleIndexAsset _:
+                    return context.CanExport(ClassIDType.NapAssetBundleIndexAsset);
+                case Shader _:
+                    return context.CanExport(ClassIDType.Shader);
+                case Animator _:
+                    return context.CanExport(ClassIDType.Animator);
+                case MonoBehaviour _:
+                    return context.CanExport(ClassIDType.MonoBehaviour);
                 default:
                     return false;
             }
@@ -696,7 +719,7 @@ namespace AnimeStudio.GUI
             }
         }
 
-        private static bool IsMissingFromFilter(string source, string name, long pathID, ClassIDType type, HashSet<AssetFilterKey> fastAssetFilterKeys)
+        private static bool IsMissingFromFilter(string name, long pathID, ClassIDType type, HashSet<AssetFilterKey> fastAssetFilterKeys)
         {
             if (fastAssetFilterKeys.Count == 0)
             {
