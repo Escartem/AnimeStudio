@@ -268,36 +268,78 @@ namespace AnimeStudio.GUI
 
         public static void UpdateContainers()
         {
-            if (exportableAssets.Count > 0)
+            if (exportableAssets.Count == 0)
             {
-                Logger.Info("Updating Containers...");
-                foreach (var asset in exportableAssets)
-                {
-                    if (Game.Type.IsZZZ() && ulong.TryParse(asset.Container, out var hash) && Paths.TryGetValue(hash, out var z3Path))
-                    {
-                        asset.Container = z3Path;
-                        continue;
-                    }
-                    if (int.TryParse(asset.Container, out var value))
-                    {
-                        var last = unchecked((uint)value);
-                        var name = Path.GetFileNameWithoutExtension(asset.SourceFile.originalPath);
-                        if (uint.TryParse(name, out var id))
-                        {
-                            var path = ResourceIndex.GetContainer(id, last);
-                            if (!string.IsNullOrEmpty(path))
-                            {
-                                asset.Container = path;
-                                if (asset.Type == ClassIDType.MiHoYoBinData)
-                                {
-                                    asset.Text = Path.GetFileNameWithoutExtension(path);
-                                }
-                            }
-                        }
-                    }
-                }
-                Logger.Info("Updated !!");
+                return;
             }
+
+            Logger.Info("Updating Containers...");
+            var isZZZ = Game.Type.IsZZZ();
+            var sourceFileIds = new Dictionary<string, uint?>();
+
+            foreach (var asset in exportableAssets)
+            {
+                if (isZZZ && TryUpdateZZZContainer(asset))
+                {
+                    continue;
+                }
+
+                TryUpdateIndexedContainer(asset, sourceFileIds);
+            }
+
+            Logger.Info("Updated !!");
+        }
+
+        private static bool TryUpdateZZZContainer(AssetItem asset)
+        {
+            if (!ulong.TryParse(asset.Container, out var hash) || !Paths.TryGetValue(hash, out var z3Path))
+            {
+                return false;
+            }
+
+            asset.Container = z3Path;
+            return true;
+        }
+
+        private static void TryUpdateIndexedContainer(AssetItem asset, Dictionary<string, uint?> sourceFileIds)
+        {
+            if (!int.TryParse(asset.Container, out var value))
+            {
+                return;
+            }
+
+            var id = GetSourceFileId(asset.SourceFile.originalPath, sourceFileIds);
+            if (!id.HasValue)
+            {
+                return;
+            }
+
+            var last = unchecked((uint)value);
+            var path = ResourceIndex.GetContainer(id.Value, last);
+            if (string.IsNullOrEmpty(path))
+            {
+                return;
+            }
+
+            asset.Container = path;
+            if (asset.Type == ClassIDType.MiHoYoBinData)
+            {
+                asset.Text = Path.GetFileNameWithoutExtension(path);
+            }
+        }
+
+        private static uint? GetSourceFileId(string originalPath, Dictionary<string, uint?> sourceFileIds)
+        {
+            originalPath ??= string.Empty;
+            if (sourceFileIds.TryGetValue(originalPath, out var id))
+            {
+                return id;
+            }
+
+            var name = Path.GetFileNameWithoutExtension(originalPath);
+            id = uint.TryParse(name, out var parsedId) ? parsedId : null;
+            sourceFileIds.Add(originalPath, id);
+            return id;
         }
 
         #region Build asset data
