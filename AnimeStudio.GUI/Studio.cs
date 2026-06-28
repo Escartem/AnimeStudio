@@ -303,6 +303,7 @@ namespace AnimeStudio.GUI
         private sealed class AssetDataBuildContext
         {
             public int ObjectCount { get; }
+            public int GameObjectCount { get; }
             public Dictionary<Object, AssetItem> ObjectAssetItems { get; }
             public List<(PPtr<Object> PPtr, string Name)> MiHoYoBinDataNames { get; } = new List<(PPtr<Object>, string)>();
             public List<(PPtr<Object> PPtr, string Container)> Containers { get; } = new List<(PPtr<Object>, string)>();
@@ -313,7 +314,18 @@ namespace AnimeStudio.GUI
 
             public AssetDataBuildContext()
             {
-                ObjectCount = assetsManager.assetsFileList.Sum(x => x.Objects.Count);
+                foreach (var assetsFile in assetsManager.assetsFileList)
+                {
+                    ObjectCount += assetsFile.Objects.Count;
+                    foreach (var asset in assetsFile.Objects)
+                    {
+                        if (asset is GameObject)
+                        {
+                            GameObjectCount++;
+                        }
+                    }
+                }
+
                 ObjectAssetItems = new Dictionary<Object, AssetItem>(ObjectCount);
                 FastAssetFilterKeys = assetsManager.FilterData.Items
                     .Select(x => new AssetFilterKey(x.Name, x.PathID, x.Type))
@@ -393,7 +405,7 @@ namespace AnimeStudio.GUI
         private static List<TreeNode> BuildSceneTree(AssetDataBuildContext context)
         {
             var treeNodeCollection = new List<TreeNode>();
-            var treeNodeDictionary = new Dictionary<GameObject, GameObjectTreeNode>();
+            var treeNodeDictionary = new Dictionary<GameObject, GameObjectTreeNode>(context.GameObjectCount);
             var hasFilterData = context.FastAssetFilterKeys.Count > 0;
             int j = 0;
             Progress.Reset();
