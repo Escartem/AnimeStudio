@@ -34,18 +34,6 @@ namespace AnimeStudio
     [MessagePackObject]
     public partial record AssetEntry
     {
-        private static readonly Dictionary<string, Func<AssetEntry, string>> PropertyExtractors = new
-                Dictionary<string, Func<AssetEntry, string>>(StringComparer.OrdinalIgnoreCase)
-                {
-                        { nameof(Name), r => r.Name },
-                        { nameof(Container), r => r.Container },
-                        { nameof(Source), r => r.Source },
-                        { nameof(PathID), r => r.PathID.ToString() },
-                        { nameof(Type), r => r.Type.ToString() },
-                        { nameof(Hash), r => r.Hash ?? string.Empty },
-                        { "SHA256Hash", r => r.Hash ?? string.Empty }
-                };
-
         private string _container;
         private string _hash;
         private string _name;
@@ -84,21 +72,32 @@ namespace AnimeStudio
         [Key(6)]
         public long Offset { get; set; } = -1;
 
+        private string GetPropertyValue(string propertyName)
+        {
+            return propertyName switch
+            {
+                    nameof(Name)      => Name,
+                    nameof(Container) => Container,
+                    nameof(Source)    => Source,
+                    nameof(PathID)    => PathID.ToString(),
+                    nameof(Type)      => Type.ToString(),
+                    nameof(Hash)      => Hash ?? string.Empty,
+                    "SHA256Hash"      => Hash ?? string.Empty,
+                    _                 => null
+            };
+        }
+
         public bool Matches(Dictionary<string, Regex> filters)
         {
             if(filters is null || filters.Count == 0)
                 return true;
 
-            foreach (KeyValuePair<string, Regex> kvp in filters)
+            foreach ((string key, Regex regex) in filters)
             {
-                if(!PropertyExtractors.TryGetValue(kvp.Key, out Func<AssetEntry, string> extractor))
-                    return false;
-
-
-                if(!kvp.Value.IsMatch(extractor(this)))
+                string value = this.GetPropertyValue(key);
+                if(value is null || !regex.IsMatch(value))
                     return false;
             }
-
             return true;
         }
     }
