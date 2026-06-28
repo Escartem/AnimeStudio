@@ -306,7 +306,7 @@ namespace AnimeStudio.GUI
             public Dictionary<Object, AssetItem> ObjectAssetItems { get; }
             public List<(PPtr<Object> PPtr, string Name)> MiHoYoBinDataNames { get; } = new List<(PPtr<Object>, string)>();
             public List<(PPtr<Object> PPtr, string Container)> Containers { get; } = new List<(PPtr<Object>, string)>();
-            public HashSet<AssetFilterDataItem> FastAssetItemFilterData { get; }
+            public HashSet<AssetFilterKey> FastAssetFilterKeys { get; }
             public string AssetBundleName { get; set; } = "";
             public string ProductName { get; set; }
 
@@ -314,7 +314,40 @@ namespace AnimeStudio.GUI
             {
                 ObjectCount = assetsManager.assetsFileList.Sum(x => x.Objects.Count);
                 ObjectAssetItems = new Dictionary<Object, AssetItem>(ObjectCount);
-                FastAssetItemFilterData = new HashSet<AssetFilterDataItem>(assetsManager.FilterData.Items, new AssetFilterDataItemEqualityComparer());
+                FastAssetFilterKeys = assetsManager.FilterData.Items
+                    .Select(x => new AssetFilterKey(x.Name, x.PathID, x.Type))
+                    .ToHashSet();
+            }
+        }
+
+        private readonly struct AssetFilterKey : IEquatable<AssetFilterKey>
+        {
+            private readonly string name;
+            private readonly long pathID;
+            private readonly ClassIDType type;
+
+            public AssetFilterKey(string name, long pathID, ClassIDType type)
+            {
+                this.name = name;
+                this.pathID = pathID;
+                this.type = type;
+            }
+
+            public bool Equals(AssetFilterKey other)
+            {
+                return type == other.type
+                    && pathID == other.pathID
+                    && string.Equals(name, other.name, StringComparison.OrdinalIgnoreCase);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is AssetFilterKey other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(StringComparer.OrdinalIgnoreCase.GetHashCode(name ?? string.Empty), pathID, type);
             }
         }
 
@@ -370,7 +403,7 @@ namespace AnimeStudio.GUI
 
                         var assetItem = new AssetItem(obj);
 
-                        if (obj is not GameObject && IsMissingFromFilter(assetItem, context.FastAssetItemFilterData))
+                        if (obj is not GameObject && IsMissingFromFilter(assetItem.SourceFile.fullName, assetItem.Text, assetItem.m_PathID, assetItem.Type, context.FastAssetFilterKeys))
                         {
                             continue;
                         }
@@ -488,7 +521,7 @@ namespace AnimeStudio.GUI
 
                     var assetItem = new AssetItem(asset);
 
-                    if (asset is not AssetBundle && asset is not ResourceManager && IsMissingFromFilter(assetItem, context.FastAssetItemFilterData))
+                    if (asset is not AssetBundle && asset is not ResourceManager && IsMissingFromFilter(assetItem.SourceFile.fullName, assetItem.Text, assetItem.m_PathID, assetItem.Type, context.FastAssetFilterKeys))
                     {
                         continue;
                     }
@@ -662,18 +695,18 @@ namespace AnimeStudio.GUI
             }
         }
 
-        private static bool IsMissingFromFilter(AssetItem assetItem, HashSet<AssetFilterDataItem> fastAssetItemFilterData)
+        private static bool IsMissingFromFilter(string source, string name, long pathID, ClassIDType type, HashSet<AssetFilterKey> fastAssetFilterKeys)
         {
-            if (fastAssetItemFilterData.Count == 0)
+            if (fastAssetFilterKeys.Count == 0)
             {
                 return false;
             }
-            if (fastAssetItemFilterData.Contains(new AssetFilterDataItem { Source = assetItem.SourceFile.fullName, Name = assetItem.Text, PathID = assetItem.m_PathID, Type = assetItem.Type }))
+            if (fastAssetFilterKeys.Contains(new AssetFilterKey(name, pathID, type)))
             {
                 return false;
             }
 
-            Logger.Verbose($"Skipped {(assetItem.Text.Length > 0 ? assetItem.Text : "an asset")} because filter data was set and it was missing from it");
+            Logger.Verbose($"Skipped {(name.Length > 0 ? name : "an asset")} because filter data was set and it was missing from it");
             return true;
         }
 
