@@ -109,8 +109,8 @@ namespace AnimeStudio
         {
             Logger.Verbose($"Dumping raw bytes of the object with {m_PathID} in file {assetsFile.fileName}...");
             long pos = reader.Position;
-            reader.Position = 0;
-            byte[] data = reader.ReadBytes((int) reader.Remaining);
+            reader.Reset();
+            byte[] data = reader.ReadBytes((int) byteSize);
             reader.Position = pos;
             return data;
         }
