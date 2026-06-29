@@ -1,14 +1,15 @@
-﻿using MessagePack;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
+using MemoryPack;
+using MessagePack;
 
 namespace AnimeStudio
 {
     public static class StringCache
     {
         private static readonly HashSet<string> _cache = new(StringComparer.Ordinal);
+
         public static string Get(string value)
         {
             if (value == null) return null;
@@ -19,67 +20,121 @@ namespace AnimeStudio
             _cache.Add(value);
             return value;
         }
+
+        public static void Clear()
+        {
+            _cache.Clear();
+        }
     }
 
-    [MessagePackObject]
-    public record AssetMap
+    [MessagePackObject, MemoryPackable]
+    public partial record AssetMap
     {
         [Key(0)]
         public GameType GameType { get; set; }
+
         [Key(1)]
         public List<AssetEntry> AssetEntries { get; set; }
     }
-    [MessagePackObject]
-    public record AssetEntry
+
+    [MessagePackObject, MemoryPackable]
+    public partial record AssetEntry
     {
-        private string _name;
         private string _container;
-        private string _source;
         private string _hash;
+        private string _name;
+        private string _source;
 
         [Key(0)]
         public string Name { 
             get => _name;
             set => _name = StringCache.Get(value); 
         }
+
         [Key(1)]
         public string Container {
             get => _container;
             set => _container = StringCache.Get(value);
         }
+
         [Key(2)]
         public string Source {
             get => _source;
             set => _source = StringCache.Get(value);
         }
+
         [Key(3)]
         public long PathID { get; set; }
+
         [Key(4)]
         public ClassIDType Type { get; set; }
+
         [Key(5)]
         public string Hash {
             get => _hash;
-            set => _hash = StringCache.Get(value);
+            set => _hash = value;
         }
+
         [Key(6)]
         public long Offset { get; set; } = -1;
 
         public bool Matches(Dictionary<string, Regex> filters)
         {
-            var matches = new List<bool>();
-            foreach(var filter in filters)
+            if(filters is null || filters.Count == 0)
+                return true;
+
+            foreach (KeyValuePair<string, Regex> kvp in filters)
             {
-                matches.Add(filter.Key switch
-                {
-                    string value when value.Equals(nameof(Name), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Name),
-                    string value when value.Equals(nameof(Container), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Container),
-                    string value when value.Equals(nameof(Source), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Source),
-                    string value when value.Equals(nameof(PathID), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(PathID.ToString()),
-                    string value when value.Equals(nameof (Type), StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Type.ToString()),
-                    string value when value.Equals(nameof(Hash), StringComparison.OrdinalIgnoreCase) || value.Equals("SHA256Hash", StringComparison.OrdinalIgnoreCase) => filter.Value.IsMatch(Hash ?? String.Empty)
-                });
+                var regex = kvp.Value;
+                if (string.IsNullOrEmpty(regex.ToString()))
+                    continue;
+
+                if(!TryGetFilterValue(kvp.Key, out var value))
+                    return false;
+
+                if(!regex.IsMatch(value))
+                    return false;
             }
-            return matches.Count(x => x == true) == filters.Count;
+
+            return true;
+        }
+
+        private bool TryGetFilterValue(string key, out string value)
+        {
+            if (string.Equals(key, nameof(Name), StringComparison.OrdinalIgnoreCase))
+            {
+                value = Name;
+                return true;
+            }
+            if (string.Equals(key, nameof(Container), StringComparison.OrdinalIgnoreCase))
+            {
+                value = Container;
+                return true;
+            }
+            if (string.Equals(key, nameof(Source), StringComparison.OrdinalIgnoreCase))
+            {
+                value = Source;
+                return true;
+            }
+            if (string.Equals(key, nameof(PathID), StringComparison.OrdinalIgnoreCase))
+            {
+                value = PathID.ToString();
+                return true;
+            }
+            if (string.Equals(key, nameof(Type), StringComparison.OrdinalIgnoreCase))
+            {
+                value = Type.ToString();
+                return true;
+            }
+            if (string.Equals(key, nameof(Hash), StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(key, "SHA256Hash", StringComparison.OrdinalIgnoreCase))
+            {
+                value = Hash ?? string.Empty;
+                return true;
+            }
+
+            value = null;
+            return false;
         }
     }
 }
