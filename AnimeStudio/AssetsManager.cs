@@ -15,8 +15,17 @@ namespace AnimeStudio
         public Game Game;
         public bool Silent = false;
         public bool SkipProcess = false;
-        public bool ResolveDependencies = false;        
+        public bool ResolveDependencies = false;
         public string SpecifyUnityVersion;
+        /// <summary>
+        /// Invoked after each bundle/CAB group is loaded from a multi-bundle block.
+        /// Used by map builders to process + release streams before the next bundle
+        /// so peak RAM stays proportional to one bundle instead of the whole .block.
+        /// </summary>
+        public Action AfterBundleLoaded;
+
+        /// <summary>Number of cached resource streams (for map-builder flush decisions).</summary>
+        public int ResourceFileCount => resourceFileReaders.Count;
         public CancellationTokenSource tokenSource = new CancellationTokenSource();
         public List<SerializedFile> assetsFileList = new List<SerializedFile>();
 
@@ -64,15 +73,33 @@ namespace AnimeStudio
 
         public void LoadFiles(params string[] files)
         {
+            LoadFiles(files, mergeSplitAssets: true);
+        }
+
+        /// <param name="mergeSplitAssets">
+        /// When false, skips <see cref="ImportHelper.MergeSplitAssets"/> / split-file filtering.
+        /// Map builders already do that once up front; repeating it per file re-scans huge directories (HSR).
+        /// </param>
+        public void LoadFiles(string[] files, bool mergeSplitAssets)
+        {
             if (Silent)
             {
                 Logger.Silent = true;
                 Progress.Silent = true;
             }
 
-            var path = Path.GetDirectoryName(Path.GetFullPath(files[0]));
-            MergeSplitAssets(path);
-            var toReadFile = ProcessingSplitFiles(files.ToList());
+            string[] toReadFile;
+            if (mergeSplitAssets)
+            {
+                var path = Path.GetDirectoryName(Path.GetFullPath(files[0]));
+                MergeSplitAssets(path);
+                toReadFile = ProcessingSplitFiles(files.ToList());
+            }
+            else
+            {
+                toReadFile = files;
+            }
+
             if (ResolveDependencies)
                 toReadFile = AssetsHelper.ProcessDependencies(toReadFile);
             Load(toReadFile);
@@ -224,34 +251,41 @@ namespace AnimeStudio
                     assetsFileIndexCache.Add(assetsFile.fileName, assetsFileList.Count - 1);
                     assetsFileListHash.Add(assetsFile.fileName);
 
-                    foreach (var sharedFile in assetsFile.m_Externals)
+                    // External lookup does recursive Directory.GetFiles scans. Skip it when
+                    // dependencies are not being resolved (map builds, single-file loads) —
+                    // HSR-style CAB externals are almost never real on-disk files and the
+                    // repeated full-directory scans dominate both CPU and temporary allocations.
+                    if (ResolveDependencies)
                     {
-                        Logger.Verbose($"{assetsFile.fileName} needs external file {sharedFile.fileName}, attempting to look it up...");
-                        var sharedFileName = sharedFile.fileName;
-
-                        if (!importFilesHash.Contains(sharedFileName))
+                        foreach (var sharedFile in assetsFile.m_Externals)
                         {
-                            var sharedFilePath = Path.Combine(Path.GetDirectoryName(reader.FullPath), sharedFileName);
-                            if (!noexistFiles.Contains(sharedFilePath))
+                            Logger.Verbose($"{assetsFile.fileName} needs external file {sharedFile.fileName}, attempting to look it up...");
+                            var sharedFileName = sharedFile.fileName;
+
+                            if (!importFilesHash.Contains(sharedFileName))
                             {
-                                if (!File.Exists(sharedFilePath))
+                                var sharedFilePath = Path.Combine(Path.GetDirectoryName(reader.FullPath), sharedFileName);
+                                if (!noexistFiles.Contains(sharedFilePath))
                                 {
-                                    var findFiles = Directory.GetFiles(Path.GetDirectoryName(reader.FullPath), sharedFileName, SearchOption.AllDirectories);
-                                    if (findFiles.Length > 0)
+                                    if (!File.Exists(sharedFilePath))
                                     {
-                                        Logger.Verbose($"Found {findFiles.Length} matching files, picking first file {findFiles[0]} !!");
-                                        sharedFilePath = findFiles[0];
+                                        var findFiles = Directory.GetFiles(Path.GetDirectoryName(reader.FullPath), sharedFileName, SearchOption.AllDirectories);
+                                        if (findFiles.Length > 0)
+                                        {
+                                            Logger.Verbose($"Found {findFiles.Length} matching files, picking first file {findFiles[0]} !!");
+                                            sharedFilePath = findFiles[0];
+                                        }
                                     }
-                                }
-                                if (File.Exists(sharedFilePath))
-                                {
-                                    importFiles.Add(sharedFilePath);
-                                    importFilesHash.Add(sharedFileName);
-                                }
-                                else
-                                {
-                                    Logger.Verbose("Nothing was found, caching into non existant files to avoid repeated searching !!");
-                                    noexistFiles.Add(sharedFilePath);
+                                    if (File.Exists(sharedFilePath))
+                                    {
+                                        importFiles.Add(sharedFilePath);
+                                        importFilesHash.Add(sharedFileName);
+                                    }
+                                    else
+                                    {
+                                        Logger.Verbose("Nothing was found, caching into non existant files to avoid repeated searching !!");
+                                        noexistFiles.Add(sharedFilePath);
+                                    }
                                 }
                             }
                         }
@@ -292,11 +326,20 @@ namespace AnimeStudio
                 catch (Exception e)
                 {
                     Logger.Error($"Error while reading assets file {reader.FullPath} from {Path.GetFileName(originalPath)}", e);
-                    resourceFileReaders.TryAdd(reader.FileName, reader);
+                    // Only retain the reader if we actually cache it; otherwise free its stream.
+                    if (!resourceFileReaders.TryAdd(reader.FileName, reader))
+                    {
+                        reader.Dispose();
+                    }
                 }
             }
             else
+            {
                 Logger.Info($"Skipping {originalPath} ({reader.FileName})");
+                // Duplicate CAB name inside the same block (or already loaded) — the stream was
+                // freshly allocated by BundleFile.ReadFiles and would otherwise leak until GC.
+                reader.Dispose();
+            }
         }
 
         private void LoadWebFile(FileReader reader)
@@ -322,7 +365,10 @@ namespace AnimeStudio
                             break;
                         case FileType.ResourceFile:
                             Logger.Verbose("Caching resource stream");
-                            resourceFileReaders.TryAdd(file.fileName, subReader); //TODO
+                            if (!resourceFileReaders.TryAdd(file.fileName, subReader))
+                            {
+                                subReader.Dispose();
+                            }
                             break;
                     }
                 }
@@ -415,7 +461,10 @@ namespace AnimeStudio
                             {
                                 entryReader.Position = 0;
                                 Logger.Verbose("Caching resource file");
-                                resourceFileReaders.TryAdd(entry.Name, entryReader);
+                                if (!resourceFileReaders.TryAdd(entry.Name, entryReader))
+                                {
+                                    entryReader.Dispose();
+                                }
                             }
                         }
                         catch (Exception e)
@@ -538,7 +587,12 @@ namespace AnimeStudio
                     else
                     {
                         Logger.Verbose("Caching resource stream");
-                        resourceFileReaders.TryAdd(innerFile.fileName, cabReader); //TODO
+                        // Dispose immediately on name collision — TryAdd would otherwise drop the
+                        // new stream with no owner while the previous one stays cached.
+                        if (!resourceFileReaders.TryAdd(innerFile.fileName, cabReader))
+                        {
+                            cabReader.Dispose();
+                        }
                     }
                 }
             }
@@ -578,6 +632,8 @@ namespace AnimeStudio
             finally
             {
                 reader.Dispose();
+                // Notify map builders after each bundle so they can flush entries and free streams.
+                AfterBundleLoaded?.Invoke();
             }
         }
 
@@ -594,13 +650,18 @@ namespace AnimeStudio
             }
         }
 
-        public void Clear()
+        /// <summary>
+        /// Dispose loaded asset/resource streams but keep <see cref="assetsFileListHash"/>
+        /// so subsequent bundles in the same block still skip already-seen CAB names.
+        /// </summary>
+        public void ClearLoadedAssets()
         {
-            Logger.Verbose("Cleaning up...");
+            Logger.Verbose("Cleaning loaded assets...");
 
             foreach (var assetsFile in assetsFileList)
             {
                 assetsFile.Objects.Clear();
+                assetsFile.ObjectsDic.Clear();
                 assetsFile.reader.Close();
             }
             assetsFileList.Clear();
@@ -612,12 +673,18 @@ namespace AnimeStudio
             resourceFileReaders.Clear();
 
             assetsFileIndexCache.Clear();
+        }
+
+        public void Clear()
+        {
+            Logger.Verbose("Cleaning up...");
+
+            ClearLoadedAssets();
+            OffsetData.Clear();
+            assetsFileListHash.Clear();
 
             tokenSource.Dispose();
             tokenSource = new CancellationTokenSource();
-
-            // GC.WaitForPendingFinalizers();
-            // GC.Collect();
         }
 
         private void ReadAssets()
