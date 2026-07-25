@@ -506,7 +506,7 @@ namespace AnimeStudio
 
                 if (!exportListType.Equals(ExportListType.None))
                 {
-                    Logger.Info($"Finished buidling AssetMap with {entryCount} assets.");
+                    Logger.Info($"Finished building AssetMap with {entryCount} assets.");
                 }
             }
             finally
@@ -899,7 +899,7 @@ namespace AnimeStudio
                         MessagePackSerializer.Serialize(file, assetMap, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
                     }
 
-                    Logger.Info($"Finished buidling AssetMap with {toExportAssets.Count} assets.");
+                    Logger.Info($"Finished building AssetMap with {toExportAssets.Count} assets.");
                 }
             });
         }
@@ -1027,7 +1027,7 @@ namespace AnimeStudio
                             Logger.Info($"Map build successfully !! {collision} collisions found");
                             if (!exportListType.Equals(ExportListType.None))
                             {
-                                Logger.Info($"Finished buidling AssetMap with {entryCount} assets.");
+                                Logger.Info($"Finished building AssetMap with {entryCount} assets.");
                             }
                         }
                         finally
