@@ -9,6 +9,7 @@ namespace AnimeStudio
     public static class StringCache
     {
         private static readonly HashSet<string> _cache = new(StringComparer.Ordinal);
+
         public static string Get(string value)
         {
             if (value == null) return null;
@@ -19,6 +20,17 @@ namespace AnimeStudio
             _cache.Add(value);
             return value;
         }
+
+        /// <summary>
+        /// Drop interned strings. Call between map-build files so unique asset names
+        /// from already-flushed entries do not accumulate across an entire game dump.
+        /// </summary>
+        public static void Clear()
+        {
+            _cache.Clear();
+        }
+
+        public static int Count => _cache.Count;
     }
 
     [MessagePackObject]
@@ -37,11 +49,13 @@ namespace AnimeStudio
         private string _source;
         private string _hash;
 
+        // Names are usually unique per asset — interning them only grows the cache.
         [Key(0)]
-        public string Name { 
+        public string Name {
             get => _name;
-            set => _name = StringCache.Get(value); 
+            set => _name = value;
         }
+        // Containers and sources repeat heavily across entries; keep interning those.
         [Key(1)]
         public string Container {
             get => _container;
@@ -56,10 +70,11 @@ namespace AnimeStudio
         public long PathID { get; set; }
         [Key(4)]
         public ClassIDType Type { get; set; }
+        // Hash is effectively unique per asset — interning it only grows the cache without reuse.
         [Key(5)]
         public string Hash {
             get => _hash;
-            set => _hash = StringCache.Get(value);
+            set => _hash = value;
         }
         [Key(6)]
         public long Offset { get; set; } = -1;
