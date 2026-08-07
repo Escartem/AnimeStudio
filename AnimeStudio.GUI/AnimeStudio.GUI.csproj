@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
@@ -59,39 +59,6 @@
 		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\acl.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>x64\acl.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
-	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\sracl.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\sracl.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\sracl.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\sracl.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
-	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\acldb.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\acldb.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\acldb.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\acldb.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
-	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\acldb_zzz.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\acldb_zzz.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\acldb_zzz.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\acldb_zzz.dll</TargetPath>
 		</ContentWithTargetPath>
 	</ItemGroup>
 
