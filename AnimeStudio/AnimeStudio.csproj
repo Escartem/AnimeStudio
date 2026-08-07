@@ -23,9 +23,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="..\AnimeStudio.Libraries\AnimeStudio.Ooz.dll">
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.Ooz.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
+			<TargetPath>AnimeStudio.Ooz.dll</TargetPath>
+		</ContentWithTargetPath>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.FBXNative.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.FBXNative.dll</TargetPath>
+		</ContentWithTargetPath>
 	</ItemGroup>
 
 </Project>
