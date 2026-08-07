@@ -241,13 +241,7 @@ namespace AnimeStudio.GUI
 
         private void InitalizeOptions()
         {
-            var assetMapType = (ExportListType)Properties.Settings.Default.assetMapType;
-            var assetMapTypes = Enum.GetValues<ExportListType>().ToArray()[1..];
-            foreach (var mapType in assetMapTypes)
-            {
-                var menuItem = new ToolStripMenuItem(mapType.ToString()) { CheckOnClick = true, Checked = assetMapType.HasFlag(mapType), Tag = (int)mapType };
-                assetMapTypeMenuItem.DropDownItems.Add(menuItem);
-            }
+            miscToolStripMenuItem.DropDown.Closing += miscToolStripMenuDropDown_Closing;
 
             specifyTheme.SelectedIndex = Properties.Settings.Default.guiTheme;
 
@@ -289,18 +283,10 @@ namespace AnimeStudio.GUI
             Studio.Paths = paths;
             AssetsHelper.Paths = paths;
 
-            MapNameComboBox.SelectedIndexChanged += new EventHandler(specifyNameComboBox_SelectedIndexChanged);
-            if (!string.IsNullOrEmpty(Properties.Settings.Default.selectedCABMapName))
+            var savedMapPath = Properties.Settings.Default.selectedMapPath;
+            if (!string.IsNullOrEmpty(savedMapPath) && File.Exists(savedMapPath))
             {
-                if (!AssetsHelper.LoadCABMapInternal(Properties.Settings.Default.selectedCABMapName))
-                {
-                    Properties.Settings.Default.selectedCABMapName = "";
-                    Properties.Settings.Default.Save();
-                }
-                else
-                {
-                    MapNameComboBox.Text = Properties.Settings.Default.selectedCABMapName;
-                }
+                Task.Run(() => AssetsHelper.LoadMap(savedMapPath));
             }
         }
         private void MainForm_DragEnter(object sender, DragEventArgs e)
@@ -2181,13 +2167,19 @@ namespace AnimeStudio.GUI
             }
         }
 
-        private void miscToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
+        private void miscToolStripMenuItem_DropDownOpening(object sender, EventArgs e) { }
+
+        private void miscToolStripMenuDropDown_Closing(object sender, ToolStripDropDownClosingEventArgs e)
         {
-            if (miscToolStripMenuItem.Enabled)
-            {
-                MapNameComboBox.Items.Clear();
-                MapNameComboBox.Items.AddRange(AssetsHelper.GetMaps());
-            }
+            if (e.CloseReason == ToolStripDropDownCloseReason.ItemClicked)
+                e.Cancel = true;
+        }
+
+        private void mapTypeItem_Click(object sender, EventArgs e)
+        {
+            if (sender is not ToolStripMenuItem clicked) return;
+            foreach (ToolStripMenuItem item in mapTypeMenuItem.DropDownItems)
+                item.Checked = item == clicked;
         }
 
         private async void toolStripComboBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -2367,172 +2359,78 @@ namespace AnimeStudio.GUI
             assetsManager.Game = Studio.Game;
         }
 
-        private async void specifyNameComboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            miscToolStripMenuItem.DropDown.Visible = false;
-            InvokeUpdate(miscToolStripMenuItem, false);
-
-            ResetForm();
-
-            var name = MapNameComboBox.SelectedItem.ToString();
-            await Task.Run(() =>
-            {
-                if (AssetsHelper.LoadCABMapInternal(name))
-                {
-                    Properties.Settings.Default.selectedCABMapName = name;
-                    Properties.Settings.Default.Save();
-                }
-            });
-
-            assetsManager.SpecifyUnityVersion = specifyUnityVersion.Text;
-            assetsManager.Game = Studio.Game;
-
-            InvokeUpdate(miscToolStripMenuItem, true);
-        }
-
         private async void buildMapToolStripMenuItem_Click(object sender, EventArgs e)
         {
             miscToolStripMenuItem.DropDown.Visible = false;
-            InvokeUpdate(miscToolStripMenuItem, false);
 
-            var input = MapNameComboBox.Text;
-            var selectedText = MapNameComboBox.SelectedText;
-            var name = "";
+            var includeAsset = mapIncludeAssetItem.Checked;
+            var includeCab   = mapIncludeCabItem.Checked;
 
-            if (!string.IsNullOrEmpty(selectedText))
+            if (!includeAsset && !includeCab)
             {
-                name = selectedText;
-            }
-            else if (!string.IsNullOrEmpty(input))
-            {
-                if (input.IndexOfAny(Path.GetInvalidFileNameChars()) != -1)
-                {
-                    Logger.Warning("Name has invalid characters !!");
-                    InvokeUpdate(miscToolStripMenuItem, true);
-                    return;
-                }
-
-                name = input;
-            }
-            else
-            {
-                Logger.Error("Map name is empty, please enter any name in ComboBox above");
-                InvokeUpdate(miscToolStripMenuItem, true);
+                Logger.Error("Select at least one content type (Asset Map or CAB Map).");
                 return;
             }
 
-            if (File.Exists(Path.Combine(AssetsHelper.MapName, $"{name}.bin")))
-            {
-                var acceptOverride = MessageBox.Show("Map already exist, Do you want to override it ?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                if (acceptOverride != DialogResult.Yes)
-                {
-                    InvokeUpdate(miscToolStripMenuItem, true);
-                    return;
-                }
-            }
+            var format = mapTypeMsgpackItem.Checked ? ExportListType.MessagePack
+                       : mapTypeJsonItem.Checked    ? ExportListType.JSON
+                       :                              ExportListType.XML;
 
-            var version = specifyUnityVersion.Text;
-            var openFolderDialog = new OpenFolderDialog();
-            openFolderDialog.Title = "Select Game Folder";
-            if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
+            var ext = format == ExportListType.MessagePack ? "map" : format == ExportListType.JSON ? "json" : "xml";
+            var saveDialog = new SaveFileDialog
             {
-                Logger.Info("Scanning for files...");
-                var files = Directory.GetFiles(openFolderDialog.Folder, "*.*", SearchOption.AllDirectories).ToArray();
-                Logger.Info($"Found {files.Length} files");
-                AssetsHelper.SetUnityVersion(version);
-                await Task.Run(() => AssetsHelper.BuildCABMap(files, name, openFolderDialog.Folder, Studio.Game));
-            }
+                Title = "Save Map File",
+                Filter = $"Map file (*.{ext})|*.{ext}",
+                DefaultExt = ext,
+                InitialDirectory = saveDirectoryBackup
+            };
+            if (saveDialog.ShowDialog(this) != DialogResult.OK) return;
+            var filePath = saveDialog.FileName;
+            saveDirectoryBackup = Path.GetDirectoryName(filePath);
+
+            var openFolderDialog = new OpenFolderDialog { Title = "Select Game Folder" };
+            if (openFolderDialog.ShowDialog(this) != DialogResult.OK) return;
+
+            InvokeUpdate(miscToolStripMenuItem, false);
+            Logger.Info("Scanning for files...");
+            var files = Directory.GetFiles(openFolderDialog.Folder, "*.*", SearchOption.AllDirectories).ToArray();
+            Logger.Info($"Found {files.Length} files");
+            AssetsHelper.SetUnityVersion(specifyUnityVersion.Text);
+            await Task.Run(() => AssetsHelper.BuildMap(files, openFolderDialog.Folder, Studio.Game, filePath, format, includeAsset, includeCab));
             InvokeUpdate(miscToolStripMenuItem, true);
         }
 
-        private async void buildBothToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void loadMapToolStripMenuItem_Click(object sender, EventArgs e)
         {
             miscToolStripMenuItem.DropDown.Visible = false;
-            InvokeUpdate(miscToolStripMenuItem, false);
 
-            var input = toolStripTextBox1.Text;
-            var selectedText = toolStripTextBox1.SelectedText;
-            var exportListType = (ExportListType)assetMapTypeMenuItem.DropDownItems.Cast<ToolStripMenuItem>().Select(x => x.Checked ? (int)x.Tag : 0).Sum();
-            var name = "";
-
-            if (!string.IsNullOrEmpty(selectedText))
+            var openFileDialog = new OpenFileDialog
             {
-                name = selectedText;
-            }
-            else if (!string.IsNullOrEmpty(input))
-            {
-                if (input.IndexOfAny(Path.GetInvalidFileNameChars()) != -1)
-                {
-                    Logger.Warning("Name has invalid characters !!");
-                    InvokeUpdate(miscToolStripMenuItem, true);
-                    return;
-                }
+                Multiselect = false,
+                Filter = "Map files (*.map;*.json;*.xml;*.bin)|*.map;*.json;*.xml;*.bin|All files (*.*)|*.*"
+            };
+            if (openFileDialog.ShowDialog(this) != DialogResult.OK) return;
 
-                name = input;
-            }
-            else
+            var path = openFileDialog.FileName;
+            InvokeUpdate(loadMapToolStripMenuItem, false);
+            (bool loadedCab, bool loadedAsset) = await Task.Run(() => AssetsHelper.LoadMap(path));
+            if (loadedCab || loadedAsset)
             {
-                Logger.Error("Map name is empty, please enter any name in ComboBox above");
-                InvokeUpdate(miscToolStripMenuItem, true);
-                return;
+                Properties.Settings.Default.selectedMapPath = path;
+                Properties.Settings.Default.Save();
             }
-
-            if (File.Exists(Path.Combine(AssetsHelper.MapName, $"{name}.bin")))
-            {
-                var acceptOverride = MessageBox.Show("Map already exist, Do you want to override it ?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                if (acceptOverride != DialogResult.Yes)
-                {
-                    InvokeUpdate(miscToolStripMenuItem, true);
-                    return;
-                }
-            }
-
-            var version = specifyUnityVersion.Text;
-            var openFolderDialog = new OpenFolderDialog();
-            openFolderDialog.Title = "Select Game Folder";
-            if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
-            {
-                Logger.Info("Scanning for files...");
-                var files = Directory.GetFiles(openFolderDialog.Folder, "*.*", SearchOption.AllDirectories).ToArray();
-                Logger.Info($"Found {files.Length} files");
-
-                var saveFolderDialog = new OpenFolderDialog();
-                saveFolderDialog.InitialFolder = saveDirectoryBackup;
-                saveFolderDialog.Title = "Select Output Folder";
-                if (saveFolderDialog.ShowDialog(this) == DialogResult.OK)
-                {
-                    saveDirectoryBackup = saveFolderDialog.Folder;
-                    AssetsHelper.SetUnityVersion(version);
-                    await Task.Run(() => AssetsHelper.BuildBoth(files, name, openFolderDialog.Folder, Studio.Game, saveFolderDialog.Folder, exportListType));
-                }
-            }
-            InvokeUpdate(miscToolStripMenuItem, true);
+            InvokeUpdate(loadMapToolStripMenuItem, true);
         }
 
-        private void clearMapToolStripMenuItem_Click(object sender, EventArgs e)
+        private void unloadCABMapToolStripMenuItem_Click(object sender, EventArgs e)
         {
             miscToolStripMenuItem.DropDown.Visible = false;
-            InvokeUpdate(miscToolStripMenuItem, false);
-
-            var acceptDelete = MessageBox.Show("Map will be deleted, this can't be undone, continue ?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (acceptDelete != DialogResult.Yes)
+            AssetsHelper.UnloadCABMap();
+            if (Properties.Settings.Default.selectedMapPath.Length > 0)
             {
-                InvokeUpdate(miscToolStripMenuItem, true);
-                return;
+                Properties.Settings.Default.selectedMapPath = string.Empty;
+                Properties.Settings.Default.Save();
             }
-
-            var name = MapNameComboBox.Text.ToString();
-            var path = Path.Combine(AssetsHelper.MapName, $"{name}.bin");
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-                Logger.Info($"{name} deleted successfully !!");
-                MapNameComboBox.SelectedIndexChanged -= new EventHandler(specifyNameComboBox_SelectedIndexChanged);
-                MapNameComboBox.SelectedIndex = 0;
-                MapNameComboBox.SelectedIndexChanged += new EventHandler(specifyNameComboBox_SelectedIndexChanged);
-            }
-
-            InvokeUpdate(miscToolStripMenuItem, true);
         }
 
         private void resetToolStripMenuItem_Click(object sender, EventArgs e)
@@ -2634,76 +2532,14 @@ namespace AnimeStudio.GUI
             }
         }
 
-        private async void loadCABMapToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            miscToolStripMenuItem.DropDown.Visible = false;
-
-            var openFileDialog = new OpenFileDialog() { Multiselect = false, Filter = "CABMap File|*.bin" };
-            if (openFileDialog.ShowDialog(this) == DialogResult.OK)
-            {
-                var path = openFileDialog.FileName;
-                InvokeUpdate(loadCABMapToolStripMenuItem, false);
-                await Task.Run(() => AssetsHelper.LoadCABMap(path));
-                InvokeUpdate(loadCABMapToolStripMenuItem, true);
-            }
-        }
+        private void loadCABMapToolStripMenuItem_Click(object sender, EventArgs e) { }
 
         private void clearConsoleToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Console.Clear();
         }
 
-        private async void buildAssetMapToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            miscToolStripMenuItem.DropDown.Visible = false;
-            InvokeUpdate(miscToolStripMenuItem, false);
-
-            var name = "assets_map";
-            var saveDirectory = saveDirectoryBackup;
-
-            var saveFileDialog = new SaveFileDialog()
-            {
-                Filter = "Map file (*.map)|*.map",
-                DefaultExt = "map",
-                Title = "Select Output File (format will auto adjust according to what you selected)",
-                InitialDirectory = saveDirectory,
-            };
-
-            if (saveFileDialog.ShowDialog(this) == DialogResult.OK)
-            {
-                saveDirectory = Path.GetDirectoryName(saveFileDialog.FileName);
-                var input = Path.GetFileNameWithoutExtension(saveFileDialog.FileName);
-
-                var exportListType = (ExportListType)assetMapTypeMenuItem.DropDownItems.Cast<ToolStripMenuItem>().Select(x => x.Checked ? (int)x.Tag : 0).Sum();
-
-                if (!string.IsNullOrEmpty(input))
-                {
-                    if (input.IndexOfAny(Path.GetInvalidFileNameChars()) != -1)
-                    {
-                        Logger.Warning("Name has invalid characters !!");
-                        InvokeUpdate(miscToolStripMenuItem, true);
-                        return;
-                    }
-
-                    name = input;
-                }
-
-                var version = specifyUnityVersion.Text;
-                var openFolderDialog = new OpenFolderDialog();
-                openFolderDialog.Title = $"Select Game Folder";
-                if (openFolderDialog.ShowDialog(this) == DialogResult.OK)
-                {
-                    Logger.Info("Scanning for files...");
-                    var files = Directory.GetFiles(openFolderDialog.Folder, "*.*", SearchOption.AllDirectories).ToArray();
-                    Logger.Info($"Found {files.Length} files");
-
-                    AssetsHelper.SetUnityVersion(version);
-                    await Task.Run(() => AssetsHelper.BuildAssetMap(files, name, Studio.Game, saveDirectory, exportListType));
-                }
-                InvokeUpdate(miscToolStripMenuItem, true);
-            }
-            InvokeUpdate(miscToolStripMenuItem, true);
-        }
+        private void buildAssetMapToolStripMenuItem_Click(object sender, EventArgs e) { }
 
         private void loadAssetMapToolStripMenuItem_Click(object sender, EventArgs e)
         {
