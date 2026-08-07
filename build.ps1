@@ -47,18 +47,6 @@ foreach ($tfm in 'net9.0-windows', 'net10.0-windows') {
     & $patcher $guiExe -d bin
     if ($LASTEXITCODE -ne 0) { throw "GUI patch failed ($tfm)" }
 
-    # Ensure native FBX libs are present (SolutionDir is often empty for bare `dotnet build`)
-    foreach ($arch in 'x86', 'x64') {
-        $src = "AnimeStudio.Libraries\$arch\AnimeStudio.FBXNative.dll"
-        if (Test-Path $src) {
-            foreach ($out in @($cliOut, $guiOut)) {
-                $destDir = Join-Path $out $arch
-                New-Item -ItemType Directory -Force $destDir | Out-Null
-                Copy-Item $src $destDir -Force
-            }
-        }
-    }
-
     # prepare output dir
     Reset-Dir $outputDir
     New-Item -ItemType Directory -Force "$outputDir/bin" | Out-Null
