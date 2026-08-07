@@ -3,7 +3,7 @@
     <OutputType>Exe</OutputType>
 	<TargetFrameworks>net9.0-windows;net10.0-windows</TargetFrameworks>
 	<ApplicationIcon>Resources\as.ico</ApplicationIcon>
-	<Copyright>Copyright © Escartem 2024-2025; Copyright © Razmoth 2022-2024; Copyright © Perfare 2018-2022</Copyright>
+	<Copyright>Copyright © Escartem 2024-2026; Copyright © Razmoth 2022-2024; Copyright © Perfare 2018-2022</Copyright>
 	<BaseOutputPath>..\AnimeStudio.CLI\bin</BaseOutputPath>
   </PropertyGroup>
 
