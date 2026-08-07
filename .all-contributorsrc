@@ -200,6 +200,15 @@
         "bug",
         "code"
       ]
+    },
+    {
+      "login": "bbdd2729",
+      "name": "bbdd",
+      "avatar_url": "https://avatars.githubusercontent.com/u/179790579?v=4",
+      "profile": "https://github.com/bbdd2729",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
