@@ -11,6 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MessagePack" Version="3.1.7" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\AnimeStudio.PInvoke\AnimeStudio.PInvoke.csproj" />
     <ProjectReference Include="..\AnimeStudio\AnimeStudio.csproj" />
   </ItemGroup>
