@@ -19,6 +19,24 @@ function Reset-Dir([string]$path) {
     New-Item -ItemType Directory -Force $path | Out-Null
 }
 
+function Remove-EmptyDirectories([string]$path) {
+    if (-not (Test-Path $path)) { return }
+
+    while ($true) {
+        $empty = @(Get-ChildItem $path -Directory -Recurse -Force |
+            Where-Object { -not (Get-ChildItem $_.FullName -Force | Select-Object -First 1) })
+        if ($empty.Count -eq 0) { break }
+
+        $empty | Remove-Item -Force -ErrorAction SilentlyContinue
+
+        $stuck = @($empty | Where-Object { Test-Path $_.FullName })
+        if ($stuck.Count -eq $empty.Count) {
+            Write-Warning "Could not remove empty directories: $($stuck.FullName -join ', ')"
+            break
+        }
+    }
+}
+
 foreach ($tfm in 'net9.0-windows', 'net10.0-windows') {
     # config
     $outputDir = ".\dist\$tfm"
@@ -69,6 +87,8 @@ foreach ($tfm in 'net9.0-windows', 'net10.0-windows') {
     } elseif (Test-Path ".\LICENSE") {
         Copy-Item ".\LICENSE" $outputDir -Force
     }
+
+    Remove-EmptyDirectories $outputDir
 
     # sanity: apphost must point at bin\<dll>, not bin\bin\...
     foreach ($exe in 'AnimeStudio.GUI.exe', 'AnimeStudio.CLI.exe') {

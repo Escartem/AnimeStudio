@@ -4,7 +4,8 @@
 	<TargetFrameworks>net9.0-windows;net10.0-windows</TargetFrameworks>
 	<ApplicationIcon>Resources\as.ico</ApplicationIcon>
 	<Copyright>Copyright © Escartem 2024-2026; Copyright © Razmoth 2022-2024; Copyright © Perfare 2018-2022</Copyright>
-	<BaseOutputPath>..\AnimeStudio.CLI\bin</BaseOutputPath>
+	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +19,13 @@
 	<ProjectReference Include="..\AnimeStudio.Utility\AnimeStudio.Utility.csproj" />
     <ProjectReference Include="..\AnimeStudio\AnimeStudio.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+		<ContentWithTargetPath Include="..\LICENSE">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>LICENSE</TargetPath>
+		</ContentWithTargetPath>
+	</ItemGroup>
 
   <ItemGroup>
     <Compile Update="Settings.cs">
@@ -69,5 +77,13 @@
 			<TargetPath>x64\acldb_zzz.dll</TargetPath>
 		</ContentWithTargetPath>
 	</ItemGroup>
+
+	<Target Name="RemoveSkiaSharpPdb" AfterTargets="ResolveAssemblyReferences;Build">
+		<ItemGroup>
+			<NativePdbFiles Include="$(OutDir)*.pdb" />
+			<NativePdbFiles Include="$(PublishDir)*.pdb" Condition="'$(PublishDir)' != ''" />
+		</ItemGroup>
+		<Delete Files="@(NativePdbFiles)" />
+	</Target>
 
 </Project>

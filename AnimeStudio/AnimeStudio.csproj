@@ -4,6 +4,8 @@
 		<TargetFrameworks>net9.0;net10.0</TargetFrameworks>
 		<Copyright>Copyright © Escartem 2024-2026; Copyright © yarik0chka 2024-2025; Copyright © Hashblen 2024-2025; Copyright © Razmoth 2022-2024; Copyright © Perfare 2018-2022</Copyright>
 		<DebugType>embedded</DebugType>
+		<SelfContained>false</SelfContained>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 	</PropertyGroup>
 
 	<ItemGroup>
