@@ -19,6 +19,7 @@
   </Project>
   <Project Path="AnimeStudio.Patcher/AnimeStudio.Patcher.csproj" />
   <Project Path="AnimeStudio.PInvoke/AnimeStudio.PInvoke.csproj" />
+  <Project Path="AnimeStudio.Test/AnimeStudio.Test.csproj" />
   <Project Path="AnimeStudio.Utility/AnimeStudio.Utility.csproj" />
   <Project Path="AnimeStudio/AnimeStudio.csproj" />
 </Solution>

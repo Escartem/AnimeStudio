@@ -268,35 +268,154 @@ namespace AnimeStudio.GUI
 
         public static void UpdateContainers()
         {
-            if (exportableAssets.Count > 0)
+            if (exportableAssets.Count == 0)
             {
-                Logger.Info("Updating Containers...");
-                foreach (var asset in exportableAssets)
+                return;
+            }
+
+            Logger.Info("Updating Containers...");
+            var isZZZ = Game.Type.IsZZZ();
+            var sourceFileIds = new Dictionary<string, uint?>();
+
+            foreach (var asset in exportableAssets)
+            {
+                if (isZZZ && TryUpdateZZZContainer(asset))
                 {
-                    if (Game.Type.IsZZZ() && ulong.TryParse(asset.Container, out var hash) && Paths.TryGetValue(hash, out var z3Path))
+                    continue;
+                }
+
+                TryUpdateIndexedContainer(asset, sourceFileIds);
+            }
+
+            Logger.Info("Updated !!");
+        }
+
+        private static bool TryUpdateZZZContainer(AssetItem asset)
+        {
+            if (!ulong.TryParse(asset.Container, out var hash) || !Paths.TryGetValue(hash, out var z3Path))
+            {
+                return false;
+            }
+
+            asset.Container = z3Path;
+            return true;
+        }
+
+        private static void TryUpdateIndexedContainer(AssetItem asset, Dictionary<string, uint?> sourceFileIds)
+        {
+            if (!int.TryParse(asset.Container, out var value))
+            {
+                return;
+            }
+
+            var id = GetSourceFileId(asset.SourceFile.originalPath, sourceFileIds);
+            if (!id.HasValue)
+            {
+                return;
+            }
+
+            var last = unchecked((uint)value);
+            var path = ResourceIndex.GetContainer(id.Value, last);
+            if (string.IsNullOrEmpty(path))
+            {
+                return;
+            }
+
+            asset.Container = path;
+            if (asset.Type == ClassIDType.MiHoYoBinData)
+            {
+                asset.Text = Path.GetFileNameWithoutExtension(path);
+            }
+        }
+
+        private static uint? GetSourceFileId(string originalPath, Dictionary<string, uint?> sourceFileIds)
+        {
+            originalPath ??= string.Empty;
+            if (sourceFileIds.TryGetValue(originalPath, out var id))
+            {
+                return id;
+            }
+
+            var name = Path.GetFileNameWithoutExtension(originalPath);
+            id = uint.TryParse(name, out var parsedId) ? parsedId : null;
+            sourceFileIds.Add(originalPath, id);
+            return id;
+        }
+
+        #region Build asset data
+
+        private sealed class AssetDataBuildContext
+        {
+            public int ObjectCount { get; }
+            public int GameObjectCount { get; }
+            public Dictionary<Object, AssetItem> ObjectAssetItems { get; }
+            public List<(PPtr<Object> PPtr, string Name)> MiHoYoBinDataNames { get; } = new List<(PPtr<Object>, string)>();
+            public List<(PPtr<Object> PPtr, string Container)> Containers { get; } = new List<(PPtr<Object>, string)>();
+            public HashSet<AssetFilterKey> FastAssetFilterKeys { get; }
+            private readonly Dictionary<ClassIDType, bool> canExportCache = new Dictionary<ClassIDType, bool>();
+            public string AssetBundleName { get; set; } = "";
+            public string ProductName { get; set; }
+
+            public AssetDataBuildContext()
+            {
+                foreach (var assetsFile in assetsManager.assetsFileList)
+                {
+                    ObjectCount += assetsFile.Objects.Count;
+                    foreach (var asset in assetsFile.Objects)
                     {
-                        asset.Container = z3Path;
-                        continue;
-                    }
-                    if (int.TryParse(asset.Container, out var value))
-                    {
-                        var last = unchecked((uint)value);
-                        var name = Path.GetFileNameWithoutExtension(asset.SourceFile.originalPath);
-                        if (uint.TryParse(name, out var id))
+                        if (asset is GameObject)
                         {
-                            var path = ResourceIndex.GetContainer(id, last);
-                            if (!string.IsNullOrEmpty(path))
-                            {
-                                asset.Container = path;
-                                if (asset.Type == ClassIDType.MiHoYoBinData)
-                                {
-                                    asset.Text = Path.GetFileNameWithoutExtension(path);
-                                }
-                            }
+                            GameObjectCount++;
                         }
                     }
                 }
-                Logger.Info("Updated !!");
+
+                ObjectAssetItems = new Dictionary<Object, AssetItem>(ObjectCount);
+                FastAssetFilterKeys = assetsManager.FilterData.Items
+                    .Select(x => new AssetFilterKey(x.Name, x.PathID, x.Type))
+                    .ToHashSet();
+            }
+
+            public bool CanExport(ClassIDType type)
+            {
+                if (!canExportCache.TryGetValue(type, out var canExport))
+                {
+                    canExport = type.CanExport();
+                    canExportCache.Add(type, canExport);
+                }
+
+                return canExport;
+            }
+        }
+
+        private readonly struct AssetFilterKey : IEquatable<AssetFilterKey>
+        {
+            private readonly string name;
+            private readonly long pathID;
+            private readonly ClassIDType type;
+
+            public AssetFilterKey(string name, long pathID, ClassIDType type)
+            {
+                this.name = name;
+                this.pathID = pathID;
+                this.type = type;
+            }
+
+            public bool Equals(AssetFilterKey other)
+            {
+                return type == other.type
+                    && pathID == other.pathID
+                    && string.Equals(name, other.name, StringComparison.OrdinalIgnoreCase);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is AssetFilterKey other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return HashCode.Combine(StringComparer.OrdinalIgnoreCase.GetHashCode(name ?? string.Empty), pathID, type);
             }
         }
 
@@ -304,207 +423,43 @@ namespace AnimeStudio.GUI
         {
             StatusStripUpdate("Building asset list...");
 
-            int i = 0;
-            string productName = null;
-            var objectCount = assetsManager.assetsFileList.Sum(x => x.Objects.Count);
-            var objectAssetItemDic = new Dictionary<Object, AssetItem>(objectCount);
-            var mihoyoBinDataNames = new List<(PPtr<Object>, string)>();
-            var containers = new List<(PPtr<Object>, string)>();
+            var context = new AssetDataBuildContext();
             Progress.Reset();
-            Logger.Info($"Loading {objectCount} objects from {assetsManager.assetsFileList.Count} files.");
-            var assetBundleName = "";
+            Logger.Info($"Loading {context.ObjectCount} objects from {assetsManager.assetsFileList.Count} files.");
 
-            var fastAssetItemFilterData = new HashSet<AssetFilterDataItem>(assetsManager.FilterData.Items, new AssetFilterDataItemEqualityComparer());
-            foreach (var assetsFile in assetsManager.assetsFileList)
+            if (!BuildExportableAssetItems(context) || !ApplyAssetPostProcessing(context))
             {
-                foreach (var asset in assetsFile.Objects)
-                {
-                    if (assetsManager.tokenSource.IsCancellationRequested)
-                    {
-                        Logger.Info("Building asset list has been cancelled !!");
-                        return (string.Empty, Array.Empty<TreeNode>().ToList());
-                    }
-
-                    var assetItem = new AssetItem(asset);
-
-                    if (asset is not AssetBundle && asset is not ResourceManager)
-                    {
-                        if (fastAssetItemFilterData.Count > 0 && !fastAssetItemFilterData.Contains(new AssetFilterDataItem { Source = assetItem.SourceFile.fullName, Name = assetItem.Text, PathID = assetItem.m_PathID, Type = assetItem.Type }))
-                        {
-                            Logger.Verbose($"Skipped {(assetItem.Text.Length > 0 ? assetItem.Text : "an asset")} because filter data was set and it was missing from it");
-                            continue;
-                        }
-                    }
-                    
-                    objectAssetItemDic.Add(asset, assetItem);
-                    assetItem.UniqueID = "#" + i;
-                    var exportable = false;
-                    switch (asset)
-                    {
-                        case Texture2D m_Texture2D:
-                            if (!string.IsNullOrEmpty(m_Texture2D.m_StreamData?.path))
-                                assetItem.FullSize = asset.byteSize + m_Texture2D.m_StreamData.size;
-                            exportable = ClassIDType.Texture2D.CanExport();
-                            break;
-                        case AudioClip m_AudioClip:
-                            if (!string.IsNullOrEmpty(m_AudioClip.m_Source))
-                                assetItem.FullSize = asset.byteSize + m_AudioClip.m_Size;
-                            exportable = ClassIDType.AudioClip.CanExport();
-                            break;
-                        case VideoClip m_VideoClip:
-                            if (!string.IsNullOrEmpty(m_VideoClip.m_OriginalPath))
-                                assetItem.FullSize = asset.byteSize + m_VideoClip.m_ExternalResources.m_Size;
-                            exportable = ClassIDType.VideoClip.CanExport();
-                            break;
-                        case PlayerSettings m_PlayerSettings:
-                            productName = m_PlayerSettings.productName;
-                            exportable = ClassIDType.PlayerSettings.CanExport();
-                            break;
-                        case AssetBundle m_AssetBundle:
-                            assetBundleName = m_AssetBundle.Name;
-                            if (!SkipContainer)
-                            {
-                                foreach (var m_Container in m_AssetBundle.m_Container)
-                                {
-                                    var preloadIndex = m_Container.Value.preloadIndex;
-                                    var preloadSize = m_Container.Value.preloadSize;
-                                    var preloadEnd = preloadIndex + preloadSize;
-
-                                    switch (preloadIndex)
-                                    {
-                                        case int n when n < 0:
-                                            Logger.Warning($"preloadIndex {preloadIndex} is out of preloadTable range");
-                                            break;
-                                        default:
-                                            for (int k = preloadIndex; k < preloadEnd; k++)
-                                            {
-                                                string containerName = m_Container.Key;
-                                                if (int.TryParse(m_Container.Key, out _) && Properties.Settings.Default.useBundleContainerName)
-                                                {
-                                                    containerName = assetBundleName;
-                                                }
-                                                try
-                                                {
-                                                    containers.Add((m_AssetBundle.m_PreloadTable[k], m_Container.Key));
-                                                } catch
-                                                {
-                                                    Logger.Info($"Failed to add container {m_Container.Key}");
-                                                }
-                                            }
-                                            break;
-                                    }
-                                }
-                            }
-
-                            exportable = ClassIDType.AssetBundle.CanExport();
-                            break;
-                        case IndexObject m_IndexObject:
-                            foreach(var index in m_IndexObject.AssetMap)
-                            {
-                                mihoyoBinDataNames.Add((index.Value.Object, index.Key));
-                            }
-
-                            exportable = ClassIDType.IndexObject.CanExport();
-                            break;
-                        case ResourceManager m_ResourceManager:
-                            foreach (var m_Container in m_ResourceManager.m_Container)
-                            {
-                                containers.Add((m_Container.Value, m_Container.Key));
-                            }
-
-                            exportable = ClassIDType.ResourceManager.CanExport();
-                            break;
-                        case Mesh _ when ClassIDType.Mesh.CanExport():
-                        case TextAsset _ when ClassIDType.TextAsset.CanExport():
-                        case AnimationClip _ when ClassIDType.AnimationClip.CanExport():
-                        case Font _ when ClassIDType.Font.CanExport():
-                        case MovieTexture _ when ClassIDType.MovieTexture.CanExport():
-                        case Sprite _ when ClassIDType.Sprite.CanExport():
-                        case Material _ when ClassIDType.Material.CanExport():
-                        case MiHoYoBinData _ when ClassIDType.MiHoYoBinData.CanExport():
-                        case NapAssetBundleIndexAsset _ when ClassIDType.NapAssetBundleIndexAsset.CanExport():
-                        case Shader _ when ClassIDType.Shader.CanExport():
-                        case Animator _ when ClassIDType.Animator.CanExport():
-                        case MonoBehaviour _ when ClassIDType.MonoBehaviour.CanExport():
-                            exportable = true;
-                            break;
-                    }
-                    if (assetItem.Text == "")
-                    {
-                        assetItem.Text = assetItem.TypeString + assetItem.UniqueID;
-                    }
-                    if (Properties.Settings.Default.displayAll || exportable)
-                    {
-                        exportableAssets.Add(assetItem);
-                    }
-                    Progress.Report(++i, objectCount);
-                }
-            }
-            foreach((var pptr, var name) in mihoyoBinDataNames)
-            {
-                if (assetsManager.tokenSource.IsCancellationRequested)
-                {
-                    Logger.Info("Processing asset names has been cancelled !!");
-                    return (string.Empty, Array.Empty<TreeNode>().ToList());
-                }
-                if (pptr.TryGet<MiHoYoBinData>(out var obj))
-                {
-                    var assetItem = objectAssetItemDic[obj];
-                    if (int.TryParse(name, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var hash))
-                    {
-                        assetItem.Text = name;
-                        assetItem.Container = Properties.Settings.Default.useBundleContainerName ? assetBundleName : hash.ToString();
-                    }
-                    else assetItem.Text = $"BinFile #{assetItem.m_PathID}";
-                }
-            }
-            if (!SkipContainer)
-            {
-                foreach ((var pptr, var container) in containers)
-                {
-                    if (assetsManager.tokenSource.IsCancellationRequested)
-                    {
-                        Logger.Info("Processing containers been cancelled !!");
-                        return (string.Empty, Array.Empty<TreeNode>().ToList());
-                    }
-                    if (pptr.TryGet(out var obj))
-                    {
-                        if (objectAssetItemDic.ContainsKey(obj))
-                        {
-                            objectAssetItemDic[obj].Container = container;
-                        }
-                    }
-                }
-                containers.Clear();
-                if (Game.Type.IsGISubGroup() || Game.Type.IsZZZ())
-                {
-                    UpdateContainers();
-                }
-            }
-            foreach (var tmp in exportableAssets)
-            {
-                if (assetsManager.tokenSource.IsCancellationRequested)
-                {
-                    Logger.Info("Processing subitems been cancelled !!");
-                    return (string.Empty, Array.Empty<TreeNode>().ToList());
-                }
-                tmp.SetSubItems();
+                return (string.Empty, Array.Empty<TreeNode>().ToList());
             }
 
             visibleAssets = exportableAssets;
 
             StatusStripUpdate("Building tree structure...");
+            var treeNodeCollection = BuildSceneTree(context);
+            context.ObjectAssetItems.Clear();
 
+            if (treeNodeCollection == null)
+            {
+                return (string.Empty, Array.Empty<TreeNode>().ToList());
+            }
+
+            return (context.ProductName, treeNodeCollection);
+        }
+
+        private static List<TreeNode> BuildSceneTree(AssetDataBuildContext context)
+        {
             var treeNodeCollection = new List<TreeNode>();
-            var treeNodeDictionary = new Dictionary<GameObject, GameObjectTreeNode>();
+            var treeNodeDictionary = new Dictionary<GameObject, GameObjectTreeNode>(context.GameObjectCount);
+            var hasFilterData = context.FastAssetFilterKeys.Count > 0;
             int j = 0;
             Progress.Reset();
-            var files = assetsManager.assetsFileList.GroupBy(x => x.originalPath ?? string.Empty).OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.ToList());
-            foreach (var (file, assetsFiles) in files)
+            var files = assetsManager.assetsFileList.GroupBy(x => x.originalPath ?? string.Empty).OrderBy(x => x.Key).ToList();
+            foreach (var fileGroup in files)
             {
+                var file = fileGroup.Key;
                 var fileNode = !string.IsNullOrEmpty(file) ? new TreeNode(Path.GetFileName(file)) : null; //RootNode
 
-                foreach (var assetsFile in assetsFiles)
+                foreach (var assetsFile in fileGroup)
                 {
                     var assetsFileNode = new TreeNode(assetsFile.fileName);
 
@@ -513,80 +468,24 @@ namespace AnimeStudio.GUI
                         if (assetsManager.tokenSource.IsCancellationRequested)
                         {
                             Logger.Info("Building tree structure been cancelled !!");
-                            return (string.Empty, Array.Empty<TreeNode>().ToList());
+                            return null;
                         }
-
-                        var assetItem = new AssetItem(obj);
 
                         if (obj is not GameObject)
                         {
-                            if (fastAssetItemFilterData.Count > 0 && !fastAssetItemFilterData.Contains(new AssetFilterDataItem { Source = assetItem.SourceFile.fullName, Name = assetItem.Text, PathID = assetItem.m_PathID, Type = assetItem.Type }))
+                            if (hasFilterData && IsMissingFromFilter(obj.Name, obj.m_PathID, obj.type, context.FastAssetFilterKeys))
                             {
-                                Logger.Verbose($"Skipped {(assetItem.Text.Length > 0 ? assetItem.Text : "an asset")} because filter data was set and it was missing from it");
                                 continue;
                             }
+
+                            continue;
                         }
 
-                        if (obj is GameObject m_GameObject)
-                        {
-                            if (!treeNodeDictionary.TryGetValue(m_GameObject, out var currentNode))
-                            {
-                                currentNode = new GameObjectTreeNode(m_GameObject);
-                                treeNodeDictionary.Add(m_GameObject, currentNode);
-                            }
-
-                            foreach (var pptr in m_GameObject.m_Components)
-                            {
-                                if (pptr.TryGet(out var m_Component))
-                                {
-                                    if (objectAssetItemDic.ContainsKey(m_Component))
-                                    {
-                                        objectAssetItemDic[m_Component].TreeNode = currentNode;
-                                    }
-                                    
-                                    if (m_Component is MeshFilter m_MeshFilter)
-                                    {
-                                        if (m_MeshFilter.m_Mesh.TryGet(out var m_Mesh))
-                                        {
-                                            if (objectAssetItemDic.ContainsKey(m_Mesh))
-                                            {
-                                                objectAssetItemDic[m_Mesh].TreeNode = currentNode;
-                                            }
-                                        }
-                                    }
-                                    else if (m_Component is SkinnedMeshRenderer m_SkinnedMeshRenderer)
-                                    {
-                                        if (m_SkinnedMeshRenderer.m_Mesh.TryGet(out var m_Mesh))
-                                        {
-                                            if (objectAssetItemDic.ContainsKey(m_Mesh))
-                                            {
-                                                objectAssetItemDic[m_Mesh].TreeNode = currentNode;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            var parentNode = assetsFileNode;
-
-                            if (m_GameObject.m_Transform != null)
-                            {
-                                if (m_GameObject.m_Transform.m_Father.TryGet(out var m_Father))
-                                {
-                                    if (m_Father.m_GameObject.TryGet(out var parentGameObject))
-                                    {
-                                        if (!treeNodeDictionary.TryGetValue(parentGameObject, out var parentGameObjectNode))
-                                        {
-                                            parentGameObjectNode = new GameObjectTreeNode(parentGameObject);
-                                            treeNodeDictionary.Add(parentGameObject, parentGameObjectNode);
-                                        }
-                                        parentNode = parentGameObjectNode;
-                                    }
-                                }
-                            }
-
-                            parentNode.Nodes.Add(currentNode);
-                        }
+                        var m_GameObject = (GameObject)obj;
+                        var currentNode = GetOrCreateGameObjectNode(m_GameObject, treeNodeDictionary);
+                        AssignAssetTreeNodes(m_GameObject, currentNode, context);
+                        var parentNode = GetParentTreeNode(m_GameObject, assetsFileNode, treeNodeDictionary);
+                        parentNode.Nodes.Add(currentNode);
                     }
 
                     // TODO: need to do proper cleaning of list to only include filtered assets when required
@@ -613,10 +512,283 @@ namespace AnimeStudio.GUI
             }
             treeNodeDictionary.Clear();
 
-            objectAssetItemDic.Clear();
-
-            return (productName, treeNodeCollection);
+            return treeNodeCollection;
         }
+
+        private static GameObjectTreeNode GetOrCreateGameObjectNode(GameObject gameObject, Dictionary<GameObject, GameObjectTreeNode> treeNodeDictionary)
+        {
+            if (!treeNodeDictionary.TryGetValue(gameObject, out var currentNode))
+            {
+                currentNode = new GameObjectTreeNode(gameObject);
+                treeNodeDictionary.Add(gameObject, currentNode);
+            }
+
+            return currentNode;
+        }
+
+        private static void AssignAssetTreeNodes(GameObject gameObject, GameObjectTreeNode currentNode, AssetDataBuildContext context)
+        {
+            foreach (var pptr in gameObject.m_Components)
+            {
+                if (!pptr.TryGet(out var m_Component))
+                {
+                    continue;
+                }
+
+                AssignTreeNode(m_Component, currentNode, context);
+                AssignMeshTreeNode(m_Component, currentNode, context);
+            }
+        }
+
+        private static void AssignTreeNode(Object asset, GameObjectTreeNode currentNode, AssetDataBuildContext context)
+        {
+            if (context.ObjectAssetItems.TryGetValue(asset, out var assetItem))
+            {
+                assetItem.TreeNode = currentNode;
+            }
+        }
+
+        private static void AssignMeshTreeNode(Object component, GameObjectTreeNode currentNode, AssetDataBuildContext context)
+        {
+            if (component is MeshFilter m_MeshFilter && m_MeshFilter.m_Mesh.TryGet(out var meshFromFilter))
+            {
+                AssignTreeNode(meshFromFilter, currentNode, context);
+            }
+            else if (component is SkinnedMeshRenderer m_SkinnedMeshRenderer && m_SkinnedMeshRenderer.m_Mesh.TryGet(out var meshFromRenderer))
+            {
+                AssignTreeNode(meshFromRenderer, currentNode, context);
+            }
+        }
+
+        private static TreeNode GetParentTreeNode(GameObject gameObject, TreeNode assetsFileNode, Dictionary<GameObject, GameObjectTreeNode> treeNodeDictionary)
+        {
+            if (gameObject.m_Transform != null)
+            {
+                if (gameObject.m_Transform.m_Father.TryGet(out var m_Father))
+                {
+                    if (m_Father.m_GameObject.TryGet(out var parentGameObject))
+                    {
+                        return GetOrCreateGameObjectNode(parentGameObject, treeNodeDictionary);
+                    }
+                }
+            }
+
+            return assetsFileNode;
+        }
+
+        private static bool BuildExportableAssetItems(AssetDataBuildContext context)
+        {
+            int i = 0;
+            var displayAll = Properties.Settings.Default.displayAll;
+            var hasFilterData = context.FastAssetFilterKeys.Count > 0;
+            if (displayAll && exportableAssets.Capacity < context.ObjectCount)
+            {
+                exportableAssets.Capacity = context.ObjectCount;
+            }
+
+            foreach (var assetsFile in assetsManager.assetsFileList)
+            {
+                foreach (var asset in assetsFile.Objects)
+                {
+                    if (assetsManager.tokenSource.IsCancellationRequested)
+                    {
+                        Logger.Info("Building asset list has been cancelled !!");
+                        return false;
+                    }
+
+                    if (hasFilterData && asset is not AssetBundle && asset is not ResourceManager && IsMissingFromFilter(asset.Name, asset.m_PathID, asset.type, context.FastAssetFilterKeys))
+                    {
+                        continue;
+                    }
+
+                    AddAssetItem(asset, context, displayAll, i);
+                    Progress.Report(++i, context.ObjectCount);
+                }
+            }
+
+            return true;
+        }
+
+        private static void AddAssetItem(Object asset, AssetDataBuildContext context, bool displayAll, int index)
+        {
+            var assetItem = new AssetItem(asset);
+
+            context.ObjectAssetItems.Add(asset, assetItem);
+            assetItem.UniqueID = "#" + index;
+            var exportable = ConfigureAssetItemAndReturnExportable(asset, assetItem, context);
+
+            if (assetItem.Text == "")
+            {
+                assetItem.Text = assetItem.TypeString + assetItem.UniqueID;
+            }
+            if (displayAll || exportable)
+            {
+                exportableAssets.Add(assetItem);
+            }
+        }
+
+        private static bool ApplyAssetPostProcessing(AssetDataBuildContext context)
+        {
+            foreach ((var pptr, var name) in context.MiHoYoBinDataNames)
+            {
+                if (assetsManager.tokenSource.IsCancellationRequested)
+                {
+                    Logger.Info("Processing asset names has been cancelled !!");
+                    return false;
+                }
+                if (pptr.TryGet<MiHoYoBinData>(out var obj))
+                {
+                    var assetItem = context.ObjectAssetItems[obj];
+                    if (int.TryParse(name, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var hash))
+                    {
+                        assetItem.Text = name;
+                        assetItem.Container = Properties.Settings.Default.useBundleContainerName ? context.AssetBundleName : hash.ToString();
+                    }
+                    else assetItem.Text = $"BinFile #{assetItem.m_PathID}";
+                }
+            }
+            if (!SkipContainer)
+            {
+                foreach ((var pptr, var container) in context.Containers)
+                {
+                    if (assetsManager.tokenSource.IsCancellationRequested)
+                    {
+                        Logger.Info("Processing containers been cancelled !!");
+                        return false;
+                    }
+                    if (pptr.TryGet(out var obj))
+                    {
+                        if (context.ObjectAssetItems.TryGetValue(obj, out var assetItem))
+                        {
+                            assetItem.Container = container;
+                        }
+                    }
+                }
+                context.Containers.Clear();
+                if (Game.Type.IsGISubGroup() || Game.Type.IsZZZ())
+                {
+                    UpdateContainers();
+                }
+            }
+            return true;
+        }
+
+        private static bool ConfigureAssetItemAndReturnExportable(Object asset, AssetItem assetItem, AssetDataBuildContext context)
+        {
+            switch (asset)
+            {
+                case Texture2D m_Texture2D:
+                    if (!string.IsNullOrEmpty(m_Texture2D.m_StreamData?.path))
+                        assetItem.FullSize = asset.byteSize + m_Texture2D.m_StreamData.size;
+                    return context.CanExport(ClassIDType.Texture2D);
+                case AudioClip m_AudioClip:
+                    if (!string.IsNullOrEmpty(m_AudioClip.m_Source))
+                        assetItem.FullSize = asset.byteSize + m_AudioClip.m_Size;
+                    return context.CanExport(ClassIDType.AudioClip);
+                case VideoClip m_VideoClip:
+                    if (!string.IsNullOrEmpty(m_VideoClip.m_OriginalPath))
+                        assetItem.FullSize = asset.byteSize + m_VideoClip.m_ExternalResources.m_Size;
+                    return context.CanExport(ClassIDType.VideoClip);
+                case PlayerSettings m_PlayerSettings:
+                    context.ProductName = m_PlayerSettings.productName;
+                    return context.CanExport(ClassIDType.PlayerSettings);
+                case AssetBundle m_AssetBundle:
+                    context.AssetBundleName = m_AssetBundle.Name;
+                    AddAssetBundleContainers(m_AssetBundle, context);
+                    return context.CanExport(ClassIDType.AssetBundle);
+                case IndexObject m_IndexObject:
+                    foreach(var index in m_IndexObject.AssetMap)
+                    {
+                        context.MiHoYoBinDataNames.Add((index.Value.Object, index.Key));
+                    }
+
+                    return context.CanExport(ClassIDType.IndexObject);
+                case ResourceManager m_ResourceManager:
+                    foreach (var m_Container in m_ResourceManager.m_Container)
+                    {
+                        context.Containers.Add((m_Container.Value, m_Container.Key));
+                    }
+
+                    return context.CanExport(ClassIDType.ResourceManager);
+                case Mesh _:
+                    return context.CanExport(ClassIDType.Mesh);
+                case TextAsset _:
+                    return context.CanExport(ClassIDType.TextAsset);
+                case AnimationClip _:
+                    return context.CanExport(ClassIDType.AnimationClip);
+                case Font _:
+                    return context.CanExport(ClassIDType.Font);
+                case MovieTexture _:
+                    return context.CanExport(ClassIDType.MovieTexture);
+                case Sprite _:
+                    return context.CanExport(ClassIDType.Sprite);
+                case Material _:
+                    return context.CanExport(ClassIDType.Material);
+                case MiHoYoBinData _:
+                    return context.CanExport(ClassIDType.MiHoYoBinData);
+                case NapAssetBundleIndexAsset _:
+                    return context.CanExport(ClassIDType.NapAssetBundleIndexAsset);
+                case Shader _:
+                    return context.CanExport(ClassIDType.Shader);
+                case Animator _:
+                    return context.CanExport(ClassIDType.Animator);
+                case MonoBehaviour _:
+                    return context.CanExport(ClassIDType.MonoBehaviour);
+                default:
+                    return false;
+            }
+        }
+
+        private static void AddAssetBundleContainers(AssetBundle assetBundle, AssetDataBuildContext context)
+        {
+            if (SkipContainer)
+            {
+                return;
+            }
+
+            foreach (var m_Container in assetBundle.m_Container)
+            {
+                var preloadIndex = m_Container.Value.preloadIndex;
+                var preloadSize = m_Container.Value.preloadSize;
+                var preloadEnd = preloadIndex + preloadSize;
+
+                switch (preloadIndex)
+                {
+                    case int n when n < 0:
+                        Logger.Warning($"preloadIndex {preloadIndex} is out of preloadTable range");
+                        break;
+                    default:
+                        for (int k = preloadIndex; k < preloadEnd; k++)
+                        {
+                            try
+                            {
+                                context.Containers.Add((assetBundle.m_PreloadTable[k], m_Container.Key));
+                            } catch
+                            {
+                                Logger.Info($"Failed to add container {m_Container.Key}");
+                            }
+                        }
+                        break;
+                }
+            }
+        }
+
+        private static bool IsMissingFromFilter(string name, long pathID, ClassIDType type, HashSet<AssetFilterKey> fastAssetFilterKeys)
+        {
+            if (fastAssetFilterKeys.Count == 0)
+            {
+                return false;
+            }
+            if (fastAssetFilterKeys.Contains(new AssetFilterKey(name, pathID, type)))
+            {
+                return false;
+            }
+
+            Logger.Verbose($"Skipped {(name.Length > 0 ? name : "an asset")} because filter data was set and it was missing from it");
+            return true;
+        }
+
+        #endregion
 
         public static Dictionary<string, SortedDictionary<int, TypeTreeItem>> BuildClassStructure()
         {
@@ -659,6 +831,8 @@ namespace AnimeStudio.GUI
             return typeMap;
         }
 
+        #region Export assets
+
         public static Task ExportAssets(string savePath, List<AssetItem> toExportAssets, ExportType exportType, bool openAfterExport)
         {
             return Task.Run(() =>
@@ -669,86 +843,21 @@ namespace AnimeStudio.GUI
                 int exportedCount = 0;
                 int i = 0;
                 Progress.Reset();
+                var assetGroupOption = (AssetGroupOption)Properties.Settings.Default.assetGroupOption;
                 foreach (var asset in toExportAssets)
                 {
-                    string exportPath;
-                    switch ((AssetGroupOption)Properties.Settings.Default.assetGroupOption)
-                    {
-                        case AssetGroupOption.ByType: //type name
-                            exportPath = Path.Combine(savePath, asset.TypeString);
-                            break;
-                        case AssetGroupOption.ByContainer: //container path
-                            if (!string.IsNullOrEmpty(asset.Container))
-                            {
-                                exportPath = Path.HasExtension(asset.Container) ? Path.Combine(savePath, Path.GetDirectoryName(asset.Container)) : Path.Combine(savePath, asset.Container);
-                            }
-                            else
-                            {
-                                exportPath = savePath;
-                            }
-                            break;
-                        case AssetGroupOption.BySource: //source file
-                            if (string.IsNullOrEmpty(asset.SourceFile.originalPath))
-                            {
-                                exportPath = Path.Combine(savePath, asset.SourceFile.fileName + "_export");
-                            }
-                            else
-                            {
-                                exportPath = Path.Combine(savePath, Path.GetFileName(asset.SourceFile.originalPath) + "_export", asset.SourceFile.fileName);
-                            }
-                            break;
-                        default:
-                            exportPath = savePath;
-                            break;
-                    }
-                    exportPath += Path.DirectorySeparatorChar;
+                    var exportPath = GetAssetExportPath(savePath, asset, assetGroupOption);
                     StatusStripUpdate($"[{exportedCount}/{toExportCount}] Exporting {asset.TypeString}: {asset.Text}");
-                    try
+
+                    if (TryExportAsset(asset, exportPath, exportType))
                     {
-                        switch (exportType)
-                        {
-                            case ExportType.Raw:
-                                if (ExportRawFile(asset, exportPath))
-                                {
-                                    exportedCount++;
-                                }
-                                break;
-                            case ExportType.Dump:
-                                if (ExportDumpFile(asset, exportPath))
-                                {
-                                    exportedCount++;
-                                }
-                                break;
-                            case ExportType.Convert:
-                                if (ExportConvertFile(asset, exportPath))
-                                {
-                                    exportedCount++;
-                                }
-                                break;
-                            case ExportType.JSON:
-                                if (ExportJSONFile(asset, exportPath))
-                                {
-                                    exportedCount++;
-                                }
-                                break;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error($"Export {asset.Type}:{asset.Text} error\r\n{ex.Message}\r\n{ex.StackTrace}");
+                        exportedCount++;
                     }
 
                     Progress.Report(++i, toExportCount);
                 }
 
-                var statusText = exportedCount == 0 ? "Nothing exported." : $"Finished exporting {exportedCount} assets.";
-
-                if (toExportCount > exportedCount)
-                {
-                    statusText += $" {toExportCount - exportedCount} assets skipped (not extractable or files already exist)";
-                }
-
-                StatusStripUpdate(statusText);
+                StatusStripUpdate(GetExportAssetsStatus(toExportCount, exportedCount));
 
                 if (openAfterExport && exportedCount > 0)
                 {
@@ -756,6 +865,89 @@ namespace AnimeStudio.GUI
                 }
             });
         }
+
+        private static string GetAssetExportPath(string savePath, AssetItem asset, AssetGroupOption assetGroupOption)
+        {
+            string exportPath;
+            switch (assetGroupOption)
+            {
+                case AssetGroupOption.ByType:
+                    exportPath = Path.Combine(savePath, asset.TypeString);
+                    break;
+                case AssetGroupOption.ByContainer:
+                    exportPath = GetContainerExportPath(savePath, asset);
+                    break;
+                case AssetGroupOption.BySource:
+                    exportPath = GetSourceExportPath(savePath, asset);
+                    break;
+                default:
+                    exportPath = savePath;
+                    break;
+            }
+
+            return exportPath + Path.DirectorySeparatorChar;
+        }
+
+        private static string GetContainerExportPath(string savePath, AssetItem asset)
+        {
+            if (string.IsNullOrEmpty(asset.Container))
+            {
+                return savePath;
+            }
+
+            return Path.HasExtension(asset.Container)
+                ? Path.Combine(savePath, Path.GetDirectoryName(asset.Container))
+                : Path.Combine(savePath, asset.Container);
+        }
+
+        private static string GetSourceExportPath(string savePath, AssetItem asset)
+        {
+            if (string.IsNullOrEmpty(asset.SourceFile.originalPath))
+            {
+                return Path.Combine(savePath, asset.SourceFile.fileName + "_export");
+            }
+
+            return Path.Combine(savePath, Path.GetFileName(asset.SourceFile.originalPath) + "_export", asset.SourceFile.fileName);
+        }
+
+        private static bool TryExportAsset(AssetItem asset, string exportPath, ExportType exportType)
+        {
+            try
+            {
+                switch (exportType)
+                {
+                    case ExportType.Raw:
+                        return ExportRawFile(asset, exportPath);
+                    case ExportType.Dump:
+                        return ExportDumpFile(asset, exportPath);
+                    case ExportType.Convert:
+                        return ExportConvertFile(asset, exportPath);
+                    case ExportType.JSON:
+                        return ExportJSONFile(asset, exportPath);
+                    default:
+                        return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Export {asset.Type}:{asset.Text} error\r\n{ex.Message}\r\n{ex.StackTrace}");
+                return false;
+            }
+        }
+
+        private static string GetExportAssetsStatus(int toExportCount, int exportedCount)
+        {
+            var statusText = exportedCount == 0 ? "Nothing exported." : $"Finished exporting {exportedCount} assets.";
+
+            if (toExportCount > exportedCount)
+            {
+                statusText += $" {toExportCount - exportedCount} assets skipped (not extractable or files already exist)";
+            }
+
+            return statusText;
+        }
+
+        #endregion
 
         public static Task ExportAssetsList(string savePath, List<AssetItem> toExportAssets, ExportListType exportListType)
         {
@@ -807,89 +999,97 @@ namespace AnimeStudio.GUI
             });
         }
 
+        #region Export split objects
+
         public static Task ExportSplitObjects(string savePath, TreeNodeCollection nodes)
         {
             return Task.Run(() =>
             {
-                var exportNodes = GetNodes(nodes);
-                var count = exportNodes.Cast<TreeNode>().Sum(x => x.Nodes.Count);
+                var exportNodes = GetSplitExportNodes(nodes).ToList();
+                var count = exportNodes.Sum(x => x.Nodes.Count);
                 int k = 0;
                 Progress.Reset();
-                foreach (TreeNode node in exportNodes)
-                {
-                    //遍历一级子节点
-                    foreach (GameObjectTreeNode j in node.Nodes)
-                    {
-                        //收集所有子节点
-                        var gameObjects = new List<GameObject>();
-                        CollectNode(j, gameObjects);
-                        //跳过一些不需要导出的object
-                        if (gameObjects.All(x => x.m_SkinnedMeshRenderer == null && x.m_MeshFilter == null))
-                        {
-                            Progress.Report(++k, count);
-                            continue;
-                        }
-                        //处理非法文件名
-                        var filename = FixFileName(j.Text);
-                        if (node.Parent != null) 
-                        {
-                            filename = Path.Combine(FixFileName(node.Parent.Text), filename);
-                        }
-                        //每个文件存放在单独的文件夹
-                        var targetPath = $"{savePath}{filename}{Path.DirectorySeparatorChar}";
-                        //重名文件处理
-                        for (int i = 1; ; i++)
-                        {
-                            if (Directory.Exists(targetPath))
-                            {
-                                targetPath = $"{savePath}{filename} ({i}){Path.DirectorySeparatorChar}";
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                        Directory.CreateDirectory(targetPath);
-                        //导出FBX
-                        StatusStripUpdate($"Exporting {filename}.fbx");
-                        try
-                        {
-                            ExportGameObject(j.gameObject, targetPath);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Error($"Export GameObject:{j.Text} error\r\n{ex.Message}\r\n{ex.StackTrace}");
-                        }
 
+                foreach (var node in exportNodes)
+                {
+                    foreach (GameObjectTreeNode childNode in node.Nodes)
+                    {
+                        ExportSplitObject(savePath, node, childNode);
                         Progress.Report(++k, count);
-                        StatusStripUpdate($"Finished exporting {filename}.fbx");
                     }
                 }
+
                 if (Properties.Settings.Default.openAfterExport)
                 {
                     OpenFolderInExplorer(savePath);
                 }
                 StatusStripUpdate("Finished");
-
-                IEnumerable<TreeNode> GetNodes(TreeNodeCollection nodes)
-                {
-                    foreach(TreeNode node in nodes)
-                    {
-                        var subNodes = node.Nodes.OfType<TreeNode>().ToArray();
-                        if (subNodes.Length == 0)
-                        {
-                            yield return node;
-                        }
-                        else
-                        {
-                            foreach (TreeNode subNode in subNodes)
-                            {
-                                yield return subNode;
-                            }
-                        }
-                    }
-                }
             });
+        }
+
+        private static IEnumerable<TreeNode> GetSplitExportNodes(TreeNodeCollection nodes)
+        {
+            foreach (TreeNode node in nodes)
+            {
+                if (node.Nodes.Count == 0)
+                {
+                    yield return node;
+                    continue;
+                }
+
+                foreach (TreeNode subNode in node.Nodes)
+                {
+                    yield return subNode;
+                }
+            }
+        }
+
+        private static void ExportSplitObject(string savePath, TreeNode parentNode, GameObjectTreeNode node)
+        {
+            var gameObjects = new List<GameObject>();
+            CollectNode(node, gameObjects);
+            if (gameObjects.All(x => x.m_SkinnedMeshRenderer == null && x.m_MeshFilter == null))
+            {
+                return;
+            }
+
+            var filename = GetSplitObjectFileName(parentNode, node);
+            var targetPath = GetUniqueSplitObjectTargetPath(savePath, filename);
+            Directory.CreateDirectory(targetPath);
+
+            StatusStripUpdate($"Exporting {filename}.fbx");
+            try
+            {
+                ExportGameObject(node.gameObject, targetPath);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Export GameObject:{node.Text} error\r\n{ex.Message}\r\n{ex.StackTrace}");
+            }
+
+            StatusStripUpdate($"Finished exporting {filename}.fbx");
+        }
+
+        private static string GetSplitObjectFileName(TreeNode parentNode, GameObjectTreeNode node)
+        {
+            var filename = FixFileName(node.Text);
+            if (parentNode.Parent != null)
+            {
+                filename = Path.Combine(FixFileName(parentNode.Parent.Text), filename);
+            }
+
+            return filename;
+        }
+
+        private static string GetUniqueSplitObjectTargetPath(string savePath, string filename)
+        {
+            var targetPath = $"{savePath}{filename}{Path.DirectorySeparatorChar}";
+            for (int i = 1; Directory.Exists(targetPath); i++)
+            {
+                targetPath = $"{savePath}{filename} ({i}){Path.DirectorySeparatorChar}";
+            }
+
+            return targetPath;
         }
 
         private static void CollectNode(GameObjectTreeNode node, List<GameObject> gameObjects)
@@ -900,6 +1100,8 @@ namespace AnimeStudio.GUI
                 CollectNode(i, gameObjects);
             }
         }
+
+        #endregion
 
         public static Task ExportAnimatorWithAnimationClip(AssetItem animator, List<AssetItem> animationList, string exportPath)
         {
