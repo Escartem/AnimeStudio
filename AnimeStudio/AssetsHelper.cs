@@ -378,8 +378,11 @@ namespace AnimeStudio
                 assetsManager.Game = game;
 
                 // Genshin needs a full in-memory list so containers can be rewritten after the scan.
-                // Everyone else (HSR/ZZZ/…) streams entries out so peak RAM stays flat.
-                if (game.Type.IsGISubGroup() || exportListType.HasFlag(ExportListType.JSON))
+                // JSON and MemoryPack use the shared writer below so their complete object envelope
+                // is emitted with the matching file format and extension.
+                if (game.Type.IsGISubGroup()
+                    || exportListType.HasFlag(ExportListType.JSON)
+                    || exportListType.HasFlag(ExportListType.MemoryPack))
                 {
                     var assets = new List<AssetEntry>();
                     ForEachLoadedBundle(files, file => BuildAssetMap(file, assets, typeFilters, nameFilters, containerFilters));
@@ -421,7 +424,7 @@ namespace AnimeStudio
                 {
                     tempEntriesPath = Path.Combine(Path.GetTempPath(), $"animestudio-map-{Guid.NewGuid():N}.tmp");
                     tempEntries = new FileStream(tempEntriesPath, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 64, FileOptions.SequentialScan);
-                    mapPath = Path.Combine(savePath, $"{mapName}.map");
+                    mapPath = Path.Combine(savePath, $"{mapName}{AssetMapFileFormat.GetExtension(ExportListType.MessagePack)}");
                 }
                 if (exportListType.HasFlag(ExportListType.XML))
                 {
@@ -729,8 +732,8 @@ namespace AnimeStudio
                         var assetMap = MessagePackSerializer.Deserialize<AssetMap>(stream, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
                         foreach(var entry in assetMap.AssetEntries)
                         {
-                            var isNameMatch = nameFilter.Length == 0 || nameFilter.Any(x => x.IsMatch(entry.Name));
-                            var isContainerMatch = containerFilter.Length == 0 || containerFilter.Any(x => x.IsMatch(entry.Container));
+                            var isNameMatch = nameFilter.Length == 0 || nameFilter.Any(x => x.IsMatch(entry.Name ?? string.Empty));
+                            var isContainerMatch = containerFilter.Length == 0 || containerFilter.Any(x => x.IsMatch(entry.Container ?? string.Empty));
                             var isTypeMatch = typeFilter.Length == 0 || typeFilter.Any(x => x == entry.Type);
                             if (isNameMatch && isContainerMatch && isTypeMatch)
                             {
@@ -791,8 +794,8 @@ namespace AnimeStudio
                         var entries = serializer.Deserialize<List<AssetEntry>>(reader);
                         foreach (var entry in entries)
                         {
-                            var isNameMatch = nameFilter.Length == 0 || nameFilter.Any(x => x.IsMatch(entry.Name));
-                            var isContainerMatch = containerFilter.Length == 0 || containerFilter.Any(x => x.IsMatch(entry.Container));
+                            var isNameMatch = nameFilter.Length == 0 || nameFilter.Any(x => x.IsMatch(entry.Name ?? string.Empty));
+                            var isContainerMatch = containerFilter.Length == 0 || containerFilter.Any(x => x.IsMatch(entry.Container ?? string.Empty));
                             var isTypeMatch = typeFilter.Length == 0 || typeFilter.Any(x => x == entry.Type);
                             if (isNameMatch && isContainerMatch && isTypeMatch)
                             {
@@ -858,7 +861,7 @@ namespace AnimeStudio
             }
         }
 
-        private static Task ExportAssetsMap(List<AssetEntry> toExportAssets, Game game, string name, string savePath, ExportListType exportListType)
+        internal static Task ExportAssetsMap(List<AssetEntry> toExportAssets, Game game, string name, string savePath, ExportListType exportListType)
         {
             return Task.Run
                     (async () =>
@@ -876,7 +879,7 @@ namespace AnimeStudio
                          {
                              if (exportListType.HasFlag(ExportListType.XML))
                              {
-                                 filename = Path.Combine(savePath, $"{name}.xml");
+                                 filename = Path.Combine(savePath, $"{name}{AssetMapFileFormat.GetExtension(ExportListType.XML)}");
                                  var xmlSettings = new XmlWriterSettings() { Indent = true };
                                  using XmlWriter writer = XmlWriter.Create(filename, xmlSettings);
                                  writer.WriteStartDocument();
@@ -901,7 +904,7 @@ namespace AnimeStudio
                              }
                              if (exportListType.HasFlag(ExportListType.JSON))
                              {
-                                 filename = Path.Combine(savePath, $"{name}.json");
+                                 filename = Path.Combine(savePath, $"{name}{AssetMapFileFormat.GetExtension(ExportListType.JSON)}");
                                  using StreamWriter file       = File.CreateText(filename);
                                  var serializer = new JsonSerializer { Formatting = Formatting.Indented };
                                  serializer.Converters.Add(new StringEnumConverter());
@@ -913,7 +916,7 @@ namespace AnimeStudio
                              }
                              if (exportListType.HasFlag(ExportListType.MessagePack))
                              {
-                                 filename = Path.Combine(savePath, $"{name}.map");
+                                 filename = Path.Combine(savePath, $"{name}{AssetMapFileFormat.GetExtension(ExportListType.MessagePack)}");
                                  using var file = File.Create(filename);
                                  var assetMap = new AssetMap
                                  {
@@ -925,7 +928,7 @@ namespace AnimeStudio
 
                              if(exportListType.HasFlag(ExportListType.MemoryPack))
                              {
-                                 filename = Path.Combine(savePath, $"{name}.memory");
+                                 filename = Path.Combine(savePath, $"{name}{AssetMapFileFormat.GetExtension(ExportListType.MemoryPack)}");
                                  var assetMap = new AssetMap
                                  {
                                          GameType     = game.Type,
@@ -955,7 +958,9 @@ namespace AnimeStudio
                 BaseFolder = baseFolder;
                 assetsManager.Game = game;
 
-                if (game.Type.IsGISubGroup() || exportListType.HasFlag(ExportListType.JSON))
+                if (game.Type.IsGISubGroup()
+                    || exportListType.HasFlag(ExportListType.JSON)
+                    || exportListType.HasFlag(ExportListType.MemoryPack))
                 {
                     var assets = new List<AssetEntry>();
                     ForEachLoadedBundle(files, file =>
@@ -989,7 +994,7 @@ namespace AnimeStudio
                             {
                                 tempEntriesPath = Path.Combine(Path.GetTempPath(), $"animestudio-map-{Guid.NewGuid():N}.tmp");
                                 tempEntries = new FileStream(tempEntriesPath, FileMode.Create, FileAccess.Write, FileShare.None, 1024 * 64, FileOptions.SequentialScan);
-                                mapPath = Path.Combine(savePath, $"{mapName}.map");
+                                mapPath = Path.Combine(savePath, $"{mapName}{AssetMapFileFormat.GetExtension(ExportListType.MessagePack)}");
                             }
                             if (exportListType.HasFlag(ExportListType.XML))
                             {
