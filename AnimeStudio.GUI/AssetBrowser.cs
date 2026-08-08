@@ -586,7 +586,11 @@ namespace AnimeStudio.GUI
         {
             loadMapTwoBtn.Enabled = false;
 
-            var openFileDialog = new OpenFileDialog() { Multiselect = false, Filter = "MessagePack AssetMap File|*.map|JSON AssetMap File|*.json" };
+            var openFileDialog = new OpenFileDialog
+            {
+                Multiselect = false,
+                Filter = "MessagePack AssetMap File|*.map|JSON AssetMap File|*.json|MemoryPack AssetMap File|*.memory",
+            };
             if (openFileDialog.ShowDialog(this) == DialogResult.OK)
             {
                 try

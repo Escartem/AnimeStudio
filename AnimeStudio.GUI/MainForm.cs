@@ -2652,11 +2652,17 @@ namespace AnimeStudio.GUI
 
             var name = "assets_map";
             var saveDirectory = saveDirectoryBackup;
+            var exportListType = (ExportListType)assetMapTypeMenuItem.DropDownItems
+                .Cast<ToolStripMenuItem>()
+                .Select(x => x.Checked ? (int)x.Tag : 0)
+                .Sum();
+            var defaultExtension = AssetMapFileFormat.GetDefaultExtension(exportListType);
 
             var saveFileDialog = new SaveFileDialog()
             {
-                    Filter       = "Map file (*.map)|*.map|MemoryPack AssetMap File|*.memory",
-                DefaultExt       = "map",
+                Filter = AssetMapFileFormat.BuildSaveFilter(exportListType),
+                DefaultExt = defaultExtension.TrimStart('.'),
+                AddExtension = true,
                 Title            = "Select Output File (format will auto adjust according to what you selected)",
                 InitialDirectory = saveDirectory,
             };
@@ -2665,8 +2671,6 @@ namespace AnimeStudio.GUI
             {
                 saveDirectory = Path.GetDirectoryName(saveFileDialog.FileName);
                 var input = Path.GetFileNameWithoutExtension(saveFileDialog.FileName);
-
-                var exportListType = (ExportListType)assetMapTypeMenuItem.DropDownItems.Cast<ToolStripMenuItem>().Select(x => x.Checked ? (int)x.Tag : 0).Sum();
 
                 if (!string.IsNullOrEmpty(input))
                 {
