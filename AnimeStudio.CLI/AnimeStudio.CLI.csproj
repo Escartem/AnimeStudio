@@ -3,13 +3,15 @@
     <OutputType>Exe</OutputType>
 	<TargetFrameworks>net9.0-windows;net10.0-windows</TargetFrameworks>
 	<ApplicationIcon>Resources\as.ico</ApplicationIcon>
-	<Copyright>Copyright © Escartem 2024-2025; Copyright © Razmoth 2022-2024; Copyright © Perfare 2018-2022</Copyright>
-	<BaseOutputPath>..\AnimeStudio.CLI\bin</BaseOutputPath>
+	<Copyright>Copyright © Escartem 2024-2026; Copyright © Razmoth 2022-2024; Copyright © Perfare 2018-2022</Copyright>
+	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MessagePack" Version="3.1.7" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-	  <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1"/>
+	  <PackageReference Include="System.CommandLine" Version="2.0.9"/>
 	  <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.9"/>
   </ItemGroup>
 
@@ -17,6 +19,13 @@
 	<ProjectReference Include="..\AnimeStudio.Utility\AnimeStudio.Utility.csproj" />
     <ProjectReference Include="..\AnimeStudio\AnimeStudio.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+		<ContentWithTargetPath Include="..\LICENSE">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>LICENSE</TargetPath>
+		</ContentWithTargetPath>
+	</ItemGroup>
 
   <ItemGroup>
     <Compile Update="Settings.cs">
@@ -36,47 +45,12 @@
 		</ContentWithTargetPath>
 	</ItemGroup>
 
-	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\sracl.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\sracl.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\sracl.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\sracl.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
-	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\acldb.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\acldb.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\acldb.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\acldb.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
-	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\acldb_zzz.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\acldb_zzz.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\acldb_zzz.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\acldb_zzz.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
-  <Target Name="CopyExtraFiles" AfterTargets="AfterBuild">
-  	<Copy SourceFiles="$(SolutionDir)AnimeStudio.Libraries\x86\AnimeStudio.FBXNative.dll" DestinationFolder="$(TargetDir)x86" ContinueOnError="true" />
-  	<Copy SourceFiles="$(SolutionDir)AnimeStudio.Libraries\x64\AnimeStudio.FBXNative.dll" DestinationFolder="$(TargetDir)x64" ContinueOnError="true" />
-  </Target>
-  
-  <Target Name="PublishExtraFiles" AfterTargets="Publish">
-  	<Copy SourceFiles="$(TargetDir)x86\AnimeStudio.FBXNative.dll" DestinationFolder="$(PublishDir)x86" ContinueOnError="true" />
-  	<Copy SourceFiles="$(TargetDir)x64\AnimeStudio.FBXNative.dll" DestinationFolder="$(PublishDir)x64" ContinueOnError="true" />
-  </Target>
+	<Target Name="RemoveSkiaSharpPdb" AfterTargets="ResolveAssemblyReferences;Build">
+		<ItemGroup>
+			<NativePdbFiles Include="$(OutDir)*.pdb" />
+			<NativePdbFiles Include="$(PublishDir)*.pdb" Condition="'$(PublishDir)' != ''" />
+		</ItemGroup>
+		<Delete Files="@(NativePdbFiles)" />
+	</Target>
 
 </Project>

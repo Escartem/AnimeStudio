@@ -2,8 +2,10 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net9.0;net10.0</TargetFrameworks>
-		<Copyright>Copyright © Escartem 2024-2025; Copyright © yarik0chka 2024-2025; Copyright © Hashblen 2024-2025; Copyright © Razmoth 2022-2024; Copyright © Perfare 2018-2022</Copyright>
+		<Copyright>Copyright © Escartem 2024-2026; Copyright © yarik0chka 2024-2025; Copyright © Hashblen 2024-2025; Copyright © Razmoth 2022-2024; Copyright © Perfare 2018-2022</Copyright>
 		<DebugType>embedded</DebugType>
+		<SelfContained>false</SelfContained>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -16,7 +18,7 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="System.Linq.Async" Version="7.0.1"/>
         <PackageReference Include="ZstdSharp.Port" Version="0.8.8"/>
-		<PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.7"/>
+		<PackageReference Include="SkiaSharp" Version="3.119.4"/>
 	</ItemGroup>
 
 	<ItemGroup>
@@ -26,9 +28,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Content Include="..\AnimeStudio.Libraries\AnimeStudio.Ooz.dll">
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.Ooz.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
+			<TargetPath>AnimeStudio.Ooz.dll</TargetPath>
+		</ContentWithTargetPath>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.FBXNative.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.FBXNative.dll</TargetPath>
+		</ContentWithTargetPath>
 	</ItemGroup>
 
 </Project>

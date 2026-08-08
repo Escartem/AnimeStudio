@@ -4,13 +4,19 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
+  <Project Path="AnimeStudio.ACL/AnimeStudio.ACL.DB/AnimeStudio.ACL.DB.vcxproj" Id="1bb0b5c4-9a2e-4d3f-8c71-2e5a0d6f4a11" />
+  <Project Path="AnimeStudio.ACL/AnimeStudio.ACL.SR/AnimeStudio.ACL.SR.vcxproj" Id="3dd2d7e6-bc40-4f51-ae93-407c2f8b6c33" />
+  <Project Path="AnimeStudio.ACL/AnimeStudio.ACL.ZZZ/AnimeStudio.ACL.ZZZ.vcxproj" Id="2cc1c6d5-ab3f-4e40-9d82-3f6b1e7a5b22" />
   <Project Path="AnimeStudio.CLI/AnimeStudio.CLI.csproj" />
   <Project Path="AnimeStudio.FBXNative/AnimeStudio.FBXNative.vcxproj" Id="11ea25a3-ed68-40ee-a9d0-7fde3b583027">
     <Build Project="false" />
   </Project>
   <Project Path="AnimeStudio.FBXWrapper/AnimeStudio.FBXWrapper.csproj" />
   <Project Path="AnimeStudio.GUI/AnimeStudio.GUI.csproj" />
-  <Project Path="AnimeStudio.Oodle/AnimeStudio.Ooz.vcxproj" Id="b6748219-a0e7-46bb-ae38-5343961cb36a" />
+  <Project Path="AnimeStudio.HLSLDecompiler/AnimeStudio.HLSLDecompiler.vcxproj" Id="258d0ad2-b762-41e3-a0c1-cf831d859da4" />
+  <Project Path="AnimeStudio.Ooz/AnimeStudio.Ooz.vcxproj" Id="b6748219-a0e7-46bb-ae38-5343961cb36a">
+    <Build Project="false" />
+  </Project>
   <Project Path="AnimeStudio.Patcher/AnimeStudio.Patcher.csproj" />
   <Project Path="AnimeStudio.PInvoke/AnimeStudio.PInvoke.csproj" />
   <Project Path="AnimeStudio.Utility/AnimeStudio.Utility.csproj" />

@@ -190,8 +190,38 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "Momoko-Ayase",
+      "name": "綾瀬桃桃",
+      "avatar_url": "https://avatars.githubusercontent.com/u/78632509?v=4",
+      "profile": "http://momokko.moe",
+      "contributions": [
+        "bug",
+        "code"
+      ]
+    },
+    {
+      "login": "bbdd2729",
+      "name": "bbdd",
+      "avatar_url": "https://avatars.githubusercontent.com/u/179790579?v=4",
+      "profile": "https://github.com/bbdd2729",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ihzgniqgnem",
+      "name": "ihzgniqgnem",
+      "avatar_url": "https://avatars.githubusercontent.com/u/161725897?v=4",
+      "profile": "https://github.com/ihzgniqgnem",
+      "contributions": [
+        "bug",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
-  "linkToUsage": false
+  "linkToUsage": false,
+  "commitType": "docs"
 }

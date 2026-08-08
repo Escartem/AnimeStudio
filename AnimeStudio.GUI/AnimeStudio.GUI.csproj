@@ -5,8 +5,10 @@
 		<TargetFrameworks>net9.0-windows;net10.0-windows</TargetFrameworks>
 		<UseWindowsForms>true</UseWindowsForms>
 		<ApplicationIcon>Resources\as.ico</ApplicationIcon>
-		<Copyright>Copyright © Escartem 2024-2025; Copyright © yarik0chka 2024-2025; Copyright © Hashblen 2024-2025; Copyright © Razmoth 2022-2024; Copyright © Perfare 2018-2022</Copyright>
+		<Copyright>Copyright © Escartem 2024-2026; Copyright © yarik0chka 2024-2025; Copyright © Hashblen 2024-2025; Copyright © Razmoth 2022-2024; Copyright © Perfare 2018-2022</Copyright>
 		<DebugType>embedded</DebugType>
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -39,17 +41,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\AnimeStudio.FBXNative.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\AnimeStudio.FBXNative.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\AnimeStudio.FBXNative.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\AnimeStudio.FBXNative.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
-	<ItemGroup>
 		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\fmod.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>x86\fmod.dll</TargetPath>
@@ -72,58 +63,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\sracl.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\sracl.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\sracl.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\sracl.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
-	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\acldb.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\acldb.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\acldb.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\acldb.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
-	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\acldb_zzz.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\acldb_zzz.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\acldb_zzz.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\acldb_zzz.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
-	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\HLSLDecompiler.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\HLSLDecompiler.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\HLSLDecompiler.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\HLSLDecompiler.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\BinaryDecompiler.lib">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\BinaryDecompiler.lib</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\BinaryDecompiler.lib">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\BinaryDecompiler.lib</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
-	<ItemGroup>
+		<PackageReference Include="MessagePack" Version="3.1.7" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="OpenTK" Version="4.9.4" />
 		<PackageReference Include="OpenTK.GLControl" Version="4.0.2" />
@@ -137,13 +77,12 @@
 	  </None>
 	</ItemGroup>
 
-	<Target Name="CopyExtraFiles" AfterTargets="AfterBuild">
-		<Copy SourceFiles="$(SolutionDir)AnimeStudio.Libraries\x86\AnimeStudio.FBXNative.dll" DestinationFolder="$(TargetDir)x86" ContinueOnError="true" />
-		<Copy SourceFiles="$(SolutionDir)AnimeStudio.Libraries\x64\AnimeStudio.FBXNative.dll" DestinationFolder="$(TargetDir)x64" ContinueOnError="true" />
+	<Target Name="RemoveSkiaSharpPdb" AfterTargets="ResolveAssemblyReferences;Build">
+		<ItemGroup>
+			<NativePdbFiles Include="$(OutDir)*.pdb" />
+			<NativePdbFiles Include="$(PublishDir)*.pdb" Condition="'$(PublishDir)' != ''" />
+		</ItemGroup>
+		<Delete Files="@(NativePdbFiles)" />
 	</Target>
 
-	<Target Name="PublishExtraFiles" AfterTargets="Publish">
-		<Copy SourceFiles="$(TargetDir)x86\AnimeStudio.FBXNative.dll" DestinationFolder="$(PublishDir)x86" ContinueOnError="true" />
-		<Copy SourceFiles="$(TargetDir)x64\AnimeStudio.FBXNative.dll" DestinationFolder="$(PublishDir)x64" ContinueOnError="true" />
-	</Target>
 </Project>

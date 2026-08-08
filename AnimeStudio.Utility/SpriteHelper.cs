@@ -1,8 +1,4 @@
-﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing;
-using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using SkiaSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,7 +9,7 @@ namespace AnimeStudio
 {
     public static class SpriteHelper
     {
-        public static Image<Bgra32> GetImage(this Sprite m_Sprite)
+        public static SKBitmap GetImage(this Sprite m_Sprite)
         {
             if (m_Sprite.m_SpriteAtlas != null && m_Sprite.m_SpriteAtlas.TryGet(out var m_SpriteAtlas))
             {
@@ -32,18 +28,20 @@ namespace AnimeStudio
             return null;
         }
 
-        private static Image<Bgra32> CutImage(Sprite m_Sprite, Texture2D m_Texture2D, Rectf textureRect, Vector2 textureRectOffset, float downscaleMultiplier, SpriteSettings settingsRaw)
+        private static SKBitmap CutImage(Sprite m_Sprite, Texture2D m_Texture2D, Rectf textureRect, Vector2 textureRectOffset, float downscaleMultiplier, SpriteSettings settingsRaw)
         {
             var originalImage = m_Texture2D.ConvertToImage(false);
             if (originalImage != null)
             {
-                using (originalImage)
+                try
                 {
                     if (downscaleMultiplier > 0f && downscaleMultiplier != 1f)
                     {
                         var width = (int)(m_Texture2D.m_Width / downscaleMultiplier);
                         var height = (int)(m_Texture2D.m_Height / downscaleMultiplier);
-                        originalImage.Mutate(x => x.Resize(width, height));
+                        var resizedImage = originalImage.Resize(width, height);
+                        originalImage.Dispose();
+                        originalImage = resizedImage;
                     }
                     var rectX = (int)Math.Floor(textureRect.x);
                     var rectY = (int)Math.Floor(textureRect.y);
@@ -51,24 +49,24 @@ namespace AnimeStudio
                     var rectBottom = (int)Math.Ceiling(textureRect.y + textureRect.height);
                     rectRight = Math.Min(rectRight, originalImage.Width);
                     rectBottom = Math.Min(rectBottom, originalImage.Height);
-                    var rect = new Rectangle(rectX, rectY, rectRight - rectX, rectBottom - rectY);
-                    var spriteImage = originalImage.Clone(x => x.Crop(rect));
+                    var rect = new SKRectI(rectX, rectY, rectRight, rectBottom);
+                    var spriteImage = originalImage.Crop(rect);
                     if (settingsRaw.packed == 1)
                     {
                         //RotateAndFlip
                         switch (settingsRaw.packingRotation)
                         {
                             case SpritePackingRotation.FlipHorizontal:
-                                spriteImage.Mutate(x => x.Flip(FlipMode.Horizontal));
+                                spriteImage = ReplaceImage(spriteImage, spriteImage.FlipHorizontal());
                                 break;
                             case SpritePackingRotation.FlipVertical:
-                                spriteImage.Mutate(x => x.Flip(FlipMode.Vertical));
+                                spriteImage = ReplaceImage(spriteImage, spriteImage.FlipVertical());
                                 break;
                             case SpritePackingRotation.Rotate180:
-                                spriteImage.Mutate(x => x.Rotate(180));
+                                spriteImage = ReplaceImage(spriteImage, spriteImage.Rotate180());
                                 break;
                             case SpritePackingRotation.Rotate90:
-                                spriteImage.Mutate(x => x.Rotate(270));
+                                spriteImage = ReplaceImage(spriteImage, spriteImage.Rotate270());
                                 break;
                         }
                     }
@@ -78,47 +76,13 @@ namespace AnimeStudio
                     {
                         try
                         {
-                            var matrix = Matrix3x2.CreateScale(m_Sprite.m_PixelsToUnits);
-                            matrix *= Matrix3x2.CreateTranslation(m_Sprite.m_Rect.width * m_Sprite.m_Pivot.X - textureRectOffset.X, m_Sprite.m_Rect.height * m_Sprite.m_Pivot.Y - textureRectOffset.Y);
                             var triangles = GetTriangles(m_Sprite.m_RD);
-                            var points = triangles.Select(x => x.Select(y => new PointF(y.X, y.Y)));
-                            var pathBuilder = new PathBuilder(matrix);
-                            foreach (var p in points)
+                            using (var path = BuildSpritePath(m_Sprite, textureRectOffset, triangles))
                             {
-                                pathBuilder.AddLines(p);
-                                pathBuilder.CloseFigure();
+                                ApplyTightMask(spriteImage, path);
                             }
-                            var path = pathBuilder.Build();
-                            var options = new DrawingOptions
-                            {
-                                GraphicsOptions = new GraphicsOptions
-                                {
-                                    Antialias = false,
-                                    AlphaCompositionMode = PixelAlphaCompositionMode.DestOut
-                                }
-                            };
-                            if (triangles.Length < 1024)
-                            {
-                                var rectP = new RectangularPolygon(0, 0, rect.Width, rect.Height);
-                                try
-                                {
-                                    spriteImage.Mutate(x => x.Fill(options, SixLabors.ImageSharp.Color.Red, rectP.Clip(path.Clip())));
-                                    spriteImage.Mutate(x => x.Flip(FlipMode.Vertical));
-                                    return spriteImage;
-                                }
-                                catch (ArgumentOutOfRangeException)
-                                {
-                                    // ignored
-                                }
-                            }
-                            using (var mask = new Image<Bgra32>(rect.Width, rect.Height, SixLabors.ImageSharp.Color.Black))
-                            {
-                                mask.Mutate(x => x.Fill(options, SixLabors.ImageSharp.Color.Red, path));
-                                var brush = new ImageBrush(mask);
-                                spriteImage.Mutate(x => x.Fill(options, brush));
-                                spriteImage.Mutate(x => x.Flip(FlipMode.Vertical));
-                                return spriteImage;
-                            }
+                            spriteImage = ReplaceImage(spriteImage, spriteImage.FlipVertical());
+                            return spriteImage;
                         }
                         catch (Exception e)
                         {
@@ -127,12 +91,83 @@ namespace AnimeStudio
                     }
 
                     //Rectangle
-                    spriteImage.Mutate(x => x.Flip(FlipMode.Vertical));
+                    spriteImage = ReplaceImage(spriteImage, spriteImage.FlipVertical());
                     return spriteImage;
+                }
+                finally
+                {
+                    originalImage.Dispose();
                 }
             }
 
             return null;
+        }
+
+        private static SKBitmap ReplaceImage(SKBitmap oldImage, SKBitmap newImage)
+        {
+            oldImage.Dispose();
+            return newImage;
+        }
+
+        private static SKPath BuildSpritePath(Sprite m_Sprite, Vector2 textureRectOffset, Vector2[][] triangles)
+        {
+            var scale = m_Sprite.m_PixelsToUnits;
+            var offsetX = m_Sprite.m_Rect.width * m_Sprite.m_Pivot.X - textureRectOffset.X;
+            var offsetY = m_Sprite.m_Rect.height * m_Sprite.m_Pivot.Y - textureRectOffset.Y;
+            var path = new SKPath
+            {
+                FillType = SKPathFillType.Winding
+            };
+
+            foreach (var triangle in triangles)
+            {
+                if (triangle.Length == 0)
+                {
+                    continue;
+                }
+
+                path.MoveTo(triangle[0].X * scale + offsetX, triangle[0].Y * scale + offsetY);
+                for (int i = 1; i < triangle.Length; i++)
+                {
+                    path.LineTo(triangle[i].X * scale + offsetX, triangle[i].Y * scale + offsetY);
+                }
+                path.Close();
+            }
+
+            return path;
+        }
+
+        private static void ApplyTightMask(SKBitmap spriteImage, SKPath path)
+        {
+            using (var mask = new SKBitmap(new SKImageInfo(spriteImage.Width, spriteImage.Height, SKColorType.Bgra8888, SKAlphaType.Unpremul)))
+            using (var canvas = new SKCanvas(mask))
+            using (var paint = new SKPaint
+            {
+                Color = SKColors.White,
+                IsAntialias = false,
+                Style = SKPaintStyle.Fill
+            })
+            {
+                canvas.Clear(SKColors.Transparent);
+                canvas.DrawPath(path, paint);
+
+                var spriteBytes = spriteImage.ConvertToBytes();
+                var maskBytes = mask.ConvertToBytes();
+                var pixelCount = spriteImage.Width * spriteImage.Height;
+                for (int i = 0; i < pixelCount; i++)
+                {
+                    if (maskBytes[(i * 4) + 3] == 0)
+                    {
+                        var offset = i * 4;
+                        spriteBytes[offset] = 0;
+                        spriteBytes[offset + 1] = 0;
+                        spriteBytes[offset + 2] = 0;
+                        spriteBytes[offset + 3] = 0;
+                    }
+                }
+
+                ImageExtensions.CopyBgraToBitmap(spriteBytes, spriteImage);
+            }
         }
 
         private static Vector2[][] GetTriangles(SpriteRenderData m_RD)

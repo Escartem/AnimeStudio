@@ -1,6 +1,9 @@
 ﻿using System.Collections.Specialized;
 using K4os.Hash.xxHash;
 using Newtonsoft.Json;
+using System;
+using System.Buffers;
+using System.Collections.Specialized;
 
 namespace AnimeStudio
 {
@@ -39,7 +42,7 @@ namespace AnimeStudio
             buildType = reader.buildType;
             platform = reader.platform;
             serializedType = reader.serializedType;
-            byteSize = reader.byteSize;  
+            byteSize = reader.byteSize;
 
             Logger.Verbose($"Attempting to read object {type} with {m_PathID} in file {assetsFile.fileName}, starting from offset 0x{reader.byteStart:X8} with size of 0x{byteSize:X8} !!");
 
@@ -63,9 +66,44 @@ namespace AnimeStudio
                 var hash = Texture2DExtensions.GetImageHash(new Texture2D(reader));
                 reader.Position = pos;
                 return hash;
-            } else
+            }
+
+            return ComputeRawHash().ToString("x");
+        }
+
+        /// <summary>
+        /// Stream object bytes through xxHash without allocating a full raw-data buffer.
+        /// Avoids multi-GB LOH pressure when building asset maps over large games (e.g. HSR).
+        /// </summary>
+        private ulong ComputeRawHash()
+        {
+            Logger.Verbose($"Hashing raw bytes of the object with {m_PathID} in file {assetsFile.fileName}...");
+            long pos = reader.Position;
+            reader.Reset();
+
+            var hasher = new XXH64();
+            int remaining = (int)byteSize;
+            // 64KB chunks keep peak temporary memory flat regardless of object size.
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(0x10000);
+            try
             {
-                return XXH64.DigestOf(GetRawData()).ToString("x");
+                while (remaining > 0)
+                {
+                    int toRead = Math.Min(remaining, buffer.Length);
+                    int read = reader.Read(buffer, 0, toRead);
+                    if (read <= 0)
+                    {
+                        break;
+                    }
+                    hasher.Update(buffer, 0, read);
+                    remaining -= read;
+                }
+                return hasher.Digest();
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+                reader.Position = pos;
             }
         }
 

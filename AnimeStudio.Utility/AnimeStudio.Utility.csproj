@@ -12,14 +12,39 @@
 
   <ItemGroup>
       <PackageReference Include="Kyaru.Texture2DDecoder.Windows" Version="0.2.0"/>
+    <PackageReference Include="MessagePack" Version="3.1.7" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
-      <PackageReference Include="Vortice.D3DCompiler" Version="3.8.3"/>
+      <PackageReference Include="SkiaSharp" Version="3.119.4" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.8.3"/>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AnimeStudio.PInvoke\AnimeStudio.PInvoke.csproj" />
     <ProjectReference Include="..\AnimeStudio.FBXWrapper\AnimeStudio.FBXWrapper.csproj" />
     <ProjectReference Include="..\AnimeStudio\AnimeStudio.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.HLSLDecompiler.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>AnimeStudio.HLSLDecompiler.dll</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>
+
+  <!-- Likewise for ACL.cs; built by hand from the AnimeStudio.ACL.* projects. -->
+  <ItemGroup>
+    <ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.DB.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>AnimeStudio.ACL.DB.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.ZZZ.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>AnimeStudio.ACL.ZZZ.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.SR.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>AnimeStudio.ACL.SR.dll</TargetPath>
+    </ContentWithTargetPath>
   </ItemGroup>
 
 </Project>

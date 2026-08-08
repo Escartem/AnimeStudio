@@ -45,15 +45,16 @@ namespace ACLLibs
 
     public static class SRACL
     {
-        private const string DLL_NAME = "sracl";
+        private const string DLL_NAME = "AnimeStudio.ACL.SR";
         static SRACL()
         {
-            DllLoader.PreloadDll(DLL_NAME);
+            // x64 only, so it lives in the application directory rather than in x86/x64.
+            DllLoader.PreloadDll(DLL_NAME, archSpecific: false);
         }
         public static void DecompressAll(byte[] data, out float[] values, out float[] times)
         {
             var decompressedClip = new DecompressedClip();
-            DecompressAll(data, ref decompressedClip);
+            DecompressClip(data, ref decompressedClip);
 
             values = new float[decompressedClip.ValuesCount];
             Marshal.Copy(decompressedClip.Values, values, 0, decompressedClip.ValuesCount);
@@ -66,8 +67,9 @@ namespace ACLLibs
 
         #region importfunctions
 
+        // This one is the acl 1.x uniformly-sampled decoder; its export is named DecompressClip.
         [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void DecompressAll(byte[] data, ref DecompressedClip decompressedClip);
+        private static extern void DecompressClip(byte[] data, ref DecompressedClip decompressedClip);
 
         [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
         private static extern void Dispose(ref DecompressedClip decompressedClip);
@@ -77,12 +79,13 @@ namespace ACLLibs
 
     public static class DBACL
     {
-        private const string DLL_NAME = "acldb";
-        private const string DLL_NAME_ZZZ = "acldb_zzz";
+        private const string DLL_NAME = "AnimeStudio.ACL.DB";
+        private const string DLL_NAME_ZZZ = "AnimeStudio.ACL.ZZZ";
         static DBACL()
         {
-            DllLoader.PreloadDll(DLL_NAME);
-            DllLoader.PreloadDll(DLL_NAME_ZZZ);
+            // x64 only, so they live in the application directory rather than in x86/x64.
+            DllLoader.PreloadDll(DLL_NAME, archSpecific: false);
+            DllLoader.PreloadDll(DLL_NAME_ZZZ, archSpecific: false);
         }
         public static void DecompressTracks(byte[] data, byte[] db, out float[] values, out float[] times, bool isZZZ = false)
         {
@@ -90,22 +93,22 @@ namespace ACLLibs
 
             var dataPtr = Marshal.AllocHGlobal(data.Length + 8);
             var dataAligned = new IntPtr(16 * (((long)dataPtr + 15) / 16));
-            Marshal.Copy(data, 0, dataPtr, data.Length);
+            Marshal.Copy(data, 0, dataAligned, data.Length);
 
             var dbPtr = Marshal.AllocHGlobal(db.Length + 8);
             var dbAligned = new IntPtr(16 * (((long)dbPtr + 15) / 16));
             Marshal.Copy(db, 0, dbAligned, db.Length);
 
-            // as long as m_ClipData is passed to acl_db.dll without the rest it should be fine
+            // as long as m_ClipData is passed to the DB dll without the rest it should be fine
             // m_databaseData doesn't seem to be used. For now
+            var streamer = IntPtr.Zero;
             if (isZZZ)
             {
-                var streamer = new IntPtr(0);
                 DecompressTracksZZZ(dataAligned, dbAligned, streamer, ref decompressedClip);
             }
             else
             {
-                DecompressTracks(dataAligned, dbAligned, ref decompressedClip);
+                DecompressTracks(dataAligned, dbAligned, streamer, ref decompressedClip);
             }
 
             Marshal.FreeHGlobal(dataPtr);
@@ -129,8 +132,9 @@ namespace ACLLibs
 
         #region importfunctions
 
+        // Both DLLs are built from the same dllmain.cpp, so they share this signature.
         [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void DecompressTracks(nint data, nint db, ref DecompressedClip decompressedClip);
+        private static extern void DecompressTracks(nint data, nint db, nint streamer, ref DecompressedClip decompressedClip);
 
         [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
         private static extern void Dispose(ref DecompressedClip decompressedClip);

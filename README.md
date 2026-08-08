@@ -4,43 +4,59 @@
 
 ![image](https://github.com/user-attachments/assets/fc1decdc-a589-43a2-b965-2d8151d0975f)
 
----
+Anime Studio opens Unity bundles and lets you browse, preview and export what's inside : textures, meshes, animations, audio, shaders, text assets and more. It handles the encrypted bundles used by Genshin Impact, Star Rail and Zenless Zone Zero, all of their others upcoming titles. Also works on a long list of other encrypted games and works fine on regular Unity games too.
 
-# How do I use this ?
-
-You should look at the [official wiki](https://github.com/Escartem/AnimeStudio/wiki), if required look at the [original tutorial by Modder4869](https://gist.github.com/Modder4869/0f5371f8879607eb95b8e63badca227e) or the [original readme](https://github.com/RazTools/Studio/blob/main/README.md). Otherwise [join the discord](https://discord.gg/fzRdtVh) and ask there !
+It comes as a GUI and a CLI, both in the same download. The GUI is what you want if you're just looking for assets, the CLI is there for scripting and batch exports.
 
 ---
 
 # How do I download this ?
 
-## Download Studio
-
 - **[.NET 10 Build (Recommended - Latest)](https://nightly.link/Escartem/AnimeStudio/workflows/build/master/AnimeStudio-net10.zip)** ✨
 - **[.NET 9 Build (Stable)](https://nightly.link/Escartem/AnimeStudio/workflows/build/master/AnimeStudio-net9.zip)**
 
----
-
-# What is this ?
-
-It's an up-to-date fork of Razmoth's one. After his repo was discontinued, bugs started to arise as games evolved, and people started making forks to fix some of them, but each one would not support the fixes by the others and so on. This version aims at being the new start base for AssetStudio, renamed as AnimeStudio, it supports all 3 main hoyo games, and is open to any contribution !
+Both builds are Windows x64 only and need the matching [.NET Desktop Runtime](https://dotnet.microsoft.com/download/dotnet) installed. Unzip anywhere and run `AnimeStudio.GUI.exe` or `AnimeStudio.CLI.exe`.
 
 ---
 
-# What changed ?
+# How do I use this ?
 
-This is a non-exhaustive list of modifications :
-- Removed usage of a [certain dll for a certain decryption](https://github.com/Escartem/AnimeStudio/commit/1fcfa9041e07cd0a98b4d23f1578e910256fa1f8) 👀
-- Merged fixes for Genshin, Star Rail and ZZZ suport with improvements
-- Dark mode
-- Reorganised menu bar for easier usage
-- Addes SHA256 hash for assets
-- New game selector merged with UnityCN keys list and updated UnityCN keys manager
-- Asset Browser improvements
-    - It is now possible to use json files instead of only message pack
-    - You can now relocate the sources files of a map instead of having to build a new one to adjust them, making maps no longer game install dir dependant
-    - Only selected assets are displayed in the main window when loading instead of the full blocks
-    - You can load 2 asset maps at once and view the difference between both
+Pick your game in the game selector first, then load a file or a folder. This matters because each game has its own decryption, loading with the wrong one selected will either fail or give you garbage. There are over 50 entries in that list, including separate ones for closed beta versions, so take the one that matches the build your files come from.
+
+From there, load a file or a folder, browse the list, and export what you want. Assets can be filtered by type, by name or by container path, and previewed before exporting for most types.
+
+For big dumps there's the Asset Browser, it builds a map of everything in a game install so you can search it without loading the whole thing every time. Maps can be saved as message pack or json, relocated to a different install folder, and two of them can be loaded side by side to see what changed between versions.
+
+The CLI takes the same options as flags, with an input and an output path :
+
+```
+AnimeStudio.CLI.exe <input> <output> --game GI --types Texture2D,Sprite --export_type convert
+```
+
+Useful flags are `--game`, `--types`, `--names` and `--containers` for filtering, `--group_assets` for the output folder layout, `--map_op` and `--map_type` for building asset maps, and `--silent` to keep it quiet. Run it without arguments for the full list.
+
+The [official wiki](https://github.com/Escartem/AnimeStudio/wiki) goes into detail on all of this. If something isn't covered there, look at the [original tutorial by Modder4869](https://gist.github.com/Modder4869/0f5371f8879607eb95b8e63badca227e) or the [original readme](https://github.com/RazTools/Studio/blob/main/README.md). Otherwise [join the discord](https://discord.gg/fzRdtVh) and ask there !
+
+---
+
+# Building
+
+You need Visual Studio 2022 with the C++ desktop workload and the .NET 9 and 10 SDKs.
+
+`build.ps1` builds the GUI and the CLI for both frameworks and packages them into `dist`. That's the same script the CI runs, so if it works there it works locally. For day to day work `dotnet build AnimeStudio.GUI` is enough, the packaging step is only needed for a release.
+
+The native libraries are not built by that script, they sit prebuilt in `AnimeStudio.Libraries` and only need rebuilding when you touch their sources. Each one is its own project in the solution and outputs straight into that folder :
+
+| Project | Output | What it does |
+| --- | --- | --- |
+| `AnimeStudio.Ooz` | `AnimeStudio.Ooz.dll` | Kraken / Mermaid / Leviathan decompression |
+| `AnimeStudio.FBXNative` | `AnimeStudio.FBXNative.dll` | FBX export, needs the Autodesk FBX SDK at exactly version 2020.3.7 installed |
+| `AnimeStudio.HLSLDecompiler` | `AnimeStudio.HLSLDecompiler.dll` | Shader decompilation |
+| `AnimeStudio.ACL.DB` / `.ZZZ` / `.SR` | `AnimeStudio.ACL.*.dll` | Animation decompression, one per ACL version |
+
+They are all x64 only and excluded from the solution build, build them by hand when needed.
+
+Contributions are welcome, whether it's a new game, a fix for an existing one or anything else. Open a PR and it'll get looked at.
 
 ---
 
@@ -76,6 +92,9 @@ Thanks goes to these wonderful people :
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/SherkeyXD"><img src="https://avatars.githubusercontent.com/u/57581480?v=4?s=100" width="100px;" alt="SherkeyXD"/><br /><sub><b>SherkeyXD</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/commits?author=SherkeyXD" title="Code">💻</a> <a href="https://github.com/Escartem/AnimeStudio/issues?q=author%3ASherkeyXD" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/djpadbit"><img src="https://avatars.githubusercontent.com/u/9431263?v=4?s=100" width="100px;" alt="djpadbit"/><br /><sub><b>djpadbit</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/commits?author=djpadbit" title="Code">💻</a> <a href="#platform-djpadbit" title="Packaging/porting to new platform">📦</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/tserj"><img src="https://avatars.githubusercontent.com/u/17748861?v=4?s=100" width="100px;" alt="tserj"/><br /><sub><b>tserj</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/issues?q=author%3Atserj" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://momokko.moe"><img src="https://avatars.githubusercontent.com/u/78632509?v=4?s=100" width="100px;" alt="綾瀬桃桃"/><br /><sub><b>綾瀬桃桃</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/issues?q=author%3AMomoko-Ayase" title="Bug reports">🐛</a> <a href="https://github.com/Escartem/AnimeStudio/commits?author=Momoko-Ayase" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bbdd2729"><img src="https://avatars.githubusercontent.com/u/179790579?v=4?s=100" width="100px;" alt="bbdd"/><br /><sub><b>bbdd</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/commits?author=bbdd2729" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ihzgniqgnem"><img src="https://avatars.githubusercontent.com/u/161725897?v=4?s=100" width="100px;" alt="ihzgniqgnem"/><br /><sub><b>ihzgniqgnem</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/issues?q=author%3Aihzgniqgnem" title="Bug reports">🐛</a> <a href="https://github.com/Escartem/AnimeStudio/commits?author=ihzgniqgnem" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
@@ -86,3 +105,19 @@ Thanks goes to these wonderful people :
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 Contributions of any kind welcome!
+
+---
+
+# Credits
+
+Anime Studio is a fork of [Studio](https://github.com/RazTools/Studio) by Razmoth, itself a fork of [AssetStudio](https://github.com/Perfare/AssetStudio) by Perfare. After Razmoth's repo was discontinued things started breaking as games evolved, and several forks appeared fixing different bits without ever merging back into each other. This one aims at being the place where those fixes live together. Most of what's here started in those two projects.
+
+The native side is built on other people's work :
+
+- [ooz](https://github.com/powzix/ooz) by powzix, through [zao's fork](https://github.com/zao/ooz) - Kraken decompression
+- [FBX SDK](https://aps.autodesk.com/developer/overview/fbx-sdk) by Autodesk, wrapper based on Perfare's and hozuki's - FBX export
+- [3Dmigoto](https://github.com/bo3b/3Dmigoto) and [HLSLcc](https://github.com/Unity-Technologies/HLSLcc) by Unity - shader decompilation
+- [ACL](https://github.com/nfrechette/acl) and [RTM](https://github.com/nfrechette/rtm) by Nicholas Frechette, wrappers by Razmoth - animation decompression
+- [FMOD Engine](https://www.fmod.com/) by Firelight Technologies - audio preview and export
+
+FMOD is used under Firelight's free license for non commercial use, and the FBX SDK under Autodesk's terms. Everything else is MIT or similar, see each project for details.
