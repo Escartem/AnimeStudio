@@ -12,6 +12,7 @@ namespace AnimeStudio
             ExportListType.MemoryPack,
             ExportListType.XML,
             ExportListType.JSON,
+            ExportListType.SQLite,
         };
 
         public static string GetExtension(ExportListType format) => format switch
@@ -20,6 +21,7 @@ namespace AnimeStudio
             ExportListType.MemoryPack => ".memory",
             ExportListType.XML => ".xml",
             ExportListType.JSON => ".json",
+            ExportListType.SQLite => ".sqlite",
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, "A single AssetMap format is required."),
         };
 
@@ -29,6 +31,7 @@ namespace AnimeStudio
             ExportListType.MemoryPack => "MemoryPack AssetMap",
             ExportListType.XML => "XML AssetMap",
             ExportListType.JSON => "JSON AssetMap",
+            ExportListType.SQLite => "SQLite AssetMap",
             _ => throw new ArgumentOutOfRangeException(nameof(format), format, "A single AssetMap format is required."),
         };
 

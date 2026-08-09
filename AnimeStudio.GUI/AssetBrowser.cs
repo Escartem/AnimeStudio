@@ -46,7 +46,7 @@ namespace AnimeStudio.GUI
             var openFileDialog = new OpenFileDialog
             {
                     Multiselect = false, Filter = "MessagePack AssetMap File|*" +
-                                                  ".map|JSON AssetMap File|*.json|MemoryPack AssetMap File|*.memory"
+                                                  ".map|JSON AssetMap File|*.json|MemoryPack AssetMap File|*.memory|SQLite AssetMap File|*.sqlite"
             };
             if (openFileDialog.ShowDialog(this) == DialogResult.OK)
             {
@@ -589,7 +589,7 @@ namespace AnimeStudio.GUI
             var openFileDialog = new OpenFileDialog
             {
                 Multiselect = false,
-                Filter = "MessagePack AssetMap File|*.map|JSON AssetMap File|*.json|MemoryPack AssetMap File|*.memory",
+                Filter = "MessagePack AssetMap File|*.map|JSON AssetMap File|*.json|MemoryPack AssetMap File|*.memory|SQLite AssetMap File|*.sqlite",
             };
             if (openFileDialog.ShowDialog(this) == DialogResult.OK)
             {

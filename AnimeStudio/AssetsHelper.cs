@@ -382,7 +382,8 @@ namespace AnimeStudio
                 // is emitted with the matching file format and extension.
                 if (game.Type.IsGISubGroup()
                     || exportListType.HasFlag(ExportListType.JSON)
-                    || exportListType.HasFlag(ExportListType.MemoryPack))
+                    || exportListType.HasFlag(ExportListType.MemoryPack)
+                    || exportListType.HasFlag(ExportListType.SQLite))
                 {
                     var assets = new List<AssetEntry>();
                     ForEachLoadedBundle(files, file => BuildAssetMap(file, assets, typeFilters, nameFilters, containerFilters));
@@ -827,6 +828,22 @@ namespace AnimeStudio
                     
                 }
                     break;
+                case ExportListType.SQLite:
+                {
+                    var assetMap = AssetMapSqlite.Load(mapName);
+                    foreach (var entry in assetMap.AssetEntries)
+                    {
+                        var isNameMatch = nameFilter.Length == 0 || nameFilter.Any(x => x.IsMatch(entry.Name ?? string.Empty));
+                        var isContainerMatch = containerFilter.Length == 0 || containerFilter.Any(x => x.IsMatch(entry.Container ?? string.Empty));
+                        var isTypeMatch = typeFilter.Length == 0 || typeFilter.Any(x => x == entry.Type);
+                        if (isNameMatch && isContainerMatch && isTypeMatch)
+                        {
+                            matches.Add(entry.Source ?? string.Empty);
+                        }
+                    }
+
+                    break;
+                }
             }
             
             return matches.ToArray();
@@ -942,6 +959,16 @@ namespace AnimeStudio
                                  File.WriteAllBytes(filename, data);
                              }
 
+                             if (exportListType.HasFlag(ExportListType.SQLite))
+                             {
+                                 filename = Path.Combine(savePath, $"{name}{AssetMapFileFormat.GetExtension(ExportListType.SQLite)}");
+                                 AssetMapSqlite.Save(filename, new AssetMap
+                                 {
+                                     GameType = game.Type,
+                                     AssetEntries = toExportAssets
+                                 });
+                             }
+
                              Logger.Info($"Finished building AssetMap with {toExportAssets.Count} assets.");
                          }
                      });
@@ -960,7 +987,8 @@ namespace AnimeStudio
 
                 if (game.Type.IsGISubGroup()
                     || exportListType.HasFlag(ExportListType.JSON)
-                    || exportListType.HasFlag(ExportListType.MemoryPack))
+                    || exportListType.HasFlag(ExportListType.MemoryPack)
+                    || exportListType.HasFlag(ExportListType.SQLite))
                 {
                     var assets = new List<AssetEntry>();
                     ForEachLoadedBundle(files, file =>
