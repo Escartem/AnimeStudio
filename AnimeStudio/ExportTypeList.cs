@@ -9,6 +9,7 @@ namespace AnimeStudio
         MessagePack,
         XML,
         JSON       = 4,
-        MemoryPack = 8
+        MemoryPack = 8,
+        SQLite     = 16
     }
 }
