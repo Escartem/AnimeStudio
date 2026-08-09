@@ -53,8 +53,9 @@ namespace AnimeStudio
                 {
                     needSearch = false;
                     var newReader = new BinaryReader(File.OpenRead(resourceFilePath));
-                    if (!assetsFile.assetsManager.CacheResourceReader(resourceFileName, newReader))
+                    if (!assetsFile.assetsManager.resourceFileReaders.TryAdd(resourceFileName, newReader))
                     {
+                        newReader.Dispose();
                         assetsFile.assetsManager.resourceFileReaders.TryGetValue(resourceFileName, out newReader);
                     }
                     reader = newReader;
