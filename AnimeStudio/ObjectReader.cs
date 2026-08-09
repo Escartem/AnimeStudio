@@ -1,22 +1,18 @@
 ﻿using System;
-using System.IO;
 
 namespace AnimeStudio
 {
     public class ObjectReader : EndianBinaryReader
     {
-        public SerializedFile assetsFile;
-        public Game Game;
-        public long m_PathID;
-        public long byteStart;
-        public uint byteSize;
-        public ClassIDType type;
-        public SerializedType serializedType;
-        public BuildTarget platform;
+        public SerializedFile              assetsFile;
+        public uint                        byteSize;
+        public long                        byteStart;
+        public Game                        Game;
+        public long                        m_PathID;
         public SerializedFileFormatVersion m_Version;
-
-        public int[] version => assetsFile.version;
-        public BuildType buildType => assetsFile.buildType;
+        public BuildTarget                 platform;
+        public SerializedType              serializedType;
+        public ClassIDType                 type;
 
         public ObjectReader(EndianBinaryReader reader, SerializedFile assetsFile, ObjectInfo objectInfo, Game game) : base(reader.BaseStream, reader.Endian)
         {
@@ -41,13 +37,23 @@ namespace AnimeStudio
             Logger.Verbose($"Initialized reader for {type} object with {m_PathID} in file {assetsFile.fileName} !!");
         }
 
+        public int[] version
+        {
+            get => assetsFile.version;
+        }
+
+        public BuildType buildType
+        {
+            get => assetsFile.buildType;
+        }
+
         public override int Read(byte[] buffer, int index, int count)
         {
             var pos = Position - byteStart;
-            if (pos + count > byteSize)
-            {
-                throw new EndOfStreamException("Unable to read beyond the end of the stream.");
-            }
+            //if (pos + count > byteSize)
+            //{
+            //throw new EndOfStreamException("Unable to read beyond the end of the stream.");
+            //}
             return base.Read(buffer, index, count);
         }
 

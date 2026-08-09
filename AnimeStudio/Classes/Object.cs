@@ -1,4 +1,5 @@
-﻿using K4os.Hash.xxHash;
+﻿using System.Collections.Specialized;
+using K4os.Hash.xxHash;
 using Newtonsoft.Json;
 using System;
 using System.Buffers;
@@ -10,24 +11,25 @@ namespace AnimeStudio
     {
         [JsonIgnore]
         public SerializedFile assetsFile;
-        [JsonIgnore]
-        public ObjectReader reader;
-        [JsonIgnore]
-        public long m_PathID;
-        [JsonIgnore]
-        public int[] version;
+
         [JsonIgnore]
         protected BuildType buildType;
+
+        [JsonIgnore] public uint byteSize;
+
+        [JsonIgnore] public long m_PathID;
+
         [JsonIgnore]
         public BuildTarget platform;
-        [JsonIgnore]
-        public ClassIDType type;
+
+        [JsonIgnore] public ObjectReader reader;
+
         [JsonIgnore]
         public SerializedType serializedType;
-        [JsonIgnore]
-        public uint byteSize;
 
-        public virtual string Name => string.Empty;
+        [JsonIgnore] public ClassIDType type;
+
+        [JsonIgnore] public int[] version;
 
         public Object(ObjectReader reader)
         {
@@ -48,6 +50,11 @@ namespace AnimeStudio
             {
                 var m_ObjectHideFlags = reader.ReadUInt32();
             }
+        }
+
+        public virtual string Name
+        {
+            get => string.Empty;
         }
 
         public string GetHash(bool overrides = false)
@@ -141,7 +148,7 @@ namespace AnimeStudio
             Logger.Verbose($"Dumping raw bytes of the object with {m_PathID} in file {assetsFile.fileName}...");
             long pos = reader.Position;
             reader.Reset();
-            byte[] data = reader.ReadBytes((int)byteSize);
+            byte[] data = reader.ReadBytes((int) byteSize);
             reader.Position = pos;
             return data;
         }

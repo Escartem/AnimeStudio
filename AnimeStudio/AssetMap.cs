@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using MemoryPack;
 using MessagePack;
 
 namespace AnimeStudio
@@ -19,6 +20,7 @@ namespace AnimeStudio
             _cache.Add(value);
             return value;
         }
+        
 
         /// <summary>
         /// Drop interned strings. Call between map-build files so unique asset names
@@ -32,8 +34,8 @@ namespace AnimeStudio
         public static int Count => _cache.Count;
     }
 
-    [MessagePackObject]
-    public record AssetMap
+    [MessagePackObject, MemoryPackable]
+    public partial record AssetMap
     {
         [Key(0)]
         public GameType GameType { get; set; }
@@ -42,7 +44,7 @@ namespace AnimeStudio
         public List<AssetEntry> AssetEntries { get; set; }
     }
 
-    [MessagePackObject]
+    [MessagePackObject, MemoryPackable]
     public partial record AssetEntry
     {
         private string _container;

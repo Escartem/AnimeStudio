@@ -29,66 +29,36 @@ namespace AnimeStudio.GUI
 {
     partial class MainForm : Form
     {
-        private AssetItem lastSelectedItem;
+        private AboutForm    aboutForm;
         private AssetBrowser assetBrowser;
-        private AboutForm aboutForm;
-        private GameSelector gameSelector;
-        private UnityCNEdit unityCNEdit;
-        private DirectBitmap imageTexture;
-        private string tempClipboard;
-
-        private FMOD.System system;
-        private FMOD.Sound sound;
         private FMOD.Channel channel;
+        private uint         FMODlenms;
+        private float        FMODVolume = 0.8f;
+        private GameSelector gameSelector;
+        private DirectBitmap imageTexture;
+        private AssetItem    lastSelectedItem;
+
+        private GUILogger       logger;
+        private FMOD.MODE       loopMode = FMOD.MODE.LOOP_OFF;
         private FMOD.SoundGroup masterSoundGroup;
-        private FMOD.MODE loopMode = FMOD.MODE.LOOP_OFF;
-        private uint FMODlenms;
-        private float FMODVolume = 0.8f;
-
-        private bool themeIsFirstLaunch = true;
-
-        #region TexControl
-        private static char[] textureChannelNames = new[] { 'B', 'G', 'R', 'A' };
-        private bool[] textureChannels = new[] { true, true, true, true };
-        #endregion
-
-        #region GLControl
-        private bool glControlLoaded;
-        private int mdx, mdy;
-        private bool lmdown, rmdown;
-        private int pgmID, pgmColorID, pgmBlackID;
-        private int attributeVertexPosition;
-        private int attributeNormalDirection;
-        private int attributeVertexColor;
-        private int uniformModelMatrix;
-        private int uniformViewMatrix;
-        private int uniformProjMatrix;
-        private int vao;
-        private OpenTK.Mathematics.Vector3[] vertexData;
-        private OpenTK.Mathematics.Vector3[] normalData;
-        private OpenTK.Mathematics.Vector3[] normal2Data;
-        private OpenTK.Mathematics.Vector4[] colorData;
-        private Matrix4 modelMatrixData;
-        private Matrix4 viewMatrixData;
-        private Matrix4 projMatrixData;
-        private int[] indiceData;
-        private int wireFrameMode;
-        private int shadeMode;
-        private int normalMode;
-        #endregion
-
-        //asset list sorting
-        private int sortColumn = -1;
-        private bool reverseSort;
 
         //tree search
         private int nextGObject;
-        private List<TreeNode> treeSrcResults = new List<TreeNode>();
 
         private string openDirectoryBackup = string.Empty;
+        private bool   reverseSort;
         private string saveDirectoryBackup = string.Empty;
 
-        private GUILogger logger;
+        //asset list sorting
+        private int        sortColumn = -1;
+        private FMOD.Sound sound;
+
+        private FMOD.System system;
+        private string      tempClipboard;
+
+        private bool           themeIsFirstLaunch = true;
+        private List<TreeNode> treeSrcResults     = new List<TreeNode>();
+        private UnityCNEdit    unityCNEdit;
 
         public MainForm()
         {
@@ -311,6 +281,7 @@ namespace AnimeStudio.GUI
                 }
             }
         }
+
         private void MainForm_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -722,6 +693,7 @@ namespace AnimeStudio.GUI
             Properties.Settings.Default.enablePreview = enablePreview.Checked;
             Properties.Settings.Default.Save();
         }
+
         private void displayAssetInfo_Check(object sender, EventArgs e)
         {
             if (displayInfo.Checked && assetInfoLabel.Text != null)
@@ -752,7 +724,9 @@ namespace AnimeStudio.GUI
         {
             if (e.ItemIndex < visibleAssets.Count)
             {
-                e.Item = visibleAssets[e.ItemIndex];
+                var item = visibleAssets[e.ItemIndex];
+                item.SetSubItems();
+                e.Item = item;
             }
         }
 
@@ -950,8 +924,8 @@ namespace AnimeStudio.GUI
             {
                 visibleAssets.Sort((a, b) =>
                 {
-                    var at = a.SubItems[sortColumn].Text;
-                    var bt = b.SubItems[sortColumn].Text;
+                    var at = a.GetColumnText(sortColumn);
+                    var bt = b.GetColumnText(sortColumn);
                     return reverseSort ? bt.CompareTo(at) : at.CompareTo(bt);
                 });
             }
@@ -1518,6 +1492,7 @@ namespace AnimeStudio.GUI
             var model = new ModelConverter(m_GameObject, options, Array.Empty<AnimationClip>());
             PreviewModel(model);
         }
+
         private void PreviewAnimator(Animator m_Animator)
         {
             var options = new ModelConverter.Options()
@@ -1992,6 +1967,7 @@ namespace AnimeStudio.GUI
         {
             ExportAssets(ExportFilter.Filtered, ExportType.Dump);
         }
+
         private void toolStripMenuItem17_Click(object sender, EventArgs e)
         {
             ExportAssets(ExportFilter.All, ExportType.JSON);
@@ -2102,10 +2078,7 @@ namespace AnimeStudio.GUI
                     listSearch.Text = "";
                 }
                 var regex = new Regex(listSearch.Text, RegexOptions.IgnoreCase);
-                visibleAssets = visibleAssets.FindAll(
-                    x => regex.IsMatch(x.Text) ||
-                    regex.IsMatch(x.SubItems[1].Text) ||
-                    regex.IsMatch(x.SubItems[3].Text));
+                visibleAssets = visibleAssets.FindAll(x => x.MatchesListSearch(regex));
             }
             assetListView.VirtualListSize = visibleAssets.Count;
             assetListView.EndUpdate();
@@ -2181,6 +2154,7 @@ namespace AnimeStudio.GUI
         {
             logger.ShowErrorMessage = toolStripMenuItem15.Checked;
         }
+
         private async void toolStripMenuItem19_DropDownOpening(object sender, EventArgs e)
         {
             if (specifyAIVersion.Enabled && await AIVersionManager.FetchVersions())
@@ -2261,7 +2235,10 @@ namespace AnimeStudio.GUI
                             if (!string.IsNullOrEmpty(path))
                             {
                                 asset.Container = path;
-                                asset.SubItems[1].Text = path;
+                                if (asset.SubItems.Count > 1)
+                                {
+                                    asset.SubItems[1].Text = path;
+                                }
                                 if (asset.Type == ClassIDType.MiHoYoBinData)
                                 {
                                     asset.Text = Path.GetFileNameWithoutExtension(path);
@@ -2294,6 +2271,7 @@ namespace AnimeStudio.GUI
                 dumpTextBox.Text = DumpAsset(lastSelectedItem.Asset);
             }
         }
+
         private void enableResolveDependencies_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.enableResolveDependencies = enableResolveDependencies.Checked;
@@ -2301,16 +2279,19 @@ namespace AnimeStudio.GUI
 
             assetsManager.ResolveDependencies = enableResolveDependencies.Checked;
         }
+
         private void allowDuplicates_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.allowDuplicates = allowDuplicates.Checked;
             Properties.Settings.Default.Save();
         }
+
         private void UseBundleContainerNameToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.useBundleContainerName = useBundleContainerNameToolStripMenuItem.Checked;
             Properties.Settings.Default.Save();
         }
+
         private void skipContainer_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.skipContainer = skipContainer.Checked;
@@ -2318,6 +2299,7 @@ namespace AnimeStudio.GUI
 
             SkipContainer = skipContainer.Checked;
         }
+
         private void assetMapTypeMenuItem_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
         {
             var assetMapType = Properties.Settings.Default.assetMapType;
@@ -2337,6 +2319,7 @@ namespace AnimeStudio.GUI
             }
 
         }
+
         private void modelsOnly_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.modelsOnly = modelsOnly.Checked;
@@ -2347,6 +2330,7 @@ namespace AnimeStudio.GUI
                 FilterAssetList();
             }
         }
+
         private void enableModelPreview_CheckedChanged(object sender, EventArgs e)
         {
             Properties.Settings.Default.enableModelPreview = enableModelPreview.Checked;
@@ -2668,12 +2652,18 @@ namespace AnimeStudio.GUI
 
             var name = "assets_map";
             var saveDirectory = saveDirectoryBackup;
+            var exportListType = (ExportListType)assetMapTypeMenuItem.DropDownItems
+                .Cast<ToolStripMenuItem>()
+                .Select(x => x.Checked ? (int)x.Tag : 0)
+                .Sum();
+            var defaultExtension = AssetMapFileFormat.GetDefaultExtension(exportListType);
 
             var saveFileDialog = new SaveFileDialog()
             {
-                Filter = "Map file (*.map)|*.map",
-                DefaultExt = "map",
-                Title = "Select Output File (format will auto adjust according to what you selected)",
+                Filter = AssetMapFileFormat.BuildSaveFilter(exportListType),
+                DefaultExt = defaultExtension.TrimStart('.'),
+                AddExtension = true,
+                Title            = "Select Output File (format will auto adjust according to what you selected)",
                 InitialDirectory = saveDirectory,
             };
 
@@ -2681,8 +2671,6 @@ namespace AnimeStudio.GUI
             {
                 saveDirectory = Path.GetDirectoryName(saveFileDialog.FileName);
                 var input = Path.GetFileNameWithoutExtension(saveFileDialog.FileName);
-
-                var exportListType = (ExportListType)assetMapTypeMenuItem.DropDownItems.Cast<ToolStripMenuItem>().Select(x => x.Checked ? (int)x.Tag : 0).Sum();
 
                 if (!string.IsNullOrEmpty(input))
                 {
@@ -2719,7 +2707,104 @@ namespace AnimeStudio.GUI
             assetBrowser.Show();
         }
 
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e) { Application.Exit(); }
+
+        private void modelsObjectsExportAll_Click(object sender, EventArgs e)
+        {
+            this.exportAllObjectssplitToolStripMenuItem1_Click(sender, e);
+        }
+
+        private void modelsObjectsExportSelected_Click(object sender, EventArgs e)
+        {
+            bool includeAnimationClips = modelsIncludeAnimationClips.Checked;
+            bool mergeObjects          = modelsMerge.Checked;
+
+            switch (includeAnimationClips, mergeObjects)
+            {
+                case (false, false):
+                    this.exportSelectedObjectsToolStripMenuItem_Click(sender, e);
+                    break;
+                case (false, true):
+                    this.exportSelectedObjectsmergeToolStripMenuItem_Click(sender, e);
+                    break;
+                case (true, false):
+                    this.exportObjectswithAnimationClipMenuItem_Click(sender, e);
+                    break;
+                case (true, true):
+                    this.exportSelectedObjectsmergeWithAnimationClipToolStripMenuItem_Click(sender, e);
+                    break;
+            }
+        }
+
+        private void modelsNodesExportSelected_Click(object sender, EventArgs e)
+        {
+            bool includeAnimationClips = modelsIncludeAnimationClips.Checked;
+
+            switch(includeAnimationClips)
+            {
+                case true:
+                    this.exportSelectedNodessplitSelectedAnimationClipsToolStripMenuItem_Click(sender, e);
+                    break;
+                case false:
+                    this.exportSelectedNodessplitToolStripMenuItem_Click(sender, e);
+                    break;
+            }
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            aboutForm = new AboutForm();
+            aboutForm.ShowDialog();
+        }
+
+        private void gameSelectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            gameSelector = new GameSelector(this);
+            gameSelector.ShowDialog();
+        }
+
+        private void editUnityCNKeysToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            unityCNEdit = new UnityCNEdit();
+            unityCNEdit.ShowDialog();
+        }
+
+        #region TexControl
+
+        private static char[] textureChannelNames = new[] { 'B', 'G', 'R', 'A' };
+        private        bool[] textureChannels     = new[] { true, true, true, true };
+
+        #endregion
+
+        #region GLControl
+
+        private bool                         glControlLoaded;
+        private int                          mdx,    mdy;
+        private bool                         lmdown, rmdown;
+        private int                          pgmID,  pgmColorID, pgmBlackID;
+        private int                          attributeVertexPosition;
+        private int                          attributeNormalDirection;
+        private int                          attributeVertexColor;
+        private int                          uniformModelMatrix;
+        private int                          uniformViewMatrix;
+        private int                          uniformProjMatrix;
+        private int                          vao;
+        private OpenTK.Mathematics.Vector3[] vertexData;
+        private OpenTK.Mathematics.Vector3[] normalData;
+        private OpenTK.Mathematics.Vector3[] normal2Data;
+        private OpenTK.Mathematics.Vector4[] colorData;
+        private Matrix4                      modelMatrixData;
+        private Matrix4                      viewMatrixData;
+        private Matrix4                      projMatrixData;
+        private int[]                        indiceData;
+        private int                          wireFrameMode;
+        private int                          shadeMode;
+        private int                          normalMode;
+
+        #endregion
+
         #region FMOD
+
         private void FMODinit()
         {
             FMODreset();
@@ -2987,9 +3072,11 @@ namespace AnimeStudio.GUI
             }
             return false;
         }
+
         #endregion
 
         #region GLControl
+
         private void InitOpenTK()
         {
             ChangeGLSize(glControl.Size);
@@ -3206,71 +3293,7 @@ namespace AnimeStudio.GUI
                 rmdown = false;
             }
         }
+
         #endregion
-
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Application.Exit();
-        }
-
-        private void modelsObjectsExportAll_Click(object sender, EventArgs e)
-        {
-            exportAllObjectssplitToolStripMenuItem1_Click(sender, e);
-        }
-
-        private void modelsObjectsExportSelected_Click(object sender, EventArgs e)
-        {
-            bool includeAnimationClips = modelsIncludeAnimationClips.Checked;
-            bool mergeObjects = modelsMerge.Checked;
-
-            switch ((includeAnimationClips, mergeObjects))
-            {
-                case (false, false):
-                    exportSelectedObjectsToolStripMenuItem_Click(sender, e);
-                    break;
-                case (false, true):
-                    exportSelectedObjectsmergeToolStripMenuItem_Click(sender, e);
-                    break;
-                case (true, false):
-                    exportObjectswithAnimationClipMenuItem_Click(sender, e);
-                    break;
-                case (true, true):
-                    exportSelectedObjectsmergeWithAnimationClipToolStripMenuItem_Click(sender, e);
-                    break;
-            }
-        }
-
-        private void modelsNodesExportSelected_Click(object sender, EventArgs e)
-        {
-            bool includeAnimationClips = modelsIncludeAnimationClips.Checked;
-
-            switch (includeAnimationClips)
-            {
-                case true:
-                    exportSelectedNodessplitSelectedAnimationClipsToolStripMenuItem_Click(sender, e);
-                    break;
-                case false:
-                    exportSelectedNodessplitToolStripMenuItem_Click(sender, e);
-                    break;
-            }
-        }
-
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            aboutForm = new AboutForm();
-            aboutForm.ShowDialog();
-        }
-
-        private void gameSelectToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            gameSelector = new GameSelector(this);
-            gameSelector.ShowDialog();
-        }
-
-        private void editUnityCNKeysToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            unityCNEdit = new UnityCNEdit();
-            unityCNEdit.ShowDialog();
-        }
     }
 }

@@ -52,8 +52,13 @@ namespace AnimeStudio
                 if (File.Exists(resourceFilePath))
                 {
                     needSearch = false;
-                    reader = new BinaryReader(File.OpenRead(resourceFilePath));
-                    assetsFile.assetsManager.resourceFileReaders.TryAdd(resourceFileName, reader);
+                    var newReader = new BinaryReader(File.OpenRead(resourceFilePath));
+                    if (!assetsFile.assetsManager.resourceFileReaders.TryAdd(resourceFileName, newReader))
+                    {
+                        newReader.Dispose();
+                        assetsFile.assetsManager.resourceFileReaders.TryGetValue(resourceFileName, out newReader);
+                    }
+                    reader = newReader;
                     return reader;
                 }
                 throw new FileNotFoundException($"Can't find the resource file {resourceFileName}");
