@@ -67,75 +67,156 @@ namespace AnimeStudio
             return bytes;
         }
 
+        // Keep transforms in straight-alpha BGRA space. SKCanvas draws can destroy RGB hidden by alpha.
         public static SKBitmap Resize(this SKBitmap image, int width, int height)
         {
-            var resized = CreateEmptyBitmap(width, height);
-            using (var canvas = new SKCanvas(resized))
+            if (width <= 0)
             {
-                canvas.Clear(SKColors.Transparent);
-                canvas.DrawBitmap(image, new SKRect(0, 0, width, height));
+                throw new ArgumentOutOfRangeException(nameof(width));
             }
-            return resized;
+
+            if (height <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(height));
+            }
+
+            var source = GetBgraBytes(image);
+            var destination = new byte[checked(width * height * 4)];
+            var scaleX = (float)image.Width / width;
+            var scaleY = (float)image.Height / height;
+
+            for (int destinationY = 0; destinationY < height; destinationY++)
+            {
+                var sourceY = (destinationY + 0.5f) * scaleY - 0.5f;
+                var top = (int)Math.Floor(sourceY);
+                var verticalWeight = sourceY - top;
+                if (top < 0)
+                {
+                    top = 0;
+                    verticalWeight = 0f;
+                }
+                else if (top >= image.Height - 1)
+                {
+                    top = image.Height - 1;
+                    verticalWeight = 0f;
+                }
+                var bottom = Math.Min(top + 1, image.Height - 1);
+
+                for (int destinationX = 0; destinationX < width; destinationX++)
+                {
+                    var sourceX = (destinationX + 0.5f) * scaleX - 0.5f;
+                    var left = (int)Math.Floor(sourceX);
+                    var horizontalWeight = sourceX - left;
+                    if (left < 0)
+                    {
+                        left = 0;
+                        horizontalWeight = 0f;
+                    }
+                    else if (left >= image.Width - 1)
+                    {
+                        left = image.Width - 1;
+                        horizontalWeight = 0f;
+                    }
+                    var right = Math.Min(left + 1, image.Width - 1);
+
+                    var topLeftOffset = (top * image.Width + left) * 4;
+                    var topRightOffset = (top * image.Width + right) * 4;
+                    var bottomLeftOffset = (bottom * image.Width + left) * 4;
+                    var bottomRightOffset = (bottom * image.Width + right) * 4;
+                    var destinationOffset = (destinationY * width + destinationX) * 4;
+
+                    for (int channel = 0; channel < 4; channel++)
+                    {
+                        var topValue = Lerp(source[topLeftOffset + channel], source[topRightOffset + channel], horizontalWeight);
+                        var bottomValue = Lerp(source[bottomLeftOffset + channel], source[bottomRightOffset + channel], horizontalWeight);
+                        destination[destinationOffset + channel] = (byte)(Lerp(topValue, bottomValue, verticalWeight) + 0.5f);
+                    }
+                }
+            }
+
+            return CreateBitmapFromBgra(destination, width, height);
         }
 
         public static SKBitmap Crop(this SKBitmap image, SKRectI rect)
         {
-            var cropped = CreateEmptyBitmap(rect.Width, rect.Height);
-            using (var canvas = new SKCanvas(cropped))
+            if (rect.Width <= 0 || rect.Height <= 0 || rect.Left < 0 || rect.Top < 0 || rect.Right > image.Width || rect.Bottom > image.Height)
             {
-                canvas.Clear(SKColors.Transparent);
-                canvas.DrawBitmap(image, rect, new SKRect(0, 0, rect.Width, rect.Height));
+                throw new ArgumentOutOfRangeException(nameof(rect));
             }
-            return cropped;
+
+            var source = GetBgraBytes(image);
+            var destinationRowBytes = checked(rect.Width * 4);
+            var destination = new byte[checked(destinationRowBytes * rect.Height)];
+            for (int y = 0; y < rect.Height; y++)
+            {
+                var sourceOffset = ((rect.Top + y) * image.Width + rect.Left) * 4;
+                Buffer.BlockCopy(source, sourceOffset, destination, y * destinationRowBytes, destinationRowBytes);
+            }
+
+            return CreateBitmapFromBgra(destination, rect.Width, rect.Height);
         }
 
         public static SKBitmap FlipHorizontal(this SKBitmap image)
         {
-            var flipped = CreateEmptyBitmap(image.Width, image.Height);
-            using (var canvas = new SKCanvas(flipped))
+            var source = GetBgraBytes(image);
+            var destination = new byte[source.Length];
+            for (int y = 0; y < image.Height; y++)
             {
-                canvas.Clear(SKColors.Transparent);
-                canvas.Scale(-1, 1);
-                canvas.DrawBitmap(image, -image.Width, 0);
+                for (int x = 0; x < image.Width; x++)
+                {
+                    var sourceOffset = (y * image.Width + x) * 4;
+                    var destinationOffset = (y * image.Width + image.Width - 1 - x) * 4;
+                    CopyPixel(source, sourceOffset, destination, destinationOffset);
+                }
             }
-            return flipped;
+
+            return CreateBitmapFromBgra(destination, image.Width, image.Height);
         }
 
         public static SKBitmap FlipVertical(this SKBitmap image)
         {
-            var flipped = CreateEmptyBitmap(image.Width, image.Height);
-            using (var canvas = new SKCanvas(flipped))
+            var source = GetBgraBytes(image);
+            var destination = new byte[source.Length];
+            var rowBytes = checked(image.Width * 4);
+            for (int y = 0; y < image.Height; y++)
             {
-                canvas.Clear(SKColors.Transparent);
-                canvas.Scale(1, -1);
-                canvas.DrawBitmap(image, 0, -image.Height);
+                Buffer.BlockCopy(source, y * rowBytes, destination, (image.Height - 1 - y) * rowBytes, rowBytes);
             }
-            return flipped;
+
+            return CreateBitmapFromBgra(destination, image.Width, image.Height);
         }
 
         public static SKBitmap Rotate180(this SKBitmap image)
         {
-            var rotated = CreateEmptyBitmap(image.Width, image.Height);
-            using (var canvas = new SKCanvas(rotated))
+            var source = GetBgraBytes(image);
+            var destination = new byte[source.Length];
+            var pixelCount = checked(image.Width * image.Height);
+            for (int sourcePixel = 0; sourcePixel < pixelCount; sourcePixel++)
             {
-                canvas.Clear(SKColors.Transparent);
-                canvas.RotateDegrees(180, image.Width / 2f, image.Height / 2f);
-                canvas.DrawBitmap(image, 0, 0);
+                CopyPixel(source, sourcePixel * 4, destination, (pixelCount - 1 - sourcePixel) * 4);
             }
-            return rotated;
+
+            return CreateBitmapFromBgra(destination, image.Width, image.Height);
         }
 
         public static SKBitmap Rotate270(this SKBitmap image)
         {
-            var rotated = CreateEmptyBitmap(image.Height, image.Width);
-            using (var canvas = new SKCanvas(rotated))
+            var source = GetBgraBytes(image);
+            var destination = new byte[source.Length];
+            var destinationWidth = image.Height;
+            for (int sourceY = 0; sourceY < image.Height; sourceY++)
             {
-                canvas.Clear(SKColors.Transparent);
-                canvas.Translate(0, image.Width);
-                canvas.RotateDegrees(270);
-                canvas.DrawBitmap(image, 0, 0);
+                for (int sourceX = 0; sourceX < image.Width; sourceX++)
+                {
+                    var destinationX = sourceY;
+                    var destinationY = image.Width - 1 - sourceX;
+                    var sourceOffset = (sourceY * image.Width + sourceX) * 4;
+                    var destinationOffset = (destinationY * destinationWidth + destinationX) * 4;
+                    CopyPixel(source, sourceOffset, destination, destinationOffset);
+                }
             }
-            return rotated;
+
+            return CreateBitmapFromBgra(destination, image.Height, image.Width);
         }
 
         public static void CopyBgraToBitmap(byte[] source, SKBitmap bitmap)
@@ -159,9 +240,27 @@ namespace AnimeStudio
             }
         }
 
-        private static SKBitmap CreateEmptyBitmap(int width, int height)
+        private static byte[] GetBgraBytes(SKBitmap image)
         {
-            return new SKBitmap(new SKImageInfo(width, height, SKColorType.Bgra8888, SKAlphaType.Unpremul));
+            if (image.ColorType != SKColorType.Bgra8888)
+            {
+                throw new NotSupportedException($"Expected {SKColorType.Bgra8888} pixels, but found {image.ColorType}.");
+            }
+
+            return image.ConvertToBytes() ?? throw new InvalidOperationException("The bitmap has no pixel buffer.");
+        }
+
+        private static void CopyPixel(byte[] source, int sourceOffset, byte[] destination, int destinationOffset)
+        {
+            destination[destinationOffset] = source[sourceOffset];
+            destination[destinationOffset + 1] = source[sourceOffset + 1];
+            destination[destinationOffset + 2] = source[sourceOffset + 2];
+            destination[destinationOffset + 3] = source[sourceOffset + 3];
+        }
+
+        private static float Lerp(float first, float second, float amount)
+        {
+            return first + (second - first) * amount;
         }
 
         private static void EncodeToStream(this SKBitmap image, Stream stream, SKEncodedImageFormat format, int quality)
