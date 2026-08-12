@@ -63,7 +63,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MessagePack" Version="3.1.7" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="OpenTK" Version="4.9.4" />
 		<PackageReference Include="OpenTK.GLControl" Version="4.0.2" />
