@@ -34,6 +34,30 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.Ooz.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.Ooz.dll</TargetPath>
+		</ContentWithTargetPath>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.FBXNative.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.FBXNative.dll</TargetPath>
+		</ContentWithTargetPath>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.HLSLDecompiler.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.HLSLDecompiler.dll</TargetPath>
+		</ContentWithTargetPath>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.DB.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.ACL.DB.dll</TargetPath>
+		</ContentWithTargetPath>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.SR.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.ACL.SR.dll</TargetPath>
+		</ContentWithTargetPath>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.ZZZ.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.ACL.ZZZ.dll</TargetPath>
+		</ContentWithTargetPath>
 		<ContentWithTargetPath Include="..\LICENSE">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>LICENSE</TargetPath>

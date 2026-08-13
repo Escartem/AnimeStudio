@@ -1,10 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-	<TargetFrameworks>net9.0-windows;net10.0-windows</TargetFrameworks>
+	<TargetFrameworks>net9.0;net10.0</TargetFrameworks>
 	<ApplicationIcon>Resources\as.ico</ApplicationIcon>
 	<Copyright>Copyright © Escartem 2024-2026; Copyright © Razmoth 2022-2024; Copyright © Perfare 2018-2022</Copyright>
-	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 	<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
 
@@ -33,7 +32,31 @@
     </Compile>
   </ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup Condition="'$(OS)' == 'Windows_NT' And ('$(RuntimeIdentifier)' == '' Or '$(RuntimeIdentifier)' == 'win-x64')">
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.Ooz.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.Ooz.dll</TargetPath>
+		</ContentWithTargetPath>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.FBXNative.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.FBXNative.dll</TargetPath>
+		</ContentWithTargetPath>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.HLSLDecompiler.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.HLSLDecompiler.dll</TargetPath>
+		</ContentWithTargetPath>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.DB.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.ACL.DB.dll</TargetPath>
+		</ContentWithTargetPath>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.SR.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.ACL.SR.dll</TargetPath>
+		</ContentWithTargetPath>
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.ZZZ.dll">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<TargetPath>AnimeStudio.ACL.ZZZ.dll</TargetPath>
+		</ContentWithTargetPath>
 		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\acl.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 			<TargetPath>x86\acl.dll</TargetPath>

@@ -23,27 +23,4 @@
     <ProjectReference Include="..\AnimeStudio\AnimeStudio.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.HLSLDecompiler.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>AnimeStudio.HLSLDecompiler.dll</TargetPath>
-    </ContentWithTargetPath>
-  </ItemGroup>
-
-  <!-- Likewise for ACL.cs; built by hand from the AnimeStudio.ACL.* projects. -->
-  <ItemGroup>
-    <ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.DB.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>AnimeStudio.ACL.DB.dll</TargetPath>
-    </ContentWithTargetPath>
-    <ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.ZZZ.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>AnimeStudio.ACL.ZZZ.dll</TargetPath>
-    </ContentWithTargetPath>
-    <ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.SR.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <TargetPath>AnimeStudio.ACL.SR.dll</TargetPath>
-    </ContentWithTargetPath>
-  </ItemGroup>
-
 </Project>

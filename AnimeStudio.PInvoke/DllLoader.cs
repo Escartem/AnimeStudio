@@ -8,6 +8,23 @@ namespace AnimeStudio.PInvoke
 {
     public static class DllLoader
     {
+        public static string GetLibraryFileName(string logicalName, OSPlatform platform)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(logicalName);
+
+            if (platform == OSPlatform.Windows)
+            {
+                return $"{logicalName}.dll";
+            }
+
+            if (platform == OSPlatform.Linux)
+            {
+                return $"lib{logicalName}.so";
+            }
+
+            throw new PlatformNotSupportedException($"Native library naming is not supported for {platform}.");
+        }
+
         public static void PreloadDll(string dllName, bool archSpecific = true)
         {
             var dllDir = GetDirectedDllDirectory(archSpecific);
@@ -49,7 +66,7 @@ namespace AnimeStudio.PInvoke
 
             internal static void LoadDll(string dllDir, string dllName)
             {
-                var dllFileName = $"{dllName}.dll";
+                var dllFileName = GetLibraryFileName(dllName, OSPlatform.Windows);
                 var directedDllPath = Path.Combine(dllDir, dllFileName);
 
                 // Specify SEARCH_DLL_LOAD_DIR to load dependent libraries located in the same platform-specific directory.
@@ -79,22 +96,18 @@ namespace AnimeStudio.PInvoke
 
             internal static void LoadDll(string dllDir, string dllName)
             {
-                string dllExtension;
+                OSPlatform platform;
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    dllExtension = ".so";
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    dllExtension = ".dylib";
+                    platform = OSPlatform.Linux;
                 }
                 else
                 {
                     throw new NotSupportedException();
                 }
 
-                var dllFileName = $"lib{dllName}{dllExtension}";
+                var dllFileName = GetLibraryFileName(dllName, platform);
                 var directedDllPath = Path.Combine(dllDir, dllFileName);
 
                 const int ldFlags = RTLD_NOW | RTLD_GLOBAL;

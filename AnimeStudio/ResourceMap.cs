@@ -51,7 +51,12 @@ namespace AnimeStudio
                             GameType = parsed.GameType,
                             AssetEntries = parsed.AssetEntries
                         };
-                    }   
+                    }
+                    else
+                    {
+                        Logger.Error("AssetMap was not loaded");
+                        return -1;
+                    }
                 }
                 catch (Exception e)
                 {
