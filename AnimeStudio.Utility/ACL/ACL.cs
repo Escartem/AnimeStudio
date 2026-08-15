@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using AnimeStudio.PInvoke;
 
@@ -53,23 +54,47 @@ namespace ACLLibs
         }
         public static void DecompressAll(byte[] data, out float[] values, out float[] times)
         {
+            ArgumentNullException.ThrowIfNull(data);
+            if (data.Length == 0)
+            {
+                throw new InvalidDataException("SR ACL clip data is empty.");
+            }
+
             var decompressedClip = new DecompressedClip();
-            DecompressClip(data, ref decompressedClip);
+            var dataPtr = Marshal.AllocHGlobal(data.Length + 15);
+            var dataAligned = new IntPtr(((long)dataPtr + 15L) & ~15L);
 
-            values = new float[decompressedClip.ValuesCount];
-            Marshal.Copy(decompressedClip.Values, values, 0, decompressedClip.ValuesCount);
+            try
+            {
+                Marshal.Copy(data, 0, dataAligned, data.Length);
+                DecompressClip(dataAligned, ref decompressedClip);
 
-            times = new float[decompressedClip.TimesCount];
-            Marshal.Copy(decompressedClip.Times, times, 0, decompressedClip.TimesCount);
+                if (decompressedClip.ValuesCount <= 0 || decompressedClip.TimesCount <= 0 ||
+                    decompressedClip.Values == IntPtr.Zero || decompressedClip.Times == IntPtr.Zero)
+                {
+                    throw new InvalidDataException(
+                        $"SR ACL decompression returned invalid output " +
+                        $"(values: {decompressedClip.ValuesCount}, times: {decompressedClip.TimesCount}).");
+                }
 
-            Dispose(ref decompressedClip);
+                values = new float[decompressedClip.ValuesCount];
+                Marshal.Copy(decompressedClip.Values, values, 0, decompressedClip.ValuesCount);
+
+                times = new float[decompressedClip.TimesCount];
+                Marshal.Copy(decompressedClip.Times, times, 0, decompressedClip.TimesCount);
+            }
+            finally
+            {
+                Dispose(ref decompressedClip);
+                Marshal.FreeHGlobal(dataPtr);
+            }
         }
 
         #region importfunctions
 
         // This one is the acl 1.x uniformly-sampled decoder; its export is named DecompressClip.
         [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void DecompressClip(byte[] data, ref DecompressedClip decompressedClip);
+        private static extern void DecompressClip(nint data, ref DecompressedClip decompressedClip);
 
         [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
         private static extern void Dispose(ref DecompressedClip decompressedClip);
