@@ -24,48 +24,69 @@ namespace AnimeStudio
             }
             return types;
         }
+        public static void LoadDirect(AssetMap map)
+        {
+            Instance = map ?? new AssetMap { GameType = GameType.Normal, AssetEntries = new List<AssetEntry>() };
+        }
+
         public static int FromFile(string path)
         {
-            if (!string.IsNullOrEmpty(path))
-            {
-                Logger.Info(string.Format("Parsing...."));
-                try
-                {
-                    var extension = Path.GetExtension(path).ToLower();
-                    using var stream = File.OpenRead(path);
-                    
-                    if (extension == ".map")
-                    {
-                        // Deserialize map
-                        Instance = MessagePackSerializer.Deserialize<AssetMap>(stream, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
-                    }
-                    else if (extension == ".json")
-                    {
-                        // Deserialize json
-                        using var reader = new StreamReader(stream);
-                        var jsonContent = reader.ReadToEnd();
-                        var parsed = JsonConvert.DeserializeObject<AssetMap>(jsonContent);
-
-                        Instance = new AssetMap
-                        {
-                            GameType = parsed.GameType,
-                            AssetEntries = parsed.AssetEntries
-                        };
-                    }   
-                }
-                catch (Exception e)
-                {
-                    Logger.Error("AssetMap was not loaded");
-                    Console.WriteLine(e.ToString());
-                    return -1;
-                }
-                Logger.Info("Loaded !!");
-                return 1;
-            } else
+            if (string.IsNullOrEmpty(path))
             {
                 Logger.Error("AssetMap was not loaded");
                 return -1;
             }
+            Logger.Info("Parsing....");
+            try
+            {
+                var ext = Path.GetExtension(path).ToLower();
+                var bytes = File.ReadAllBytes(path);
+
+                if (ext == ".map")
+                {
+                    try
+                    {
+                        var bundle = MessagePackSerializer.Deserialize<MapBundle>(bytes, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
+                        if (bundle.HasAssetMap && bundle.AssetData != null)
+                        {
+                            Instance = bundle.AssetData;
+                            Logger.Info("Loaded !!");
+                            return 1;
+                        }
+                    }
+                    catch { }
+                    Instance = MessagePackSerializer.Deserialize<AssetMap>(bytes, MessagePackSerializerOptions.Standard.WithCompression(MessagePackCompression.Lz4BlockArray));
+                }
+                else if (ext == ".json")
+                {
+                    var jsonContent = System.Text.Encoding.UTF8.GetString(bytes);
+                    if (jsonContent.Contains("\"HasAssetMap\""))
+                    {
+                        var bundle = JsonConvert.DeserializeObject<MapBundle>(jsonContent);
+                        if (bundle?.HasAssetMap == true && bundle.AssetData != null)
+                        {
+                            Instance = bundle.AssetData;
+                            Logger.Info("Loaded !!");
+                            return 1;
+                        }
+                    }
+                    var parsed = JsonConvert.DeserializeObject<AssetMap>(jsonContent);
+                    Instance = new AssetMap { GameType = parsed.GameType, AssetEntries = parsed.AssetEntries };
+                }
+                else
+                {
+                    Logger.Error($"Unsupported format: {ext}");
+                    return -1;
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Error("AssetMap was not loaded");
+                Console.WriteLine(e.ToString());
+                return -1;
+            }
+            Logger.Info("Loaded !!");
+            return 1;
         }
 
         public static void Clear()

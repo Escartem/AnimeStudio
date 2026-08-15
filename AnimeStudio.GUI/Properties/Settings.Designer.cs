@@ -406,6 +406,18 @@ namespace AnimeStudio.GUI.Properties {
                 this["selectedCABMapName"] = value;
             }
         }
+
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string selectedMapPath {
+            get {
+                return ((string)(this["selectedMapPath"]));
+            }
+            set {
+                this["selectedMapPath"] = value;
+            }
+        }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]

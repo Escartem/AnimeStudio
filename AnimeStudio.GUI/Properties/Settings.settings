@@ -98,6 +98,9 @@
     <Setting Name="selectedCABMapName" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
+    <Setting Name="selectedMapPath" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
     <Setting Name="enableFileLogging" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
