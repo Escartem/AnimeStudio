@@ -19,6 +19,9 @@ namespace AnimeStudio
                     case GIACLClip giaclClip:
                         DBACL.DecompressTracks(giaclClip.m_ClipData, giaclClip.m_DatabaseData, out values, out times);
                         break;
+                    case ZZZACLClip zzzaclClip:
+                        DBACL.DecompressTracksV2(zzzaclClip.m_TransformData, zzzaclClip.m_ScalarData, zzzaclClip.m_databaseData, zzzaclClip.m_DatabaseData, out values, out times);
+                        break;
                     case MHYACLClip mhyaclClip:
                         if (game.Type.IsZZZ())
                         {
@@ -28,10 +31,6 @@ namespace AnimeStudio
                         {
                             ACL.DecompressClip(mhyaclClip.m_ClipData, out values, out times);
                         }
-
-                        break;
-                    case ZZZACLClip zzzaclClip:
-                        DBACL.DecompressTracksV2(zzzaclClip.m_TransformData, zzzaclClip.m_ScalarData, zzzaclClip.m_databaseData, zzzaclClip.m_DatabaseData, out values, out times);
                         break;
                     default:
                         values = Array.Empty<float>();
