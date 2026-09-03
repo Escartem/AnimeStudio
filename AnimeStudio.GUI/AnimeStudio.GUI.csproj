@@ -52,17 +52,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\acl.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\acl.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\acl.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\acl.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="OpenTK" Version="4.9.4" />
 		<PackageReference Include="OpenTK.GLControl" Version="4.0.2" />

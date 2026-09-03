@@ -13,15 +13,15 @@ namespace ACLLibs
     }
     public static class ACL
     {
-        private const string DLL_NAME = "acl";
+        private const string DLL_NAME = "AnimeStudio.ACL.MHY";
         static ACL()
         {
             DllLoader.PreloadDll(DLL_NAME);
         }
-        public static void DecompressAll(byte[] data, out float[] values, out float[] times)
+        public static void DecompressClip(byte[] data, out float[] values, out float[] times)
         {
             var decompressedClip = new DecompressedClip();
-            DecompressAll(data, ref decompressedClip);
+            DecompressClip(data, ref decompressedClip);
 
             values = new float[decompressedClip.ValuesCount];
             Marshal.Copy(decompressedClip.Values, values, 0, decompressedClip.ValuesCount);
@@ -35,7 +35,7 @@ namespace ACLLibs
         #region importfunctions
 
         [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void DecompressAll(byte[] data, ref DecompressedClip decompressedClip);
+        private static extern void DecompressClip(byte[] data, ref DecompressedClip decompressedClip);
 
         [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
         private static extern void Dispose(ref DecompressedClip decompressedClip);
@@ -51,7 +51,7 @@ namespace ACLLibs
             // x64 only, so it lives in the application directory rather than in x86/x64.
             DllLoader.PreloadDll(DLL_NAME, archSpecific: false);
         }
-        public static void DecompressAll(byte[] data, out float[] values, out float[] times)
+        public static void DecompressClip(byte[] data, out float[] values, out float[] times)
         {
             int alignment = 16;
             IntPtr raw = Marshal.AllocHGlobal(data.Length + alignment);

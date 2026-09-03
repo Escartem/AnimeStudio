@@ -44,6 +44,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <TargetPath>AnimeStudio.ACL.SR.dll</TargetPath>
     </ContentWithTargetPath>
+    <ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.ACL.MHY.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <TargetPath>AnimeStudio.ACL.MHY.dll</TargetPath>
+    </ContentWithTargetPath>
   </ItemGroup>
 
 </Project>

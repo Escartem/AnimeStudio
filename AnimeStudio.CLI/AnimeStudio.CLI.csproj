@@ -33,17 +33,6 @@
     </Compile>
   </ItemGroup>
 
-	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\acl.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\acl.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\acl.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\acl.dll</TargetPath>
-		</ContentWithTargetPath>
-	</ItemGroup>
-
 	<Target Name="RemoveSkiaSharpPdb" AfterTargets="ResolveAssemblyReferences;Build">
 		<ItemGroup>
 			<NativePdbFiles Include="$(OutDir)*.pdb" />
