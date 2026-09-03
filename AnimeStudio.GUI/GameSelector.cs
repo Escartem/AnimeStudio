@@ -84,7 +84,7 @@ namespace AnimeStudio.GUI
                     if (selectedGame.Type == GameType.UnityCNCustomKey)
                     {
                         customKeyText.Enabled = true;
-                        customKeyText.Text = "";
+                        customKeyText.Text = Properties.Settings.Default.lastUnityCNKey;
                     }
                     break;
             }
@@ -106,7 +106,7 @@ namespace AnimeStudio.GUI
                     Properties.Settings.Default.Save();
                 }
             }
-            _parent.updateGame(selectedGame.Type);
+            _parent.updateGame(selectedGame);
             this.Close();
         }
     }

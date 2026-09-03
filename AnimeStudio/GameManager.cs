@@ -83,7 +83,7 @@ namespace AnimeStudio
                 string name = entry[1];
                 string key = entry[2];
 
-                GameType type = Enum.TryParse(enumName, out GameType parsed) ? parsed : GameType.UnityCNCustomKey;
+                GameType type = Enum.TryParse(enumName, out GameType parsed) ? parsed : GameType.UnityCN;
 
                 Games.Add(index++, new UnityCNGame(type, new(name, key), GameCategory.Other));
             }
