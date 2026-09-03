@@ -86,6 +86,8 @@
       <LanguageStandard>stdcpp14</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ConformanceMode>true</ConformanceMode>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -100,7 +102,127 @@
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="acl\algorithm\uniformly_sampled\decoder.h" />
+    <ClInclude Include="acl\algorithm\uniformly_sampled\encoder.h" />
+    <ClInclude Include="acl\compression\animation_clip.h" />
+    <ClInclude Include="acl\compression\animation_track.h" />
+    <ClInclude Include="acl\compression\compress.h" />
+    <ClInclude Include="acl\compression\compression_level.h" />
+    <ClInclude Include="acl\compression\compression_settings.h" />
+    <ClInclude Include="acl\compression\impl\clip_context.h" />
+    <ClInclude Include="acl\compression\impl\compact_constant_streams.h" />
+    <ClInclude Include="acl\compression\impl\compressed_clip_impl.h" />
+    <ClInclude Include="acl\compression\impl\constant_track_impl.h" />
+    <ClInclude Include="acl\compression\impl\convert_rotation_streams.h" />
+    <ClInclude Include="acl\compression\impl\normalize_streams.h" />
+    <ClInclude Include="acl\compression\impl\normalize_track_impl.h" />
+    <ClInclude Include="acl\compression\impl\quantize_streams.h" />
+    <ClInclude Include="acl\compression\impl\quantize_track_impl.h" />
+    <ClInclude Include="acl\compression\impl\sample_streams.h" />
+    <ClInclude Include="acl\compression\impl\segment_context.h" />
+    <ClInclude Include="acl\compression\impl\segment_streams.h" />
+    <ClInclude Include="acl\compression\impl\track_bit_rate_database.h" />
+    <ClInclude Include="acl\compression\impl\track_list_context.h" />
+    <ClInclude Include="acl\compression\impl\track_range.h" />
+    <ClInclude Include="acl\compression\impl\track_range_impl.h" />
+    <ClInclude Include="acl\compression\impl\track_stream.h" />
+    <ClInclude Include="acl\compression\impl\transform_bit_rate_permutations.h" />
+    <ClInclude Include="acl\compression\impl\write_compression_stats_impl.h" />
+    <ClInclude Include="acl\compression\impl\write_decompression_stats.h" />
+    <ClInclude Include="acl\compression\impl\write_range_data.h" />
+    <ClInclude Include="acl\compression\impl\write_segment_data.h" />
+    <ClInclude Include="acl\compression\impl\write_stats.h" />
+    <ClInclude Include="acl\compression\impl\write_stream_bitsets.h" />
+    <ClInclude Include="acl\compression\impl\write_stream_data.h" />
+    <ClInclude Include="acl\compression\impl\write_track_data_impl.h" />
+    <ClInclude Include="acl\compression\output_stats.h" />
+    <ClInclude Include="acl\compression\skeleton.h" />
+    <ClInclude Include="acl\compression\skeleton_error_metric.h" />
+    <ClInclude Include="acl\compression\skeleton_pose_utils.h" />
+    <ClInclude Include="acl\compression\track.h" />
+    <ClInclude Include="acl\compression\track_array.h" />
+    <ClInclude Include="acl\compression\track_error.h" />
+    <ClInclude Include="acl\compression\utils.h" />
+    <ClInclude Include="acl\core\additive_utils.h" />
+    <ClInclude Include="acl\core\algorithm_types.h" />
+    <ClInclude Include="acl\core\algorithm_versions.h" />
+    <ClInclude Include="acl\core\ansi_allocator.h" />
+    <ClInclude Include="acl\core\bitset.h" />
+    <ClInclude Include="acl\core\bit_manip_utils.h" />
+    <ClInclude Include="acl\core\buffer_tag.h" />
+    <ClInclude Include="acl\core\compressed_clip.h" />
+    <ClInclude Include="acl\core\compressed_tracks.h" />
+    <ClInclude Include="acl\core\enum_utils.h" />
+    <ClInclude Include="acl\core\error.h" />
+    <ClInclude Include="acl\core\error_result.h" />
+    <ClInclude Include="acl\core\floating_point_exceptions.h" />
+    <ClInclude Include="acl\core\hash.h" />
+    <ClInclude Include="acl\core\iallocator.h" />
+    <ClInclude Include="acl\core\impl\compiler_utils.h" />
+    <ClInclude Include="acl\core\impl\compressed_headers.h" />
+    <ClInclude Include="acl\core\impl\debug_track_writer.h" />
+    <ClInclude Include="acl\core\impl\memory_cache.h" />
+    <ClInclude Include="acl\core\interpolation_utils.h" />
+    <ClInclude Include="acl\core\iterator.h" />
+    <ClInclude Include="acl\core\memory_utils.h" />
+    <ClInclude Include="acl\core\ptr_offset.h" />
+    <ClInclude Include="acl\core\range_reduction_types.h" />
+    <ClInclude Include="acl\core\scope_profiler.h" />
+    <ClInclude Include="acl\core\string.h" />
+    <ClInclude Include="acl\core\track_traits.h" />
+    <ClInclude Include="acl\core\track_types.h" />
+    <ClInclude Include="acl\core\track_writer.h" />
+    <ClInclude Include="acl\core\unique_ptr.h" />
+    <ClInclude Include="acl\core\utils.h" />
+    <ClInclude Include="acl\decompression\decompress.h" />
+    <ClInclude Include="acl\decompression\default_output_writer.h" />
+    <ClInclude Include="acl\decompression\impl\decompress_data.h" />
+    <ClInclude Include="acl\decompression\impl\track_sampling_impl.h" />
+    <ClInclude Include="acl\decompression\output_writer.h" />
+    <ClInclude Include="acl\io\clip_reader.h" />
+    <ClInclude Include="acl\io\clip_reader_error.h" />
+    <ClInclude Include="acl\io\clip_writer.h" />
+    <ClInclude Include="acl\math\quatf.h" />
+    <ClInclude Include="acl\math\quat_packing.h" />
+    <ClInclude Include="acl\math\scalar_packing.h" />
+    <ClInclude Include="acl\math\vector4_packing.h" />
     <ClInclude Include="dllmain.h" />
+    <ClInclude Include="rtm\constants.h" />
+    <ClInclude Include="rtm\impl\compiler_utils.h" />
+    <ClInclude Include="rtm\impl\error.h" />
+    <ClInclude Include="rtm\impl\mask_common.h" />
+    <ClInclude Include="rtm\impl\matrix_affine_common.h" />
+    <ClInclude Include="rtm\impl\matrix_cast.h" />
+    <ClInclude Include="rtm\impl\matrix_common.h" />
+    <ClInclude Include="rtm\impl\memory_utils.h" />
+    <ClInclude Include="rtm\impl\quat_common.h" />
+    <ClInclude Include="rtm\impl\qvv_common.h" />
+    <ClInclude Include="rtm\impl\scalar_common.h" />
+    <ClInclude Include="rtm\impl\type_args.h" />
+    <ClInclude Include="rtm\impl\vector_common.h" />
+    <ClInclude Include="rtm\mask4d.h" />
+    <ClInclude Include="rtm\mask4f.h" />
+    <ClInclude Include="rtm\mask4i.h" />
+    <ClInclude Include="rtm\mask4q.h" />
+    <ClInclude Include="rtm\math.h" />
+    <ClInclude Include="rtm\matrix3x3d.h" />
+    <ClInclude Include="rtm\matrix3x3f.h" />
+    <ClInclude Include="rtm\matrix3x4d.h" />
+    <ClInclude Include="rtm\matrix3x4f.h" />
+    <ClInclude Include="rtm\matrix4x4d.h" />
+    <ClInclude Include="rtm\matrix4x4f.h" />
+    <ClInclude Include="rtm\packing\quatd.h" />
+    <ClInclude Include="rtm\packing\quatf.h" />
+    <ClInclude Include="rtm\quatd.h" />
+    <ClInclude Include="rtm\quatf.h" />
+    <ClInclude Include="rtm\qvvd.h" />
+    <ClInclude Include="rtm\qvvf.h" />
+    <ClInclude Include="rtm\scalard.h" />
+    <ClInclude Include="rtm\scalarf.h" />
+    <ClInclude Include="rtm\types.h" />
+    <ClInclude Include="rtm\type_traits.h" />
+    <ClInclude Include="rtm\vector4d.h" />
+    <ClInclude Include="rtm\vector4f.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="AnimeStudio.ACL.SR.rc" />

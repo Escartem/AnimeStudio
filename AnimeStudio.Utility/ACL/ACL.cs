@@ -53,8 +53,19 @@ namespace ACLLibs
         }
         public static void DecompressAll(byte[] data, out float[] values, out float[] times)
         {
+            int alignment = 16;
+            IntPtr raw = Marshal.AllocHGlobal(data.Length + alignment);
+            IntPtr aligned = new IntPtr((raw.ToInt64() + alignment - 1) & ~(alignment - 1));
             var decompressedClip = new DecompressedClip();
-            DecompressClip(data, ref decompressedClip);
+
+            try
+            {
+                Marshal.Copy(data, 0, aligned, data.Length);
+                DecompressClip(aligned, ref decompressedClip);
+            } finally
+            {
+                Marshal.FreeHGlobal(raw);
+            }
 
             values = new float[decompressedClip.ValuesCount];
             Marshal.Copy(decompressedClip.Values, values, 0, decompressedClip.ValuesCount);
@@ -69,7 +80,7 @@ namespace ACLLibs
 
         // This one is the acl 1.x uniformly-sampled decoder; its export is named DecompressClip.
         [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
-        private static extern void DecompressClip(byte[] data, ref DecompressedClip decompressedClip);
+        private static extern void DecompressClip(nint data, ref DecompressedClip decompressedClip);
 
         [DllImport(DLL_NAME, CallingConvention = CallingConvention.Cdecl)]
         private static extern void Dispose(ref DecompressedClip decompressedClip);
