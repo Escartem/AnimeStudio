@@ -9,6 +9,7 @@
     <Project Path="AnimeStudio.ACL/AnimeStudio.ACL.MHY/AnimeStudio.ACL.MHY.vcxproj" Id="4ee3e8f7-cd51-4062-bfa4-518d309c7d44" />
     <Project Path="AnimeStudio.ACL/AnimeStudio.ACL.SR/AnimeStudio.ACL.SR.vcxproj" Id="3dd2d7e6-bc40-4f51-ae93-407c2f8b6c33" />
     <Project Path="AnimeStudio.ACL/AnimeStudio.ACL.ZZZ/AnimeStudio.ACL.ZZZ.vcxproj" Id="2cc1c6d5-ab3f-4e40-9d82-3f6b1e7a5b22" />
+    <Project Path="AnimeStudio.ACL/AnimeStudio.ACL.ZZZV2/AnimeStudio.ACL.ZZZV2.vcxproj" Id="5ff4f908-de62-4073-8fb5-629e41ad8e55" />
   </Folder>
   <Folder Name="/Libraries/">
     <Project Path="AnimeStudio.FBXNative/AnimeStudio.FBXNative.vcxproj" Id="11ea25a3-ed68-40ee-a9d0-7fde3b583027">
