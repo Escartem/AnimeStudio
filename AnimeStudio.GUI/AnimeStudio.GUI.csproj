@@ -41,13 +41,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x86\fmod.dll">
+		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\AnimeStudio.FMOD.dll">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x86\fmod.dll</TargetPath>
-		</ContentWithTargetPath>
-		<ContentWithTargetPath Include="..\AnimeStudio.Libraries\x64\fmod.dll">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-			<TargetPath>x64\fmod.dll</TargetPath>
+			<TargetPath>AnimeStudio.FMOD.dll</TargetPath>
 		</ContentWithTargetPath>
 	</ItemGroup>
 
