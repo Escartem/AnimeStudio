@@ -30,6 +30,9 @@ namespace AnimeStudio
                         }
 
                         break;
+                    case ZZZACLClip zzzaclClip:
+                        DBACL.DecompressTracksV2(zzzaclClip.m_TransformData, zzzaclClip.m_ScalarData, zzzaclClip.m_databaseData, zzzaclClip.m_DatabaseData, out values, out times);
+                        break;
                     default:
                         values = Array.Empty<float>();
                         times = Array.Empty<float>();
