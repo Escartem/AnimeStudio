@@ -66,7 +66,6 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="OpenTK" Version="4.9.4" />
 		<PackageReference Include="OpenTK.GLControl" Version="4.0.2" />
-		<PackageReference Include="System.Drawing.Common" Version="10.0.9" />
 	</ItemGroup>
 
 	<ItemGroup>
