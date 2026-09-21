@@ -1,8 +1,4 @@
 using Org.BouncyCastle.Crypto.Engines;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
@@ -346,9 +342,10 @@ namespace AnimeStudio
             var decoded = DecodeDxtToBitmapData(path);
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
             var finalOutputPath = Path.ChangeExtension(outputPath, ".png");
-            using var image = Image.LoadPixelData<Bgra32>(decoded.Pixels, decoded.Width, decoded.Height);
-            image.Mutate(static ctx => ctx.Flip(FlipMode.Vertical));
-            image.SaveAsPng(finalOutputPath, new PngEncoder());
+            using var image = ImageExtensions.CreateBitmapFromBgra(decoded.Pixels, decoded.Width, decoded.Height);
+            using var flipped = image.FlipVertical();
+            using var stream = File.Create(finalOutputPath);
+            flipped.WriteToStream(stream, ImageFormat.Png);
             return finalOutputPath;
         }
 
