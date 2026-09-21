@@ -11,6 +11,67 @@ namespace AnimeStudio.GUI
 {
     internal static class Exporter
     {
+        public static bool ExportVirtualAsset(AssetItem item, string exportPath, ExportType exportType)
+        {
+            return exportType switch
+            {
+                ExportType.Convert => ExportVirtualConvertFile(item, exportPath),
+                ExportType.Raw => ExportVirtualRawFile(item, exportPath),
+                ExportType.Dump => ExportVirtualDumpFile(item, exportPath),
+                ExportType.JSON => ExportVirtualJsonFile(item, exportPath),
+                _ => false,
+            };
+        }
+
+        private static bool ExportVirtualConvertFile(AssetItem item, string exportPath)
+        {
+            switch (item.Type)
+            {
+                case ClassIDType.Texture2D:
+                    return AFKJourneyUtils.DecodeDxtFile(item.ExternalPath, Path.Combine(exportPath, item.Text)) != null;
+                case ClassIDType.TextAsset:
+                    if (!TryExportFile(exportPath, item, ".json", out var textPath))
+                        return false;
+                    var text = item.VirtualContent ?? AFKJourneyUtils.DecryptJsoneToText(File.ReadAllBytes(item.ExternalPath));
+                    File.WriteAllText(textPath, text);
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private static bool ExportVirtualRawFile(AssetItem item, string exportPath)
+        {
+            var extension = Path.GetExtension(item.ExternalPath);
+            if (!TryExportFile(exportPath, item, string.IsNullOrEmpty(extension) ? ".dat" : extension, out var rawPath))
+                return false;
+            File.Copy(item.ExternalPath, rawPath, overwrite: false);
+            return true;
+        }
+
+        private static bool ExportVirtualDumpFile(AssetItem item, string exportPath)
+        {
+            if (!TryExportFile(exportPath, item, ".txt", out var dumpPath))
+                return false;
+            var text = item.VirtualContent ?? item.InfoText ?? item.ExternalPath;
+            File.WriteAllText(dumpPath, text);
+            return true;
+        }
+
+        private static bool ExportVirtualJsonFile(AssetItem item, string exportPath)
+        {
+            if (item.Type != ClassIDType.TextAsset)
+            {
+                return ExportVirtualDumpFile(item, exportPath);
+            }
+
+            if (!TryExportFile(exportPath, item, ".json", out var jsonPath))
+                return false;
+            var text = item.VirtualContent ?? AFKJourneyUtils.DecryptJsoneToText(File.ReadAllBytes(item.ExternalPath));
+            File.WriteAllText(jsonPath, text);
+            return true;
+        }
+
         public static bool ExportTexture2D(AssetItem item, string exportPath)
         {
             var m_Texture2D = (Texture2D)item.Asset;

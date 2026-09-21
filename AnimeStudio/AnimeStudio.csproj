@@ -14,6 +14,7 @@
 		<PackageReference Include="Kyaru.Texture2DDecoder.Windows" Version="0.2.0" />
 		<PackageReference Include="MessagePack" Version="3.1.4" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
 		<PackageReference Include="ZstdSharp.Port" Version="0.8.8" />
 		<PackageReference Include="SkiaSharp" Version="3.119.4" />
 	</ItemGroup>
