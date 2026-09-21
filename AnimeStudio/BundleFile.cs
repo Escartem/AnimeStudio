@@ -261,17 +261,29 @@ namespace AnimeStudio
         private Stream CreateBlocksStream(string path)
         {
             Stream blocksStream;
-            var uncompressedSizeSum = m_BlocksInfo.Sum(x => x.uncompressedSize);
+            var uncompressedSizeSum = m_BlocksInfo.Sum(x => (long)x.uncompressedSize);
             Logger.Verbose($"Total size of decompressed blocks: {uncompressedSizeSum}");
-            if (uncompressedSizeSum >= int.MaxValue)
+
+            // Guard against corrupt/misaligned block info that would request multi-GB buffers.
+            // Real UnityFS blocks are rarely more than a few hundred MB decompressed.
+            const long maxInMemory = 512L * 1024 * 1024; // 512 MB
+            if (uncompressedSizeSum <= 0)
+            {
+                throw new InvalidDataException($"Invalid decompressed block size: {uncompressedSizeSum}");
+            }
+            if (uncompressedSizeSum >= int.MaxValue || uncompressedSizeSum > maxInMemory)
             {
                 /*var memoryMappedFile = MemoryMappedFile.CreateNew(null, uncompressedSizeSum);
                 assetsDataStream = memoryMappedFile.CreateViewStream();*/
+                Logger.Verbose($"Using temp file for large decompressed blocks ({uncompressedSizeSum} bytes)");
                 blocksStream = new FileStream(path + ".temp", FileMode.Create, FileAccess.ReadWrite, FileShare.None, 4096, FileOptions.DeleteOnClose);
             }
             else
             {
-                blocksStream = new MemoryStream((int)uncompressedSizeSum);
+                // publiclyVisible so ReadFiles can slice CAB streams from the same buffer
+                // instead of allocating a second full copy of every node (halves peak RAM).
+                var buffer = GC.AllocateUninitializedArray<byte>((int)uncompressedSizeSum);
+                blocksStream = new MemoryStream(buffer, 0, buffer.Length, writable: true, publiclyVisible: true);
             }
             return blocksStream;
         }
@@ -313,6 +325,12 @@ namespace AnimeStudio
             Logger.Verbose($"Writing files from blocks stream...");
 
             fileList = new List<StreamFile>();
+            // Prefer zero-copy slices over the decompressed block buffer when possible.
+            ArraySegment<byte> shared = default;
+            bool hasShared = blocksStream is MemoryStream memoryStream
+                             && memoryStream.TryGetBuffer(out shared)
+                             && shared.Array != null;
+
             for (int i = 0; i < m_DirectoryInfo.Count; i++)
             {
                 var node = m_DirectoryInfo[i];
@@ -327,14 +345,31 @@ namespace AnimeStudio
                     var extractPath = path + "_unpacked" + Path.DirectorySeparatorChar;
                     Directory.CreateDirectory(extractPath);
                     file.stream = new FileStream(extractPath + file.fileName, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+                    blocksStream.Position = node.offset;
+                    blocksStream.CopyTo(file.stream, node.size);
+                    file.stream.Position = 0;
+                }
+                else if (hasShared
+                         && node.offset >= 0
+                         && node.offset <= int.MaxValue
+                         && node.size <= int.MaxValue
+                         && node.offset + node.size <= shared.Count)
+                {
+                    // View into the shared decompressed buffer — no per-CAB copy.
+                    file.stream = new MemoryStream(
+                        shared.Array,
+                        shared.Offset + (int)node.offset,
+                        (int)node.size,
+                        writable: false,
+                        publiclyVisible: true);
                 }
                 else
                 {
                     file.stream = new MemoryStream((int)node.size);
+                    blocksStream.Position = node.offset;
+                    blocksStream.CopyTo(file.stream, node.size);
+                    file.stream.Position = 0;
                 }
-                blocksStream.Position = node.offset;
-                blocksStream.CopyTo(file.stream, node.size);
-                file.stream.Position = 0;
             }
         }
 
@@ -430,7 +465,18 @@ namespace AnimeStudio
             if ((m_Header.flags & ArchiveFlags.BlocksInfoAtTheEnd) != 0) //kArchiveBlocksInfoAtTheEnd
             {
                 var position = reader.Position;
-                reader.Position = reader.BaseStream.Length - m_Header.compressedBlocksInfoSize;
+                // Multi-bundle containers (HSR ENCR .block) share one outer stream. Using
+                // BaseStream.Length would seek to the end of the entire .block and parse the
+                // wrong trailer. Prefer header.size (bundle byte length from signature).
+                long bundleEnd = m_Header.size > 0
+                    ? m_Header.size
+                    : reader.BaseStream.Length;
+                if (bundleEnd <= m_Header.compressedBlocksInfoSize)
+                {
+                    throw new InvalidDataException(
+                        $"Bundle size {bundleEnd} is smaller than blocks-info size {m_Header.compressedBlocksInfoSize}");
+                }
+                reader.Position = bundleEnd - m_Header.compressedBlocksInfoSize;
                 blocksInfoBytes = reader.ReadBytes((int)m_Header.compressedBlocksInfoSize);
                 reader.Position = position;
             }
@@ -581,8 +627,18 @@ namespace AnimeStudio
                             var compressedSize = (int)blockInfo.compressedSize;
                             var uncompressedSize = (int)blockInfo.uncompressedSize;
 
-                            var compressedBytes = ArrayPool<byte>.Shared.Rent(compressedSize);
-                            var uncompressedBytes = ArrayPool<byte>.Shared.Rent(uncompressedSize);
+                            // Avoid ArrayPool for large blocks: Shared keeps returned buffers for
+                            // reuse, so walking 100+ HSR ENCRs would permanently retain the largest
+                            // (~100MB+) decompress buffers in the pool for the process lifetime.
+                            const int arrayPoolLimit = 1 * 1024 * 1024;
+                            var poolCompressed = compressedSize <= arrayPoolLimit;
+                            var poolUncompressed = uncompressedSize <= arrayPoolLimit;
+                            var compressedBytes = poolCompressed
+                                ? ArrayPool<byte>.Shared.Rent(compressedSize)
+                                : GC.AllocateUninitializedArray<byte>(compressedSize);
+                            var uncompressedBytes = poolUncompressed
+                                ? ArrayPool<byte>.Shared.Rent(uncompressedSize)
+                                : GC.AllocateUninitializedArray<byte>(uncompressedSize);
 
                             var compressedBytesSpan = compressedBytes.AsSpan(0, compressedSize);
                             var uncompressedBytesSpan = uncompressedBytes.AsSpan(0, uncompressedSize);
@@ -605,8 +661,10 @@ namespace AnimeStudio
                             finally
                             {
                                 blocksStream.Write(uncompressedBytesSpan);
-                                ArrayPool<byte>.Shared.Return(compressedBytes, true);
-                                ArrayPool<byte>.Shared.Return(uncompressedBytes, true);
+                                if (poolCompressed)
+                                    ArrayPool<byte>.Shared.Return(compressedBytes, true);
+                                if (poolUncompressed)
+                                    ArrayPool<byte>.Shared.Return(uncompressedBytes, true);
                             }
 
                             break;

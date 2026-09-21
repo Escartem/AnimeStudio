@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
@@ -116,23 +115,30 @@ namespace AnimeStudio
                 return Array.Empty<byte>();
             }
 
-            var buffer = ArrayPool<byte>.Shared.Rent(0x1000);
-            List<byte> result = new List<byte>(count);
-            do
+            // Single destination buffer — avoids List growth + final ToArray copy that
+            // previously doubled peak memory for large reads (object hashing, etc.).
+            var result = new byte[count];
+            int offset = 0;
+            int remaining = count;
+            while (remaining > 0)
             {
-                var readNum = Math.Min(count, buffer.Length);
-                int n = Read(buffer, 0, readNum);
+                int n = Read(result, offset, remaining);
                 if (n == 0)
                 {
+                    if (offset == 0)
+                    {
+                        return Array.Empty<byte>();
+                    }
+                    if (offset < count)
+                    {
+                        Array.Resize(ref result, offset);
+                    }
                     break;
                 }
-
-                result.AddRange(buffer[..n]);
-                count -= n;
-            } while (count > 0);
-
-            ArrayPool<byte>.Shared.Return(buffer);
-            return result.ToArray();
+                offset += n;
+                remaining -= n;
+            }
+            return result;
         }
 
         public void AlignStream()

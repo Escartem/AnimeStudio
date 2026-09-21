@@ -1,4 +1,4 @@
-﻿// taken from https://github.com/dnSpy/dnSpy/blob/master/Build/AppHostPatcher/Program.cs
+// taken from https://github.com/dnSpy/dnSpy/blob/master/Build/AppHostPatcher/Program.cs
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -82,20 +82,40 @@ namespace AppHostPatcher
                 }
 
                 var apphostExeBytes = File.ReadAllBytes(apphostExe);
-                int offset = GetOffset(apphostExeBytes, origPathBytes);
+
+                // Idempotent: already pointing at the desired relative path.
+                if (GetOffset(apphostExeBytes, newPathBytes, requirePathStart: true) >= 0)
+                {
+                    Console.WriteLine($"Already patched: '{newPath}'");
+                    return 0;
+                }
+
+                // Prefer an exact bare-dll match (fresh apphost). Do not match the dll name
+                // as a suffix of bin\...\dll — that stacked bin\ on every build.ps1 run.
+                int offset = GetOffset(apphostExeBytes, origPathBytes, requirePathStart: true);
                 if (offset < 0)
                 {
-                    Console.WriteLine($"Could not find original path '{origPath}'");
-                    return 1;
+                    // Recover from a previously stacked path (bin\bin\...\dll).
+                    offset = FindEmbeddedDllPathStart(apphostExeBytes, origPath);
+                    if (offset < 0)
+                    {
+                        Console.WriteLine($"Could not find original path '{origPath}'");
+                        return 1;
+                    }
                 }
                 if (offset + newPathBytes.Length > apphostExeBytes.Length)
                 {
                     Console.WriteLine($"New path is too long: {newPath}");
                     return 1;
                 }
+                // Zero the whole path slot so leftover bytes from a longer previous path
+                // (e.g. bin\bin\bin\foo.dll) cannot remain after a shorter rewrite.
+                for (int i = offset; i < Math.Min(offset + maxPathBytes, apphostExeBytes.Length); i++)
+                    apphostExeBytes[i] = 0;
                 for (int i = 0; i < newPathBytes.Length; i++)
                     apphostExeBytes[offset + i] = newPathBytes[i];
                 File.WriteAllBytes(apphostExe, apphostExeBytes);
+                Console.WriteLine($"Patched '{apphostExe}': -> '{newPath}'");
                 return 0;
             }
             catch (Exception ex)
@@ -105,7 +125,7 @@ namespace AppHostPatcher
             }
         }
 
-        static int GetOffset(byte[] bytes, byte[] pattern)
+        static int GetOffset(byte[] bytes, byte[] pattern, bool requirePathStart)
         {
             int si = 0;
             var b = pattern[0];
@@ -115,7 +135,64 @@ namespace AppHostPatcher
                 if (si < 0)
                     break;
                 if (Match(bytes, si, pattern))
-                    return si;
+                {
+                    if (!requirePathStart || IsPathStart(bytes, si))
+                        return si;
+                }
+                si++;
+            }
+            return -1;
+        }
+
+        static bool IsPathStart(byte[] bytes, int index)
+        {
+            if (index <= 0)
+                return true;
+            var prev = bytes[index - 1];
+            // Reject suffix matches inside an already-patched path
+            // (e.g. "AnimeStudio.CLI.dll" inside "bin\AnimeStudio.CLI.dll").
+            return prev != (byte)'\\' && prev != (byte)'/';
+        }
+
+        /// <summary>
+        /// Find dllFileName\0 that may sit after one or more "subdir\" prefixes, and return
+        /// the start of the full relative path (first subdir).
+        /// </summary>
+        static int FindEmbeddedDllPathStart(byte[] bytes, string dllFileName)
+        {
+            var dllBytes = Encoding.UTF8.GetBytes(dllFileName);
+            int si = 0;
+            while (si < bytes.Length)
+            {
+                si = Array.IndexOf(bytes, dllBytes[0], si);
+                if (si < 0)
+                    break;
+                if (si + dllBytes.Length < bytes.Length
+                    && Match(bytes, si, dllBytes)
+                    && bytes[si + dllBytes.Length] == 0)
+                {
+                    // Walk back over path segments separated by \ or /
+                    int start = si;
+                    while (start > 0 && (bytes[start - 1] == (byte)'\\' || bytes[start - 1] == (byte)'/'))
+                    {
+                        int sep = start - 1;
+                        int segEnd = sep;
+                        int segStart = segEnd;
+                        while (segStart > 0)
+                        {
+                            var c = bytes[segStart - 1];
+                            if (c == 0 || c == (byte)'\\' || c == (byte)'/')
+                                break;
+                            if (c < 32 || c > 126)
+                                break;
+                            segStart--;
+                        }
+                        if (segStart == segEnd)
+                            break;
+                        start = segStart;
+                    }
+                    return start;
+                }
                 si++;
             }
             return -1;

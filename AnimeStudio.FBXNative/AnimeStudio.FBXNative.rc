@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,0,0,2
+ PRODUCTVERSION 1,0,0,2
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -68,12 +68,12 @@ BEGIN
         BLOCK "000004b0"
         BEGIN
             VALUE "FileDescription", "AnimeStudio.FBXNative"
-            VALUE "FileVersion", "1.0.0.1"
+            VALUE "FileVersion", "1.0.0.2"
             VALUE "InternalName", "AnimeStudio.FBXNative.dll"
-            VALUE "LegalCopyright", "Copyright (C) Escartem 2025; Copyright (C) Perfare 2018-2020; Copyright (C) hozuki 2020"
+            VALUE "LegalCopyright", "Copyright (C) Escartem 2025-2026; Copyright (C) Perfare 2018-2020; Copyright (C) hozuki 2020"
             VALUE "OriginalFilename", "AnimeStudio.FBXNative.dll"
             VALUE "ProductName", "AnimeStudio.FBXNative"
-            VALUE "ProductVersion", "1.0.0.1"
+            VALUE "ProductVersion", "1.0.0.2"
         END
     END
     BLOCK "VarFileInfo"

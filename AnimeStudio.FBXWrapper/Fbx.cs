@@ -10,7 +10,8 @@ namespace AnimeStudio
 
         static Fbx()
         {
-            DllLoader.PreloadDll(FbxDll.DllName);
+            // x64 only, so it lives in the application directory rather than in x86/x64.
+            DllLoader.PreloadDll(FbxDll.DllName, archSpecific: false);
         }
 
         public static Vector3 QuaternionToEuler(Quaternion q)

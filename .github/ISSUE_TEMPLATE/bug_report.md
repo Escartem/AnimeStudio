@@ -23,10 +23,10 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Version**
-For example `v1.00.00+9ad92309466f5c929f16d9aa41ddbb6c5e596a3a`.
+**Version of the tool**
+Please provide the commit or version, example : `v1.00.00+9ad92309466f5c929f16d9aa41ddbb6c5e596a3a`.
 
-**Unity Version**
+**Unity Version of the game**
 For example `2017.4.30f1`.
 
 **Game/Sample**

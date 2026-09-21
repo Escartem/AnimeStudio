@@ -18,11 +18,8 @@ namespace FMOD
     public class VERSION
     {
         public const int    number = 0x00010716;
-#if WIN64
-        public const string dll    = "fmod64";
-#else
-        public const string dll    = "fmod";
-#endif
+        public const string dll    = "AnimeStudio.FMOD";
+
     }
 
     public class CONSTANTS
@@ -1591,7 +1588,7 @@ namespace FMOD
 
         static Factory()
         {
-            DllLoader.PreloadDll(VERSION.dll);
+            DllLoader.PreloadDll(VERSION.dll, false);
         }
 
         public static RESULT System_Create(out System system)

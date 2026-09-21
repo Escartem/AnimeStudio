@@ -8,9 +8,9 @@ namespace AnimeStudio.PInvoke
 {
     public static class DllLoader
     {
-        public static void PreloadDll(string dllName)
+        public static void PreloadDll(string dllName, bool archSpecific = true)
         {
-            var dllDir = GetDirectedDllDirectory();
+            var dllDir = GetDirectedDllDirectory(archSpecific);
 
             // Not using OperatingSystem.Platform.
             // See: https://www.mono-project.com/docs/faq/technical/#how-to-detect-the-execution-platform
@@ -24,20 +24,24 @@ namespace AnimeStudio.PInvoke
             }
         }
 
-        private static string GetDirectedDllDirectory()
+        private static string GetDirectedDllDirectory(bool archSpecific)
         {
             var localPath = Process.GetCurrentProcess().MainModule.FileName;
             var localDir = Path.GetDirectoryName(localPath);
 
-            var subDir = Environment.Is64BitProcess ? "x64" : "x86";
-
             if (Path.Exists(Path.Combine(localDir, "bin")))
             {
-                return Path.Combine(localDir, "bin", subDir);
-            } else
-            {
-                return Path.Combine(localDir, subDir);
+                localDir = Path.Combine(localDir, "bin");
             }
+
+            if (!archSpecific)
+            {
+                return localDir;
+            }
+
+            var subDir = Environment.Is64BitProcess ? "x64" : "x86";
+
+            return Path.Combine(localDir, subDir);
         }
 
         private static partial class Win32

@@ -864,8 +864,7 @@ namespace AnimeStudio
                             var track = iAnim.FindTrack(FixBonePath(animationClip, m_EulerCurve.path));
                             foreach (var m_Curve in m_EulerCurve.curve.m_Curve)
                             {
-                                var value = Fbx.EulerToQuaternion(new Vector3(m_Curve.value.X, -m_Curve.value.Y, -m_Curve.value.Z));
-                                track.Rotations.Add(new ImportedKeyframe<Quaternion>(m_Curve.time, value));
+                                track.EulerRotations.Add(new ImportedKeyframe<Vector3>(m_Curve.time, new Vector3(m_Curve.value.X, -m_Curve.value.Y, -m_Curve.value.Z)));
                             }
                         }
                     }
@@ -1043,13 +1042,12 @@ namespace AnimeStudio
                         )));
                         break;
                     case 4:
-                        var value = Fbx.EulerToQuaternion(new Vector3
+                        track.EulerRotations.Add(new ImportedKeyframe<Vector3>(time, new Vector3
                         (
                             data[curveIndex++ + offset],
                             -data[curveIndex++ + offset],
                             -data[curveIndex++ + offset]
-                        ));
-                        track.Rotations.Add(new ImportedKeyframe<Quaternion>(time, value));
+                        )));
                         break;
                     default:
                         curveIndex++;

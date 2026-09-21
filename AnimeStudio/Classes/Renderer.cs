@@ -130,7 +130,25 @@ namespace AnimeStudio
                     {
                         var m_RenderFoliageOccluder = reader.ReadByte();
                     }
+
+                    if (version[0] > 2023 || (version[0] == 2023 && version[1] >= 2)) //2020.2 and up
+                    {
+                        var m_RayTracingAccelStructBuildFlagsOverride = reader.ReadByte();
+                        var m_RayTracingAccelStructBuildFlags = reader.ReadByte();
+                    }
+
+                    if (version[0] > 2023 || (version[0] == 2023 && version[1] >= 3)) //2020.3 and up
+                    {
+                        var m_SmallMeshCulling = reader.ReadByte();
+                    }
+
                     reader.AlignStream();
+                    if (version[0] > 6000 || (version[0] == 6000 && version[1] >= 2)) //6000.2 and up
+                    {
+                        var m_ForceMeshLod = reader.ReadInt16();
+                        reader.AlignStream();
+                        var m_MeshLodSelectionBias = reader.ReadSingle();
+                    }
                 }
                 else
                 {
@@ -254,6 +272,10 @@ namespace AnimeStudio
                 var m_SortingLayer2 = reader.ReadInt16();
                 var m_SortingOrder = reader.ReadInt16();
                 reader.AlignStream();
+                if (version[0] > 6000 || (version[0] == 6000 && version[1] >= 3)) //6000.3 and up
+                {
+                    var m_MaskInteraction = reader.ReadInt32();
+                }
                 if (reader.Game.Type.IsGIGroup() || reader.Game.Type.IsBH3())
                 {
                     var m_UseHighestMip = reader.ReadBoolean();

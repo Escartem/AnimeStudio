@@ -5,6 +5,10 @@ using System.Linq;
 
 namespace AnimeStudio
 {
+    public static class USE_ZZZ_ACL_V2
+    {
+        public static bool enabled = false; // switch to use the acl fix dll
+    }
     public class Keyframe<T> : IYAMLExportable where T : IYAMLExportable
     {
         public float time;
@@ -908,6 +912,14 @@ namespace AnimeStudio
             if (reader.Game.Type.IsZZZ())
             {
                 m_databaseData = reader.ReadUInt8Array();
+                if (m_databaseData.Length > 0)
+                {
+                    var database_header_sz = BitConverter.ToUInt32(m_databaseData);
+                    if (m_databaseData.Length != (int)database_header_sz)
+                    {
+                        Logger.Warning($"m_databaseData buffer/header size mismatch: {m_databaseData.Length} != {database_header_sz}");
+                    }
+                }
             }
         }
     }
@@ -1020,6 +1032,42 @@ namespace AnimeStudio
             m_DatabaseData = databaseMS.ToArray();
 
             reader.Position = pos;
+        }
+    }
+
+    public class ZZZACLClip : MHYACLClip
+    {
+        public byte[] m_DatabaseData;
+
+        public byte[] m_TransformData
+        {
+            get
+            {
+                var transform_data_size = (int)BitConverter.ToUInt32(m_ClipData, 0);
+                return (new ArraySegment<byte>(m_ClipData, 0, transform_data_size)).ToArray();
+            }
+        }
+
+        public byte[] m_ScalarData
+        {
+            get
+            {
+                var transform_data_size = (int)BitConverter.ToUInt32(m_ClipData, 0);
+                if (m_ClipData.Length > transform_data_size)
+                {
+                    var scalar_data_offset = 16 * ((transform_data_size + 15) / 16);
+
+                    if (m_ClipData.Length == scalar_data_offset)
+                    {
+                        Logger.Warning($"ZZZACLClip lacks scalar tracks. Proceeding without...");
+                        return null;
+                    }
+
+                    var scalar_data_size = (int)BitConverter.ToUInt32(m_ClipData, scalar_data_offset);
+                    return (new ArraySegment<byte>(m_ClipData, scalar_data_offset, scalar_data_size)).ToArray();
+                }
+                return null;
+            }
         }
     }
 
@@ -1410,8 +1458,15 @@ namespace AnimeStudio
             }
             if (reader.Game.Type.IsGIGroup() || reader.Game.Type.IsBH3Group() || reader.Game.Type.IsZZZCB1() || reader.Game.Type.IsZZZ())
             {
-                m_ACLClip = new MHYACLClip();
-                m_ACLClip.Read(reader);
+                if (reader.Game.Type.IsZZZ() && USE_ZZZ_ACL_V2.enabled)
+                {
+                    m_ACLClip = new ZZZACLClip();
+                    m_ACLClip.Read(reader);
+                } else
+                {
+                    m_ACLClip = new MHYACLClip();
+                    m_ACLClip.Read(reader);
+                }
             }
             if (reader.Game.Type.IsLoveAndDeepspace())
             {
@@ -2204,21 +2259,29 @@ namespace AnimeStudio
             {
                 reader.AlignStream();
             }
-            if (hasStreamingInfo)
+            if (hasStreamingInfo || reader.Game.Type.IsZZZ())
             {
                 m_StreamData = new StreamingInfo(reader);
                 if (!string.IsNullOrEmpty(m_StreamData?.path))
                 {
-                    var aclClip = m_MuscleClip.m_Clip.m_ACLClip as GIACLClip;
+                    if (reader.Game.Type.IsGI())
+                    {
+                        var aclClip = m_MuscleClip.m_Clip.m_ACLClip as GIACLClip;
 
-                    var resourceReader = new ResourceReader(m_StreamData.path, assetsFile, m_StreamData.offset, m_StreamData.size);
-                    using var ms = new MemoryStream();
-                    ms.Write(aclClip.m_DatabaseData);
+                        var resourceReader = new ResourceReader(m_StreamData.path, assetsFile, m_StreamData.offset, m_StreamData.size);
+                        using var ms = new MemoryStream();
+                        ms.Write(aclClip.m_DatabaseData);
 
-                    ms.Write(resourceReader.GetData());
-                    ms.AlignStream();
+                        ms.Write(resourceReader.GetData());
+                        ms.AlignStream();
 
-                    aclClip.m_DatabaseData = ms.ToArray();
+                        aclClip.m_DatabaseData = ms.ToArray();
+                    } else if (reader.Game.Type.IsZZZ() && USE_ZZZ_ACL_V2.enabled)
+                    {
+                        var aclClip = m_MuscleClip.m_Clip.m_ACLClip as ZZZACLClip;
+                        var resourceReader = new ResourceReader(m_StreamData.path, assetsFile, m_StreamData.offset, m_StreamData.size);
+                        aclClip.m_DatabaseData = resourceReader.GetData();
+                    }
                 }
             }
         }

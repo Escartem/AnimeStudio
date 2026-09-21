@@ -1,0 +1,263 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="acl">
+      <UniqueIdentifier>{a33915ba-226b-6dbd-1edb-3e09fac41ed9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="acl\algorithm">
+      <UniqueIdentifier>{bb471edd-da1b-9b73-5cf9-ffe4f3a62a6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="acl\algorithm\uniformly_sampled">
+      <UniqueIdentifier>{8f8c4a5b-3a45-4f03-c2b2-f3587dd84d8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="acl\compression">
+      <UniqueIdentifier>{3a87847d-3ce4-58e3-1170-fd3097267229}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="acl\compression\stream">
+      <UniqueIdentifier>{2f119f85-8d05-12b1-b99c-5f125803619f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="acl\core">
+      <UniqueIdentifier>{1e34845e-64b7-ace0-7000-03676f4bc6c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="acl\decompression">
+      <UniqueIdentifier>{4d50b721-01ed-93a2-b2a1-ebb1a05b76e3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="acl\io">
+      <UniqueIdentifier>{e11dfeea-412b-68ae-895d-87855bbe5eaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="acl\math">
+      <UniqueIdentifier>{18103cde-eed2-873b-a36e-e5562f231b5d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{1680c80b-ff1e-ea4d-9817-cc12254f2e40}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{fa3635ce-6c7c-7de5-ddeb-60602507503f}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{ba03e055-4fa2-fce3-8a1c-d348547d379c}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="acl\algorithm\uniformly_sampled\decoder.h">
+      <Filter>acl\algorithm\uniformly_sampled</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\algorithm\uniformly_sampled\encoder.h">
+      <Filter>acl\algorithm\uniformly_sampled</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\animation_clip.h">
+      <Filter>acl\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\animation_track.h">
+      <Filter>acl\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\compressed_clip_impl.h">
+      <Filter>acl\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\compression_settings.h">
+      <Filter>acl\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\output_stats.h">
+      <Filter>acl\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\skeleton.h">
+      <Filter>acl\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\skeleton_error_metric.h">
+      <Filter>acl\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\skeleton_pose_utils.h">
+      <Filter>acl\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\clip_context.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\compact_constant_streams.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\convert_rotation_streams.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\normalize_streams.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\quantize_streams.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\sample_streams.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\segment_context.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\segment_streams.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\track_stream.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\write_range_data.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\write_segment_data.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\write_stats.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\write_stream_bitsets.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\stream\write_stream_data.h">
+      <Filter>acl\compression\stream</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\compression\utils.h">
+      <Filter>acl\compression</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\additive_utils.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\algorithm_types.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\algorithm_versions.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\ansi_allocator.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\bit_manip_utils.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\bitset.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\compressed_clip.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\enum_utils.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\error.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\error_result.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\hash.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\iallocator.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\interpolation_utils.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\memory_cache.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\memory_utils.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\ptr_offset.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\range_reduction_types.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\scope_profiler.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\string.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\track_types.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\unique_ptr.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\core\utils.h">
+      <Filter>acl\core</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\decompress_data.h">
+      <Filter>acl\decompression</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\default_output_writer.h">
+      <Filter>acl\decompression</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\decompression\output_writer.h">
+      <Filter>acl\decompression</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\io\clip_reader.h">
+      <Filter>acl\io</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\io\clip_reader_error.h">
+      <Filter>acl\io</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\io\clip_writer.h">
+      <Filter>acl\io</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\affine_matrix_32.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\affine_matrix_64.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\math.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\math_types.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\quat_32.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\quat_64.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\quat_packing.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\scalar_32.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\scalar_64.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\scalar_packing.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\transform_32.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\transform_64.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\vector4_32.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\vector4_64.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="acl\math\vector4_packing.h">
+      <Filter>acl\math</Filter>
+    </ClInclude>
+    <ClInclude Include="dllmain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="AnimeStudio.ACL.MHY.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

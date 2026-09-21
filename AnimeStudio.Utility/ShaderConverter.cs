@@ -1173,10 +1173,11 @@ namespace AnimeStudio
 
     public static class HLSLDecompiler
     {
-        private const string DLL_NAME = "HLSLDecompiler";
+        private const string DLL_NAME = "AnimeStudio.HLSLDecompiler";
         static HLSLDecompiler()
         {
-            DllLoader.PreloadDll(DLL_NAME);
+            // x64 only, so it lives in the application directory rather than in x86/x64.
+            DllLoader.PreloadDll(DLL_NAME, archSpecific: false);
         }
         public static void DecompileShader(byte[] shaderByteCode, int shaderByteCodeSize, out string hlslText)
         {

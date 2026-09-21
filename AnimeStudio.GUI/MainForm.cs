@@ -114,18 +114,11 @@ namespace AnimeStudio.GUI
                 switch (currentTheme)
                 {
                     case (int)GuiColorTheme.System:
-                        System.Windows.Forms.Application.SetColorMode(SystemColorMode.System);
-                        if (System.Windows.Forms.Application.RenderWithVisualStyles)
+                        if (IsSystemInDarkMode())
                         {
-                            assetListView.GridLines = false;
-                            assetInfoLabel.ForeColor = System.Drawing.SystemColors.ControlText;
+                            goto case (int)GuiColorTheme.Dark;
                         }
-                        else
-                        {
-                            assetListView.GridLines = true;
-                            assetInfoLabel.ForeColor = System.Drawing.SystemColors.WindowText;
-                        }
-                        break;
+                        goto case (int)GuiColorTheme.Light;
                     case (int)GuiColorTheme.Dark:
                         System.Windows.Forms.Application.SetColorMode(SystemColorMode.Dark);
                         assetListView.GridLines = false;
@@ -144,6 +137,21 @@ namespace AnimeStudio.GUI
             }
 #pragma warning restore WFO5001
 #endif
+        }
+
+        private static bool IsSystemInDarkMode()
+        {
+            try
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+                return key?.GetValue("AppsUseLightTheme") is int useLight && useLight == 0;
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning($"Could not read the system app theme, assuming light : {ex.Message}");
+                return false;
+            }
         }
 
         private void specifyTheme_SelectedIndexChanged(object sender, EventArgs e)
@@ -263,7 +271,16 @@ namespace AnimeStudio.GUI
                 Studio.Game = GameManager.GetGame(Properties.Settings.Default.selectedGame);
             }
 
-            TypeFlags.SetTypes(JsonConvert.DeserializeObject<Dictionary<ClassIDType, (bool, bool)>>(Properties.Settings.Default.types));
+            try
+            {
+                TypeFlags.SetTypes(JsonConvert.DeserializeObject<Dictionary<ClassIDType, (bool, bool)>>(Properties.Settings.Default.types));
+            } catch (Newtonsoft.Json.JsonSerializationException)
+            {
+                // Fixes an issue where the application won't load if invalid settings from another version of Studio were previously saved.
+                Properties.Settings.Default.Reset();
+                TypeFlags.SetTypes(JsonConvert.DeserializeObject<Dictionary<ClassIDType, (bool, bool)>>(Properties.Settings.Default.types));
+            }
+            
             Logger.Info($"Target Game is {Studio.Game.Type}");
 
             if (Studio.Game.IsUnityCN())
@@ -2468,6 +2485,22 @@ namespace AnimeStudio.GUI
         {
             Properties.Settings.Default.enableModelPreview = enableModelPreview.Checked;
             Properties.Settings.Default.Save();
+        }
+
+        public void updateGame(Game game)
+        {
+            int index = GameManager.GetGameIndex(game);
+            Properties.Settings.Default.selectedGame = index;
+            Properties.Settings.Default.Save();
+            ResetForm();
+            Studio.Game = game;
+            Logger.Info($"Target Game is {Studio.Game.Name}");
+            if (Studio.Game.IsUnityCN() && Studio.Game is UnityCNGame unityCnGame)
+            {
+                UnityCNManager.SetKey(unityCnGame.Key);
+            }
+            assetsManager.SpecifyUnityVersion = specifyUnityVersion.Text;
+            assetsManager.Game = Studio.Game;
         }
 
         public void updateGame(GameType mapGame)
