@@ -96,6 +96,9 @@ Thanks goes to these wonderful people :
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/bbdd2729"><img src="https://avatars.githubusercontent.com/u/179790579?v=4?s=100" width="100px;" alt="bbdd"/><br /><sub><b>bbdd</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/commits?author=bbdd2729" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ihzgniqgnem"><img src="https://avatars.githubusercontent.com/u/161725897?v=4?s=100" width="100px;" alt="ihzgniqgnem"/><br /><sub><b>ihzgniqgnem</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/issues?q=author%3Aihzgniqgnem" title="Bug reports">🐛</a> <a href="https://github.com/Escartem/AnimeStudio/commits?author=ihzgniqgnem" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Koko-boya"><img src="https://avatars.githubusercontent.com/u/53186299?v=4?s=100" width="100px;" alt="Koks"/><br /><sub><b>Koks</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/commits?author=Koko-boya" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
