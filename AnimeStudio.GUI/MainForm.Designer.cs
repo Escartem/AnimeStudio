@@ -123,6 +123,15 @@ namespace AnimeStudio.GUI
             toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
             cABMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             MapNameComboBox = new System.Windows.Forms.ToolStripComboBox();
+            loadMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            unloadCABMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            mapTypeMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            mapTypeMsgpackItem = new System.Windows.Forms.ToolStripMenuItem();
+            mapTypeJsonItem = new System.Windows.Forms.ToolStripMenuItem();
+            mapTypeXmlItem = new System.Windows.Forms.ToolStripMenuItem();
+            mapIncludeAssetItem = new System.Windows.Forms.ToolStripMenuItem();
+            mapIncludeCabItem = new System.Windows.Forms.ToolStripMenuItem();
+            toolStripSeparator16 = new System.Windows.Forms.ToolStripSeparator();
             buildMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             loadCABMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             clearMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -799,108 +808,101 @@ namespace AnimeStudio.GUI
             // 
             // miscToolStripMenuItem
             // 
-            miscToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { assetMapToolStripMenuItem1, buildAssetMapToolStripMenuItem, assetMapTypeMenuItem, assetBrowserToolStripMenuItem, toolStripSeparator8, cABMapToolStripMenuItem, MapNameComboBox, buildMapToolStripMenuItem, loadCABMapToolStripMenuItem, clearMapToolStripMenuItem, toolStripSeparator15, assetMapCABMapToolStripMenuItem, toolStripTextBox1, buildBothToolStripMenuItem, toolStripSeparator14, toolStripMenuItem20, toolStripMenuItem19, loadAIToolStripMenuItem });
+            miscToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mapTypeMenuItem, mapIncludeAssetItem, mapIncludeCabItem, toolStripSeparator16, buildMapToolStripMenuItem, loadMapToolStripMenuItem, unloadCABMapToolStripMenuItem, toolStripSeparator8, assetBrowserToolStripMenuItem, toolStripSeparator14, toolStripMenuItem20, toolStripMenuItem19, loadAIToolStripMenuItem });
             miscToolStripMenuItem.Name = "miscToolStripMenuItem";
             miscToolStripMenuItem.Size = new System.Drawing.Size(92, 38);
             miscToolStripMenuItem.Text = "Maps";
-            miscToolStripMenuItem.DropDownOpening += miscToolStripMenuItem_DropDownOpening;
-            // 
-            // assetMapToolStripMenuItem1
-            // 
-            assetMapToolStripMenuItem1.Enabled = false;
-            assetMapToolStripMenuItem1.Name = "assetMapToolStripMenuItem1";
-            assetMapToolStripMenuItem1.Size = new System.Drawing.Size(411, 44);
-            assetMapToolStripMenuItem1.Text = "Asset Map";
-            // 
-            // buildAssetMapToolStripMenuItem
-            // 
-            buildAssetMapToolStripMenuItem.Name = "buildAssetMapToolStripMenuItem";
-            buildAssetMapToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            buildAssetMapToolStripMenuItem.Text = "Build";
-            buildAssetMapToolStripMenuItem.Click += buildAssetMapToolStripMenuItem_Click;
-            // 
-            // assetMapTypeMenuItem
-            // 
-            assetMapTypeMenuItem.Name = "assetMapTypeMenuItem";
-            assetMapTypeMenuItem.Size = new System.Drawing.Size(411, 44);
-            assetMapTypeMenuItem.Text = "Map Type";
-            assetMapTypeMenuItem.DropDownItemClicked += assetMapTypeMenuItem_DropDownItemClicked;
-            // 
+            //
+            // mapTypeMenuItem
+            //
+            mapTypeMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { mapTypeMsgpackItem, mapTypeJsonItem, mapTypeXmlItem });
+            mapTypeMenuItem.Name = "mapTypeMenuItem";
+            mapTypeMenuItem.Size = new System.Drawing.Size(300, 44);
+            mapTypeMenuItem.Text = "Map Type";
+            //
+            // mapTypeMsgpackItem
+            //
+            mapTypeMsgpackItem.CheckOnClick = true;
+            mapTypeMsgpackItem.Checked = true;
+            mapTypeMsgpackItem.Name = "mapTypeMsgpackItem";
+            mapTypeMsgpackItem.Size = new System.Drawing.Size(220, 44);
+            mapTypeMsgpackItem.Text = "MessagePack (.map)";
+            mapTypeMsgpackItem.Click += mapTypeItem_Click;
+            //
+            // mapTypeJsonItem
+            //
+            mapTypeJsonItem.CheckOnClick = true;
+            mapTypeJsonItem.Name = "mapTypeJsonItem";
+            mapTypeJsonItem.Size = new System.Drawing.Size(220, 44);
+            mapTypeJsonItem.Text = "JSON (.json)";
+            mapTypeJsonItem.Click += mapTypeItem_Click;
+            //
+            // mapTypeXmlItem
+            //
+            mapTypeXmlItem.CheckOnClick = true;
+            mapTypeXmlItem.Name = "mapTypeXmlItem";
+            mapTypeXmlItem.Size = new System.Drawing.Size(220, 44);
+            mapTypeXmlItem.Text = "XML (.xml)";
+            mapTypeXmlItem.Click += mapTypeItem_Click;
+            //
+            // mapIncludeAssetItem
+            //
+            mapIncludeAssetItem.CheckOnClick = true;
+            mapIncludeAssetItem.Checked = true;
+            mapIncludeAssetItem.Name = "mapIncludeAssetItem";
+            mapIncludeAssetItem.Size = new System.Drawing.Size(300, 44);
+            mapIncludeAssetItem.Text = "Asset Map";
+            //
+            // mapIncludeCabItem
+            //
+            mapIncludeCabItem.CheckOnClick = true;
+            mapIncludeCabItem.Checked = true;
+            mapIncludeCabItem.Name = "mapIncludeCabItem";
+            mapIncludeCabItem.Size = new System.Drawing.Size(300, 44);
+            mapIncludeCabItem.Text = "CAB Map";
+            //
+            // toolStripSeparator16
+            //
+            toolStripSeparator16.Name = "toolStripSeparator16";
+            toolStripSeparator16.Size = new System.Drawing.Size(297, 6);
+            //
+            // buildMapToolStripMenuItem
+            //
+            buildMapToolStripMenuItem.Name = "buildMapToolStripMenuItem";
+            buildMapToolStripMenuItem.Size = new System.Drawing.Size(300, 44);
+            buildMapToolStripMenuItem.Text = "Build Map...";
+            buildMapToolStripMenuItem.Click += buildMapToolStripMenuItem_Click;
+            //
+            // loadMapToolStripMenuItem
+            //
+            loadMapToolStripMenuItem.Name = "loadMapToolStripMenuItem";
+            loadMapToolStripMenuItem.Size = new System.Drawing.Size(300, 44);
+            loadMapToolStripMenuItem.Text = "Load Map...";
+            loadMapToolStripMenuItem.Click += loadMapToolStripMenuItem_Click;
+            //
+            // unloadCABMapToolStripMenuItem
+            //
+            unloadCABMapToolStripMenuItem.Name = "unloadCABMapToolStripMenuItem";
+            unloadCABMapToolStripMenuItem.Size = new System.Drawing.Size(300, 44);
+            unloadCABMapToolStripMenuItem.Text = "Unload CAB Map";
+            unloadCABMapToolStripMenuItem.Click += unloadCABMapToolStripMenuItem_Click;
+            //
+            // toolStripSeparator8
+            //
+            toolStripSeparator8.Name = "toolStripSeparator8";
+            toolStripSeparator8.Size = new System.Drawing.Size(297, 6);
+            //
             // assetBrowserToolStripMenuItem
-            // 
+            //
             assetBrowserToolStripMenuItem.Name = "assetBrowserToolStripMenuItem";
-            assetBrowserToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
+            assetBrowserToolStripMenuItem.Size = new System.Drawing.Size(300, 44);
             assetBrowserToolStripMenuItem.Text = "Open Asset Browser";
             assetBrowserToolStripMenuItem.Click += loadAssetMapToolStripMenuItem_Click;
-            // 
-            // toolStripSeparator8
-            // 
-            toolStripSeparator8.Name = "toolStripSeparator8";
-            toolStripSeparator8.Size = new System.Drawing.Size(408, 6);
-            // 
-            // cABMapToolStripMenuItem
-            // 
-            cABMapToolStripMenuItem.Enabled = false;
-            cABMapToolStripMenuItem.Name = "cABMapToolStripMenuItem";
-            cABMapToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            cABMapToolStripMenuItem.Text = "CAB Map";
-            // 
-            // MapNameComboBox
-            // 
-            MapNameComboBox.Name = "MapNameComboBox";
-            MapNameComboBox.Size = new System.Drawing.Size(121, 40);
-            MapNameComboBox.ToolTipText = "Enter name of Map here";
-            // 
-            // buildMapToolStripMenuItem
-            // 
-            buildMapToolStripMenuItem.Name = "buildMapToolStripMenuItem";
-            buildMapToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            buildMapToolStripMenuItem.Text = "Build";
-            buildMapToolStripMenuItem.Click += buildMapToolStripMenuItem_Click;
-            // 
-            // loadCABMapToolStripMenuItem
-            // 
-            loadCABMapToolStripMenuItem.Name = "loadCABMapToolStripMenuItem";
-            loadCABMapToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            loadCABMapToolStripMenuItem.Text = "Load";
-            loadCABMapToolStripMenuItem.Click += loadCABMapToolStripMenuItem_Click;
-            // 
-            // clearMapToolStripMenuItem
-            // 
-            clearMapToolStripMenuItem.Name = "clearMapToolStripMenuItem";
-            clearMapToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            clearMapToolStripMenuItem.Text = "Delete";
-            clearMapToolStripMenuItem.Click += clearMapToolStripMenuItem_Click;
-            // 
-            // toolStripSeparator15
-            // 
-            toolStripSeparator15.Name = "toolStripSeparator15";
-            toolStripSeparator15.Size = new System.Drawing.Size(408, 6);
-            // 
-            // assetMapCABMapToolStripMenuItem
-            // 
-            assetMapCABMapToolStripMenuItem.Enabled = false;
-            assetMapCABMapToolStripMenuItem.Name = "assetMapCABMapToolStripMenuItem";
-            assetMapCABMapToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            assetMapCABMapToolStripMenuItem.Text = "Asset Map and CAB Map";
-            // 
-            // toolStripTextBox1
-            // 
-            toolStripTextBox1.Name = "toolStripTextBox1";
-            toolStripTextBox1.Size = new System.Drawing.Size(100, 39);
-            toolStripTextBox1.ToolTipText = "Enter name of map here";
-            // 
-            // buildBothToolStripMenuItem
-            // 
-            buildBothToolStripMenuItem.Name = "buildBothToolStripMenuItem";
-            buildBothToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            buildBothToolStripMenuItem.Text = "Build Both";
-            buildBothToolStripMenuItem.Click += buildBothToolStripMenuItem_Click;
-            // 
+            //
             // toolStripSeparator14
-            // 
+            //
             toolStripSeparator14.Name = "toolStripSeparator14";
-            toolStripSeparator14.Size = new System.Drawing.Size(408, 6);
+            toolStripSeparator14.Size = new System.Drawing.Size(297, 6);
             // 
             // toolStripMenuItem20
             // 
@@ -1660,6 +1662,15 @@ namespace AnimeStudio.GUI
         private System.Windows.Forms.ToolStripMenuItem buildBothToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem buildAssetMapToolStripMenuItem;
         private System.Windows.Forms.ToolStripComboBox MapNameComboBox;
+        private System.Windows.Forms.ToolStripMenuItem loadMapToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem unloadCABMapToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem mapTypeMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem mapTypeMsgpackItem;
+        private System.Windows.Forms.ToolStripMenuItem mapTypeJsonItem;
+        private System.Windows.Forms.ToolStripMenuItem mapTypeXmlItem;
+        private System.Windows.Forms.ToolStripMenuItem mapIncludeAssetItem;
+        private System.Windows.Forms.ToolStripMenuItem mapIncludeCabItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator16;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
         private System.Windows.Forms.ToolStripMenuItem resetToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem abortStripMenuItem;
