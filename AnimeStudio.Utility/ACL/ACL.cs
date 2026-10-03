@@ -148,9 +148,18 @@ namespace ACLLibs
             var dbAligned = new IntPtr(16 * (((long)dbPtr + 15) / 16));
             Marshal.Copy(db, 0, dbAligned, db.Length);
 
-            // as long as m_ClipData is passed to the DB dll without the rest it should be fine
-            // m_databaseData doesn't seem to be used. For now
+            // The native side builds both debug_database_streamer instances directly from
+            // the "streamer" argument (medium bulk at the pointer, low bulk behind it
+            // aligned to 4). With a null pointer they stay uninitialized,
+            // database_context::initialize() fails, and the decompression contexts end
+            // up initialized without the database: Root/Motion curves decode as
+            // zero/garbage and muscle scalars keep their coarse quantization noise.
             var streamer = IntPtr.Zero;
+            if (!isZZZ && TryGetDatabaseBulkOffset(db, out var bulkDataOffset))
+            {
+                streamer = new IntPtr(dbAligned.ToInt64() + bulkDataOffset);
+            }
+
             if (isZZZ)
             {
                 DecompressTracksZZZ(dataAligned, dbAligned, streamer, ref decompressedClip);
@@ -177,6 +186,41 @@ namespace ACLLibs
             {
                 Dispose(ref decompressedClip);
             }
+        }
+
+        // Serialized database layout (acl): [raw_buffer_header: 8 bytes, size + hash]
+        // [database_header: 56 bytes, tag 0xAC11DB01 first] [chunk descriptions: 8 * (numChunks0 + numChunks1)]
+        // [clip metadata: 8 * numClips]. When the bulk data is not stored inline the clip reader
+        // re-appends the streamed bulk right behind that structure, so its offset is the end
+        // of the serialized structure:
+        //   bulk offset = 8 + 56 + 8 * (numChunks0 + numChunks1 + numClips)
+        // Field offsets within the database byte array (little endian): tag @ 8,
+        // misc_packed @ 14 (bit 0 = bulk data inline), numChunks0 @ 16, numChunks1 @ 20,
+        // numClips @ 28, bulk_data_size @ 40 / 44.
+        private static bool TryGetDatabaseBulkOffset(byte[] db, out long bulkDataOffset)
+        {
+            bulkDataOffset = 0;
+            if (db == null || db.Length < 64)
+                return false;
+
+            if (BitConverter.ToUInt32(db, 8) != 0xAC11DB01)
+                return false;
+
+            if ((BitConverter.ToUInt16(db, 14) & 1) != 0)
+                return false;   // bulk data inline: keep the current behavior
+
+            var numChunks0 = BitConverter.ToUInt32(db, 16);
+            var numChunks1 = BitConverter.ToUInt32(db, 20);
+            var numClips = BitConverter.ToUInt32(db, 28);
+            var mediumSize = BitConverter.ToUInt32(db, 40);
+            var lowSize = BitConverter.ToUInt32(db, 44);
+
+            bulkDataOffset = 64 + 8L * ((long)numChunks0 + numChunks1 + numClips);
+
+            // the native side reads the medium bulk at the pointer and the low bulk right
+            // behind it (aligned to 4); keep both inside the buffer
+            var mediumEnd = (mediumSize + 3L) & ~3L;
+            return bulkDataOffset + mediumEnd + lowSize <= db.Length;
         }
 
         #region importfunctions
