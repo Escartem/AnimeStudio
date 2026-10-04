@@ -1,68 +1,59 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using AnimeStudio.GUI.Core;
 
 namespace AnimeStudio.GUI
 {
     public partial class ExportOptions : Form
     {
-        public bool Resetted = false;
-        private Dictionary<ClassIDType, (bool, bool)> types = new Dictionary<ClassIDType, (bool, bool)>();
-        private Dictionary<string, (bool, int)> uvs = new Dictionary<string, (bool, int)>();
-        private Dictionary<string, int> texs = new Dictionary<string, int>();
-        public ExportOptions()
+        public bool Resetted { get; private set; }
+        private readonly StudioSession session;
+        private readonly Dictionary<ClassIDType, (bool, bool)> types;
+        private readonly Dictionary<string, (bool, int)> uvs;
+        private readonly Dictionary<string, int> texs;
+
+        public ExportOptions(StudioSession session)
         {
             InitializeComponent();
-            assetGroupOptions.SelectedIndex = Properties.Settings.Default.assetGroupOption;
-            restoreExtensionName.Checked = Properties.Settings.Default.restoreExtensionName;
-            converttexture.Checked = Properties.Settings.Default.convertTexture;
-            enableHDR.Checked = Properties.Settings.Default.enableHDR;
-            convertAudio.Checked = Properties.Settings.Default.convertAudio;
-            var str = Properties.Settings.Default.convertType.ToString();
-            foreach (Control c in panel1.Controls)
-            {
-                if (c.Text == str)
-                {
-                    ((RadioButton)c).Checked = true;
-                    break;
-                }
-            }
-            openAfterExport.Checked = Properties.Settings.Default.openAfterExport;
-            eulerFilter.Checked = Properties.Settings.Default.eulerFilter;
-            filterPrecision.Value = Properties.Settings.Default.filterPrecision;
-            exportAllNodes.Checked = Properties.Settings.Default.exportAllNodes;
-            exportSkins.Checked = Properties.Settings.Default.exportSkins;
-            exportMaterials.Checked = Properties.Settings.Default.exportMaterials;
-            exportAnimations.Checked = Properties.Settings.Default.exportAnimations;
-            exportBlendShape.Checked = Properties.Settings.Default.exportBlendShape;
-            castToBone.Checked = Properties.Settings.Default.castToBone;
-            boneSize.Value = Properties.Settings.Default.boneSize;
-            scaleFactor.Value = Properties.Settings.Default.scaleFactor;
-            fbxVersion.SelectedIndex = Properties.Settings.Default.fbxVersion;
-            fbxFormat.SelectedIndex = Properties.Settings.Default.fbxFormat;
-            collectAnimations.Checked = Properties.Settings.Default.collectAnimations;
-            encrypted.Checked = Properties.Settings.Default.encrypted;
-            key.Value = Properties.Settings.Default.key;
-            minimalAssetMap.Checked = Properties.Settings.Default.minimalAssetMap;
-            types = JsonConvert.DeserializeObject<Dictionary<ClassIDType, (bool, bool)>>(Properties.Settings.Default.types);
-            uvs = JsonConvert.DeserializeObject<Dictionary<string, (bool, int)>>(Properties.Settings.Default.uvs);
+            this.session = session;
+            var settings = session.Settings;
+            assetGroupOptions.SelectedIndex = (int)settings.AssetGroupOption;
+            restoreExtensionName.Checked = settings.RestoreExtensionName;
+            converttexture.Checked = settings.ConvertTexture;
+            enableHDR.Checked = settings.EnableHDR;
+            convertAudio.Checked = settings.ConvertAudio;
+            foreach (var radio in panel1.Controls.OfType<RadioButton>())
+                radio.Checked = radio.Text == settings.ConvertType.ToString();
+            openAfterExport.Checked = settings.OpenAfterExport;
+            eulerFilter.Checked = settings.EulerFilter;
+            filterPrecision.Value = settings.FilterPrecision;
+            exportAllNodes.Checked = settings.ExportAllNodes;
+            exportSkins.Checked = settings.ExportSkins;
+            exportMaterials.Checked = settings.ExportMaterials;
+            exportAnimations.Checked = settings.ExportAnimations;
+            exportBlendShape.Checked = settings.ExportBlendShape;
+            castToBone.Checked = settings.CastToBone;
+            boneSize.Value = settings.BoneSize;
+            scaleFactor.Value = settings.ScaleFactor;
+            fbxVersion.SelectedIndex = settings.FbxVersion;
+            fbxFormat.SelectedIndex = settings.FbxFormat;
+            collectAnimations.Checked = settings.CollectAnimations;
+            encrypted.Checked = settings.Encrypted;
+            key.Value = settings.Key;
+            minimalAssetMap.Checked = settings.MinimalAssetMap;
+            types = new Dictionary<ClassIDType, (bool, bool)>(settings.Types);
+            uvs = new Dictionary<string, (bool, int)>(settings.Uvs);
+            texs = new Dictionary<string, int>(settings.Texs);
 
             texTypeComboBox.SelectedIndex = 0;
-            
-            if (!string.IsNullOrEmpty(Properties.Settings.Default.texs))
+            if (texs.Count > 0)
             {
-                texs = JsonConvert.DeserializeObject<Dictionary<string, int>>(Properties.Settings.Default.texs);
-                if (texs.Count > 0 )
-                {
-                    texNameComboBox.Items.AddRange(texs.Keys.ToArray());
-                    texNameComboBox.SelectedIndex = 0;
-                    texTypeComboBox.SelectedIndex = texs.ElementAt(0).Value;
-                }
+                texNameComboBox.Items.AddRange(texs.Keys.ToArray());
+                texNameComboBox.SelectedIndex = 0;
+                texTypeComboBox.SelectedIndex = texs.ElementAt(0).Value;
             }
 
             typesComboBox.SelectedIndex = 0;
@@ -71,44 +62,36 @@ namespace AnimeStudio.GUI
 
         private void OKbutton_Click(object sender, EventArgs e)
         {
-            Properties.Settings.Default.assetGroupOption = assetGroupOptions.SelectedIndex;
-            Properties.Settings.Default.restoreExtensionName = restoreExtensionName.Checked;
-            Properties.Settings.Default.convertTexture = converttexture.Checked;
-            Properties.Settings.Default.enableHDR = enableHDR.Checked;
-            Properties.Settings.Default.convertAudio = convertAudio.Checked;
-            foreach (Control c in panel1.Controls)
-            {
-                if (((RadioButton)c).Checked)
-                {
-                    Properties.Settings.Default.convertType = (ImageFormat)Enum.Parse(typeof(ImageFormat), c.Text);
-                    break;
-                }
-            }
-            Properties.Settings.Default.openAfterExport = openAfterExport.Checked;
-            Properties.Settings.Default.eulerFilter = eulerFilter.Checked;
-            Properties.Settings.Default.filterPrecision = filterPrecision.Value;
-            Properties.Settings.Default.exportAllNodes = exportAllNodes.Checked;
-            Properties.Settings.Default.exportSkins = exportSkins.Checked;
-            Properties.Settings.Default.exportMaterials = exportMaterials.Checked;
-            Properties.Settings.Default.exportAnimations = exportAnimations.Checked;
-            Properties.Settings.Default.exportBlendShape = exportBlendShape.Checked;
-            Properties.Settings.Default.castToBone = castToBone.Checked;
-            Properties.Settings.Default.boneSize = boneSize.Value;
-            Properties.Settings.Default.scaleFactor = scaleFactor.Value;
-            Properties.Settings.Default.fbxVersion = fbxVersion.SelectedIndex;
-            Properties.Settings.Default.fbxFormat = fbxFormat.SelectedIndex;
-            Properties.Settings.Default.collectAnimations = collectAnimations.Checked;
-            Properties.Settings.Default.encrypted = encrypted.Checked;
-            Properties.Settings.Default.key = (byte)key.Value;
-            Properties.Settings.Default.minimalAssetMap = minimalAssetMap.Checked;
-            Properties.Settings.Default.types = JsonConvert.SerializeObject(types);
-            Properties.Settings.Default.uvs = JsonConvert.SerializeObject(uvs);
-            Properties.Settings.Default.texs = JsonConvert.SerializeObject(texs);
-            Properties.Settings.Default.Save();
-            MiHoYoBinData.Key = (byte)key.Value;
-            MiHoYoBinData.Encrypted = encrypted.Checked;
-            AssetsHelper.Minimal = Properties.Settings.Default.minimalAssetMap;
-            TypeFlags.SetTypes(types);
+            var settings = session.Settings;
+            settings.AssetGroupOption = (AssetGroupOption)assetGroupOptions.SelectedIndex;
+            settings.RestoreExtensionName = restoreExtensionName.Checked;
+            settings.ConvertTexture = converttexture.Checked;
+            settings.EnableHDR = enableHDR.Checked;
+            settings.ConvertAudio = convertAudio.Checked;
+            var format = panel1.Controls.OfType<RadioButton>().FirstOrDefault(x => x.Checked);
+            if (format != null)
+                settings.ConvertType = Enum.Parse<ImageFormat>(format.Text);
+            settings.OpenAfterExport = openAfterExport.Checked;
+            settings.EulerFilter = eulerFilter.Checked;
+            settings.FilterPrecision = filterPrecision.Value;
+            settings.ExportAllNodes = exportAllNodes.Checked;
+            settings.ExportSkins = exportSkins.Checked;
+            settings.ExportMaterials = exportMaterials.Checked;
+            settings.ExportAnimations = exportAnimations.Checked;
+            settings.ExportBlendShape = exportBlendShape.Checked;
+            settings.CastToBone = castToBone.Checked;
+            settings.BoneSize = boneSize.Value;
+            settings.ScaleFactor = scaleFactor.Value;
+            settings.FbxVersion = fbxVersion.SelectedIndex;
+            settings.FbxFormat = fbxFormat.SelectedIndex;
+            settings.CollectAnimations = collectAnimations.Checked;
+            settings.Encrypted = encrypted.Checked;
+            settings.Key = (byte)key.Value;
+            settings.MinimalAssetMap = minimalAssetMap.Checked;
+            settings.Types = types;
+            settings.Uvs = uvs;
+            settings.Texs = texs;
+            session.ReplaceSettings(settings);
             DialogResult = DialogResult.OK;
             Close();
         }
@@ -257,14 +240,9 @@ namespace AnimeStudio.GUI
 
         private void Reset_Click(object sender, EventArgs e)
         {
-            foreach(SettingsProperty settingsProperty in Properties.Settings.Default.Properties)
-            {
-                Properties.Settings.Default[settingsProperty.Name] = TypeDescriptor.GetConverter(settingsProperty.PropertyType).ConvertFrom(settingsProperty.DefaultValue);
-            }
-            Properties.Settings.Default.Save();
-
-            DialogResult = DialogResult.Cancel;
+            session.ReplaceSettings(new StudioSettings());
             Resetted = true;
+            DialogResult = DialogResult.OK;
             Close();
         }
 

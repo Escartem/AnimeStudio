@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using AnimeStudio.GUI.Core;
 
 namespace AnimeStudio.GUI
 {
@@ -30,12 +31,12 @@ namespace AnimeStudio.GUI
         #endregion
 
         private Game selectedGame = GameManager.GetGame(0);
-        private readonly MainForm _parent;
+        private readonly StudioSession session;
 
-        public GameSelector(MainForm parent)
+        public GameSelector(StudioSession session)
         {
             InitializeComponent();
-            _parent = parent;
+            this.session = session;
         }
 
         private void gameTypeCombo_SelectedIndexChanged(object sender, EventArgs e)
@@ -84,7 +85,7 @@ namespace AnimeStudio.GUI
                     if (selectedGame.Type == GameType.UnityCNCustomKey)
                     {
                         customKeyText.Enabled = true;
-                        customKeyText.Text = Properties.Settings.Default.lastUnityCNKey;
+                        customKeyText.Text = session.Settings.LastUnityCNKey;
                     }
                     break;
             }
@@ -102,12 +103,12 @@ namespace AnimeStudio.GUI
                 if (selectedGame is UnityCNGame unityCNGame)
                 {
                     unityCNGame.Key.Key = customKeyText.Text;
-                    Properties.Settings.Default.lastUnityCNKey = customKeyText.Text;
-                    Properties.Settings.Default.Save();
+                    session.Settings.LastUnityCNKey = customKeyText.Text;
                 }
             }
-            _parent.updateGame(selectedGame);
-            this.Close();
+            session.SetGame(selectedGame);
+            DialogResult = DialogResult.OK;
+            Close();
         }
     }
 }

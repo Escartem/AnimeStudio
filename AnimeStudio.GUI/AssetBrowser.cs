@@ -9,14 +9,16 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using AnimeStudio.App;
+using AnimeStudio.GUI.Core;
 using static AnimeStudio.AssetsManager;
-using static AnimeStudio.GUI.Studio;
 
 namespace AnimeStudio.GUI
 {
     partial class AssetBrowser : Form
     {
         private readonly MainForm _parent;
+        private readonly StudioSession session;
         private readonly List<AssetEntry> _assetEntries;
         private readonly List<AssetEntry> _backupAssetEntries;
         private readonly List<AssetEntry> _firstAssetEntries;
@@ -28,10 +30,11 @@ namespace AnimeStudio.GUI
         private List<String> types = new();
         private List<String> selectedTypes = new();
 
-        public AssetBrowser(MainForm form)
+        public AssetBrowser(MainForm form, StudioSession session)
         {
             InitializeComponent();
             _parent = form;
+            this.session = session;
             _filters = new Dictionary<string, Regex>();
             _assetEntries = new List<AssetEntry>();
             _backupAssetEntries = new List<AssetEntry>();
@@ -206,165 +209,44 @@ namespace AnimeStudio.GUI
             {
                 Logger.Info("Loading...");
                 bringMainToFront();
-                _parent.Invoke(() => _parent.updateGame(ResourceMap.GetGameType()));
-                _parent.Invoke(() => _parent.LoadPaths(files, filePaths.ToArray()));
+                session.SetGame(GameManager.GetGameByType(ResourceMap.GetGameType()));
+                _parent.OnGameChanged();
+                _parent.LoadPaths(files, filePaths.ToArray());
             }
         }
         private async void exportSelected_Click(object sender, EventArgs e)
         {
             var saveFolderDialog = new OpenFolderDialog();
-            if (saveFolderDialog.ShowDialog(this) == DialogResult.OK)
+            if (saveFolderDialog.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            var entries = assetDataGridView.SelectedRows.Cast<DataGridViewRow>().Select(x => _assetEntries[x.Index]).ToArray();
+            var wanted = entries.Select(x => (x.Container, x.Name, x.Type, x.PathID)).ToHashSet();
+            var files = entries.Select(x => x.Source).Distinct().ToList();
+
+            bringMainToFront();
+            _parent.ResetForm();
+            session.AssetsManager.Game = session.Game;
+            session.AssetsManager.FilterData = new AssetFilterData { Items = new List<AssetFilterDataItem>() };
+            var options = new CatalogOptions { IncludeModelGameObjects = true, BuildScene = false };
+            var token = session.BeginOperation();
+
+            await Task.Run(() =>
             {
-                var entries = assetDataGridView.SelectedRows.Cast<DataGridViewRow>().Select(x => _assetEntries[x.Index]).ToArray();
-
-                bringMainToFront();
-                _parent.Invoke(_parent.ResetForm);
-
-                var statusStripUpdate = StatusStripUpdate;
-                assetsManager.Game = Studio.Game;
-                StatusStripUpdate = Logger.Info;
-
-                var files = new List<string>(entries.Select(x => x.Source).ToHashSet());
-                await Task.Run(async () =>
+                for (int i = 0; i < files.Count; i++)
                 {
-                    for (int i = 0; i < files.Count; i++)
+                    token.ThrowIfCancellationRequested();
+                    session.AssetsManager.LoadFiles(files[i]);
+                    if (session.AssetsManager.assetsFileList.Count > 0)
                     {
-                        var toExportAssets = new List<AssetItem>();
-
-                        var file = files[i];
-                        assetsManager.LoadFiles(file);
-                        if (assetsManager.assetsFileList.Count > 0)
-                        {
-                            BuildAssetData(toExportAssets, entries);
-                            await ExportAssets(saveFolderDialog.Folder, toExportAssets, ExportType.Convert, i == files.Count - 1);
-                        }
-                        toExportAssets.Clear();
-                        assetsManager.Clear();
+                        var rows = new CatalogBuilder(session.Context, options).Build(token).Rows
+                            .Where(x => wanted.Contains((x.Container, x.Name, x.Type, x.PathID)))
+                            .ToList();
+                        session.Exports.ExportAssets(saveFolderDialog.Folder, rows, ExportType.Convert, token, openAfterExport: i == files.Count - 1);
                     }
-                });
-                StatusStripUpdate = statusStripUpdate;
-            }
-        }
-        private void BuildAssetData(List<AssetItem> exportableAssets, AssetEntry[] entries)
-        {
-            var objectAssetItemDic = new Dictionary<Object, AssetItem>();
-            var mihoyoBinDataNames = new List<(PPtr<Object>, string)>();
-            var containers = new List<(PPtr<Object>, string)>();
-            foreach (var assetsFile in assetsManager.assetsFileList)
-            {
-                foreach (var asset in assetsFile.Objects)
-                {
-                    ProcessAssetData(asset, exportableAssets, objectAssetItemDic, mihoyoBinDataNames, containers);
+                    session.AssetsManager.Clear();
                 }
-            }
-            foreach ((var pptr, var name) in mihoyoBinDataNames)
-            {
-                if (pptr.TryGet<MiHoYoBinData>(out var obj))
-                {
-                    var assetItem = objectAssetItemDic[obj];
-                    if (int.TryParse(name, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var hash))
-                    {
-                        assetItem.Text = name;
-                        assetItem.Container = hash.ToString();
-                    }
-                    else assetItem.Text = $"BinFile #{assetItem.m_PathID}";
-                }
-            }
-            foreach ((var pptr, var container) in containers)
-            {
-                if (pptr.TryGet(out var obj))
-                {
-                    var item = objectAssetItemDic[obj];
-                    item.Container = container;
-                }
-            }
-            containers.Clear();
-
-            var matches = exportableAssets.Where(asset => entries.Any(x => x.Container == asset.Container && x.Name == asset.Text && x.Type == asset.Type && x.PathID == asset.m_PathID)).ToArray();
-            exportableAssets.Clear();
-            exportableAssets.AddRange(matches);
-        }
-        private void ProcessAssetData(Object asset, List<AssetItem> exportableAssets, Dictionary<Object, AssetItem> objectAssetItemDic, List<(PPtr<Object>, string)> mihoyoBinDataNames, List<(PPtr<Object>, string)> containers)
-        {
-            var assetItem = new AssetItem(asset);
-            objectAssetItemDic.Add(asset, assetItem);
-            var exportable = false;
-            switch (asset)
-            {
-                case GameObject m_GameObject:
-                    exportable = ClassIDType.GameObject.CanExport() && m_GameObject.HasModel();
-                    break;
-                case Texture2D m_Texture2D:
-                    if (!string.IsNullOrEmpty(m_Texture2D.m_StreamData?.path))
-                        assetItem.FullSize = asset.byteSize + m_Texture2D.m_StreamData.size;
-                    exportable = ClassIDType.Texture2D.CanExport();
-                    break;
-                case AudioClip m_AudioClip:
-                    if (!string.IsNullOrEmpty(m_AudioClip.m_Source))
-                        assetItem.FullSize = asset.byteSize + m_AudioClip.m_Size;
-                    exportable = ClassIDType.AudioClip.CanExport();
-                    break;
-                case VideoClip m_VideoClip:
-                    if (!string.IsNullOrEmpty(m_VideoClip.m_OriginalPath))
-                        assetItem.FullSize = asset.byteSize + m_VideoClip.m_ExternalResources.m_Size;
-                    exportable = ClassIDType.VideoClip.CanExport();
-                    break;
-                case MonoBehaviour m_MonoBehaviour:
-                    exportable = ClassIDType.MonoBehaviour.CanExport();
-                    break;
-                case AssetBundle m_AssetBundle:
-                    foreach (var m_Container in m_AssetBundle.m_Container)
-                    {
-                        var preloadIndex = m_Container.Value.preloadIndex;
-                        var preloadSize = m_Container.Value.preloadSize;
-                        var preloadEnd = preloadIndex + preloadSize;
-                        for (int k = preloadIndex; k < preloadEnd; k++)
-                        {
-                            containers.Add((m_AssetBundle.m_PreloadTable[k], m_Container.Key));
-                        }
-                    }
-
-                    exportable = ClassIDType.AssetBundle.CanExport();
-                    break;
-                case IndexObject m_IndexObject:
-                    foreach (var index in m_IndexObject.AssetMap)
-                    {
-                        mihoyoBinDataNames.Add((index.Value.Object, index.Key));
-                    }
-
-                    exportable = ClassIDType.IndexObject.CanExport();
-                    break;
-                case ResourceManager m_ResourceManager:
-                    foreach (var m_Container in m_ResourceManager.m_Container)
-                    {
-                        containers.Add((m_Container.Value, m_Container.Key));
-                    }
-
-                    exportable = ClassIDType.GameObject.CanExport();
-                    break;
-                case Mesh _ when ClassIDType.Mesh.CanExport():
-                case TextAsset _ when ClassIDType.TextAsset.CanExport():
-                case AnimationClip _ when ClassIDType.AnimationClip.CanExport():
-                case Font _ when ClassIDType.Font.CanExport():
-                case MovieTexture _ when ClassIDType.MovieTexture.CanExport():
-                case Sprite _ when ClassIDType.Sprite.CanExport():
-                case Material _ when ClassIDType.Material.CanExport():
-                case MiHoYoBinData _ when ClassIDType.MiHoYoBinData.CanExport():
-                case Shader _ when ClassIDType.Shader.CanExport():
-                case Animator _ when ClassIDType.Animator.CanExport():
-                    exportable = true;
-                    break;
-            }
-
-            if (assetItem.Text == "")
-            {
-                assetItem.Text = assetItem.TypeString + assetItem.UniqueID;
-            }
-
-            if (exportable)
-            {
-                exportableAssets.Add(assetItem);
-            }
+            }, token).ContinueWith(t => { if (t.IsFaulted) Logger.Error("Export failed", t.Exception); });
         }
 
         private void FilterAssetDataGrid()
@@ -410,41 +292,17 @@ namespace AnimeStudio.GUI
                 _filters[name] = regex;
             }
         }
-        private void NameTextBox_KeyPress(object sender, KeyPressEventArgs e)
+        private void NameTextBox_KeyPress(object sender, KeyPressEventArgs e) => FilterOnEnter(e);
+        private void ContainerTextBox_KeyPress(object sender, KeyPressEventArgs e) => FilterOnEnter(e);
+        private void SourceTextBox_KeyPress(object sender, KeyPressEventArgs e) => FilterOnEnter(e);
+        private void PathTextBox_KeyPress(object sender, KeyPressEventArgs e) => FilterOnEnter(e);
+        private void HashTextBox_KeyPress(object sender, KeyPressEventArgs e) => FilterOnEnter(e);
+        private void FilterOnEnter(KeyPressEventArgs e)
         {
-            if (sender is TextBox textBox && e.KeyChar == (char)Keys.Enter)
-            {
+            if (e.KeyChar == (char)Keys.Enter)
                 FilterAssetDataGrid();
-            }
         }
-        private void ContainerTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (sender is TextBox textBox && e.KeyChar == (char)Keys.Enter)
-            {
-                FilterAssetDataGrid();
-            }
-        }
-        private void SourceTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (sender is TextBox textBox && e.KeyChar == (char)Keys.Enter)
-            {
-                FilterAssetDataGrid();
-            }
-        }
-        private void PathTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (sender is TextBox textBox && e.KeyChar == (char)Keys.Enter)
-            {
-                FilterAssetDataGrid();
-            }
-        }
-        private void HashTextBox_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (sender is TextBox textBox && e.KeyChar == (char)Keys.Enter)
-            {
-                FilterAssetDataGrid();
-            }
-        }
+
         private void AssetDataGridView_CellValueNeeded(object sender, DataGridViewCellValueEventArgs e)
         {
             if (_assetEntries.Count != 0 && e.RowIndex <= _assetEntries.Count)

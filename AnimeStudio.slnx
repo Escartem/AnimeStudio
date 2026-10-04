@@ -25,7 +25,9 @@
     <Project Path="AnimeStudio.Patcher/AnimeStudio.Patcher.csproj" />
     <Project Path="AnimeStudio.PInvoke/AnimeStudio.PInvoke.csproj" />
   </Folder>
+  <Project Path="AnimeStudio.App/AnimeStudio.App.csproj" />
   <Project Path="AnimeStudio.CLI/AnimeStudio.CLI.csproj" />
+  <Project Path="AnimeStudio.GUI.Core/AnimeStudio.GUI.Core.csproj" />
   <Project Path="AnimeStudio.GUI/AnimeStudio.GUI.csproj" />
   <Project Path="AnimeStudio.Utility/AnimeStudio.Utility.csproj" />
   <Project Path="AnimeStudio/AnimeStudio.csproj" />

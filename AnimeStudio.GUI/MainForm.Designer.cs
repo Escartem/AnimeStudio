@@ -123,13 +123,10 @@ namespace AnimeStudio.GUI
             toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
             cABMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             MapNameComboBox = new System.Windows.Forms.ToolStripComboBox();
-            buildMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             loadCABMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             clearMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             toolStripSeparator15 = new System.Windows.Forms.ToolStripSeparator();
             assetMapCABMapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            toolStripTextBox1 = new System.Windows.Forms.ToolStripTextBox();
-            buildBothToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             toolStripSeparator14 = new System.Windows.Forms.ToolStripSeparator();
             toolStripMenuItem20 = new System.Windows.Forms.ToolStripMenuItem();
             toolStripMenuItem19 = new System.Windows.Forms.ToolStripMenuItem();
@@ -358,7 +355,6 @@ namespace AnimeStudio.GUI
             enableResolveDependencies.Size = new System.Drawing.Size(442, 44);
             enableResolveDependencies.Text = "Resolve dependencies";
             enableResolveDependencies.ToolTipText = "Toggle the behaviour of loading assets.\r\nDisable to load file(s) without its dependencies.";
-            enableResolveDependencies.CheckedChanged += enableResolveDependencies_CheckedChanged;
             // 
             // allowDuplicates
             // 
@@ -367,7 +363,6 @@ namespace AnimeStudio.GUI
             allowDuplicates.Size = new System.Drawing.Size(442, 44);
             allowDuplicates.Text = "Allow duplicates";
             allowDuplicates.ToolTipText = "Toggle the behaviour of exporting assets.\r\nEnable to allow assets with duplicate names to be exported.";
-            allowDuplicates.CheckedChanged += allowDuplicates_CheckedChanged;
             // 
             // useBundleContainerNameToolStripMenuItem
             // 
@@ -375,7 +370,6 @@ namespace AnimeStudio.GUI
             useBundleContainerNameToolStripMenuItem.Name = "useBundleContainerNameToolStripMenuItem";
             useBundleContainerNameToolStripMenuItem.Size = new System.Drawing.Size(442, 44);
             useBundleContainerNameToolStripMenuItem.Text = "Use bundle container name";
-            useBundleContainerNameToolStripMenuItem.CheckedChanged += UseBundleContainerNameToolStripMenuItem_CheckedChanged;
             // 
             // skipContainer
             // 
@@ -384,7 +378,6 @@ namespace AnimeStudio.GUI
             skipContainer.Size = new System.Drawing.Size(442, 44);
             skipContainer.Text = "Skip container recovery";
             skipContainer.ToolTipText = "Skips the container recovery step.\nImproves loading when dealing with a large number of files.";
-            skipContainer.CheckedChanged += skipContainer_CheckedChanged;
             // 
             // toolStripSeparator12
             // 
@@ -446,7 +439,6 @@ namespace AnimeStudio.GUI
             displayAll.Size = new System.Drawing.Size(416, 44);
             displayAll.Text = "Show hidden assets";
             displayAll.ToolTipText = "Check this option will display all types assets. Not extractable assets can export the RAW file.";
-            displayAll.CheckedChanged += displayAll_CheckedChanged;
             // 
             // enablePreview
             // 
@@ -464,7 +456,6 @@ namespace AnimeStudio.GUI
             enableModelPreview.Name = "enableModelPreview";
             enableModelPreview.Size = new System.Drawing.Size(416, 44);
             enableModelPreview.Text = "Model preview enabled";
-            enableModelPreview.CheckedChanged += enableModelPreview_CheckedChanged;
             // 
             // modelsOnly
             // 
@@ -498,7 +489,6 @@ namespace AnimeStudio.GUI
             toolStripMenuItem15.Name = "toolStripMenuItem15";
             toolStripMenuItem15.Size = new System.Drawing.Size(381, 44);
             toolStripMenuItem15.Text = "Show error messages";
-            toolStripMenuItem15.Click += toolStripMenuItem15_Click;
             // 
             // exportClassStructuresMenuItem
             // 
@@ -515,7 +505,6 @@ namespace AnimeStudio.GUI
             enableConsole.Name = "enableConsole";
             enableConsole.Size = new System.Drawing.Size(381, 44);
             enableConsole.Text = "Enable Console";
-            enableConsole.CheckedChanged += enableConsole_CheckedChanged;
             // 
             // clearConsoleToolStripMenuItem
             // 
@@ -532,14 +521,12 @@ namespace AnimeStudio.GUI
             enableFileLogging.Name = "enableFileLogging";
             enableFileLogging.Size = new System.Drawing.Size(381, 44);
             enableFileLogging.Text = "Enable file logging";
-            enableFileLogging.CheckedChanged += enableFileLogging_CheckedChanged;
             // 
             // loggedEventsMenuItem
             // 
             loggedEventsMenuItem.Name = "loggedEventsMenuItem";
             loggedEventsMenuItem.Size = new System.Drawing.Size(381, 44);
             loggedEventsMenuItem.Text = "Logged events";
-            loggedEventsMenuItem.DropDownClosed += loggedEventsMenuItem_DropDownClosed;
             // 
             // exportToolStripMenuItem
             // 
@@ -560,21 +547,18 @@ namespace AnimeStudio.GUI
             exportAllAssetsMenuItem.Name = "exportAllAssetsMenuItem";
             exportAllAssetsMenuItem.Size = new System.Drawing.Size(400, 44);
             exportAllAssetsMenuItem.Text = "All assets";
-            exportAllAssetsMenuItem.Click += exportAllAssetsMenuItem_Click;
             // 
             // exportSelectedAssetsMenuItem
             // 
             exportSelectedAssetsMenuItem.Name = "exportSelectedAssetsMenuItem";
             exportSelectedAssetsMenuItem.Size = new System.Drawing.Size(400, 44);
             exportSelectedAssetsMenuItem.Text = "Selected assets";
-            exportSelectedAssetsMenuItem.Click += exportSelectedAssetsMenuItem_Click;
             // 
             // exportFilteredAssetsMenuItem
             // 
             exportFilteredAssetsMenuItem.Name = "exportFilteredAssetsMenuItem";
             exportFilteredAssetsMenuItem.Size = new System.Drawing.Size(400, 44);
             exportFilteredAssetsMenuItem.Text = "Filtered assets";
-            exportFilteredAssetsMenuItem.Click += exportFilteredAssetsMenuItem_Click;
             // 
             // toolStripSeparator3
             // 
@@ -600,21 +584,18 @@ namespace AnimeStudio.GUI
             toolStripMenuItem4.Name = "toolStripMenuItem4";
             toolStripMenuItem4.Size = new System.Drawing.Size(308, 44);
             toolStripMenuItem4.Text = "All assets";
-            toolStripMenuItem4.Click += toolStripMenuItem4_Click;
             // 
             // toolStripMenuItem5
             // 
             toolStripMenuItem5.Name = "toolStripMenuItem5";
             toolStripMenuItem5.Size = new System.Drawing.Size(308, 44);
             toolStripMenuItem5.Text = "Selected assets";
-            toolStripMenuItem5.Click += toolStripMenuItem5_Click;
             // 
             // toolStripMenuItem6
             // 
             toolStripMenuItem6.Name = "toolStripMenuItem6";
             toolStripMenuItem6.Size = new System.Drawing.Size(308, 44);
             toolStripMenuItem6.Text = "Filtered assets";
-            toolStripMenuItem6.Click += toolStripMenuItem6_Click;
             // 
             // toolStripMenuItem3
             // 
@@ -628,21 +609,18 @@ namespace AnimeStudio.GUI
             toolStripMenuItem7.Name = "toolStripMenuItem7";
             toolStripMenuItem7.Size = new System.Drawing.Size(308, 44);
             toolStripMenuItem7.Text = "All assets";
-            toolStripMenuItem7.Click += toolStripMenuItem7_Click;
             // 
             // toolStripMenuItem8
             // 
             toolStripMenuItem8.Name = "toolStripMenuItem8";
             toolStripMenuItem8.Size = new System.Drawing.Size(308, 44);
             toolStripMenuItem8.Text = "Selected assets";
-            toolStripMenuItem8.Click += toolStripMenuItem8_Click;
             // 
             // toolStripMenuItem9
             // 
             toolStripMenuItem9.Name = "toolStripMenuItem9";
             toolStripMenuItem9.Size = new System.Drawing.Size(308, 44);
             toolStripMenuItem9.Text = "Filtered assets";
-            toolStripMenuItem9.Click += toolStripMenuItem9_Click;
             // 
             // toolStripMenuItem16
             // 
@@ -656,21 +634,18 @@ namespace AnimeStudio.GUI
             toolStripMenuItem17.Name = "toolStripMenuItem17";
             toolStripMenuItem17.Size = new System.Drawing.Size(308, 44);
             toolStripMenuItem17.Text = "All assets";
-            toolStripMenuItem17.Click += toolStripMenuItem17_Click;
             // 
             // toolStripMenuItem24
             // 
             toolStripMenuItem24.Name = "toolStripMenuItem24";
             toolStripMenuItem24.Size = new System.Drawing.Size(308, 44);
             toolStripMenuItem24.Text = "Selected assets";
-            toolStripMenuItem24.Click += toolStripMenuItem24_Click;
             // 
             // toolStripMenuItem25
             // 
             toolStripMenuItem25.Name = "toolStripMenuItem25";
             toolStripMenuItem25.Size = new System.Drawing.Size(308, 44);
             toolStripMenuItem25.Text = "Filtered assets";
-            toolStripMenuItem25.Click += toolStripMenuItem25_Click;
             // 
             // toolStripSeparator2
             // 
@@ -696,21 +671,18 @@ namespace AnimeStudio.GUI
             toolStripMenuItem11.Name = "toolStripMenuItem11";
             toolStripMenuItem11.Size = new System.Drawing.Size(308, 44);
             toolStripMenuItem11.Text = "All assets";
-            toolStripMenuItem11.Click += toolStripMenuItem11_Click;
             // 
             // toolStripMenuItem12
             // 
             toolStripMenuItem12.Name = "toolStripMenuItem12";
             toolStripMenuItem12.Size = new System.Drawing.Size(308, 44);
             toolStripMenuItem12.Text = "Selected assets";
-            toolStripMenuItem12.Click += toolStripMenuItem12_Click;
             // 
             // toolStripMenuItem13
             // 
             toolStripMenuItem13.Name = "toolStripMenuItem13";
             toolStripMenuItem13.Size = new System.Drawing.Size(308, 44);
             toolStripMenuItem13.Text = "Filtered assets";
-            toolStripMenuItem13.Click += toolStripMenuItem13_Click;
             // 
             // sceneHierarchy
             // 
@@ -799,7 +771,7 @@ namespace AnimeStudio.GUI
             // 
             // miscToolStripMenuItem
             // 
-            miscToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { assetMapToolStripMenuItem1, buildAssetMapToolStripMenuItem, assetMapTypeMenuItem, assetBrowserToolStripMenuItem, toolStripSeparator8, cABMapToolStripMenuItem, MapNameComboBox, buildMapToolStripMenuItem, loadCABMapToolStripMenuItem, clearMapToolStripMenuItem, toolStripSeparator15, assetMapCABMapToolStripMenuItem, toolStripTextBox1, buildBothToolStripMenuItem, toolStripSeparator14, toolStripMenuItem20, toolStripMenuItem19, loadAIToolStripMenuItem });
+            miscToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] { assetMapCABMapToolStripMenuItem, buildAssetMapToolStripMenuItem, assetMapTypeMenuItem, toolStripSeparator8, cABMapToolStripMenuItem, MapNameComboBox, loadCABMapToolStripMenuItem, clearMapToolStripMenuItem, toolStripSeparator15, assetMapToolStripMenuItem1, assetBrowserToolStripMenuItem, toolStripSeparator14, toolStripMenuItem20, toolStripMenuItem19, loadAIToolStripMenuItem });
             miscToolStripMenuItem.Name = "miscToolStripMenuItem";
             miscToolStripMenuItem.Size = new System.Drawing.Size(92, 38);
             miscToolStripMenuItem.Text = "Maps";
@@ -816,14 +788,15 @@ namespace AnimeStudio.GUI
             // 
             buildAssetMapToolStripMenuItem.Name = "buildAssetMapToolStripMenuItem";
             buildAssetMapToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            buildAssetMapToolStripMenuItem.Text = "Build";
+            buildAssetMapToolStripMenuItem.Text = "Build...";
+            buildAssetMapToolStripMenuItem.ToolTipText = "Build the selected outputs from a game folder";
             buildAssetMapToolStripMenuItem.Click += buildAssetMapToolStripMenuItem_Click;
             // 
             // assetMapTypeMenuItem
             // 
             assetMapTypeMenuItem.Name = "assetMapTypeMenuItem";
             assetMapTypeMenuItem.Size = new System.Drawing.Size(411, 44);
-            assetMapTypeMenuItem.Text = "Map Type";
+            assetMapTypeMenuItem.Text = "Outputs";
             assetMapTypeMenuItem.DropDownItemClicked += assetMapTypeMenuItem_DropDownItemClicked;
             // 
             // assetBrowserToolStripMenuItem
@@ -849,27 +822,21 @@ namespace AnimeStudio.GUI
             // 
             MapNameComboBox.Name = "MapNameComboBox";
             MapNameComboBox.Size = new System.Drawing.Size(121, 40);
-            MapNameComboBox.ToolTipText = "Enter name of Map here";
-            // 
-            // buildMapToolStripMenuItem
-            // 
-            buildMapToolStripMenuItem.Name = "buildMapToolStripMenuItem";
-            buildMapToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            buildMapToolStripMenuItem.Text = "Build";
-            buildMapToolStripMenuItem.Click += buildMapToolStripMenuItem_Click;
+            MapNameComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            MapNameComboBox.ToolTipText = "Selected CAB map";
             // 
             // loadCABMapToolStripMenuItem
             // 
             loadCABMapToolStripMenuItem.Name = "loadCABMapToolStripMenuItem";
             loadCABMapToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            loadCABMapToolStripMenuItem.Text = "Load";
+            loadCABMapToolStripMenuItem.Text = "Load from file...";
             loadCABMapToolStripMenuItem.Click += loadCABMapToolStripMenuItem_Click;
             // 
             // clearMapToolStripMenuItem
             // 
             clearMapToolStripMenuItem.Name = "clearMapToolStripMenuItem";
             clearMapToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            clearMapToolStripMenuItem.Text = "Delete";
+            clearMapToolStripMenuItem.Text = "Delete selected";
             clearMapToolStripMenuItem.Click += clearMapToolStripMenuItem_Click;
             // 
             // toolStripSeparator15
@@ -882,20 +849,7 @@ namespace AnimeStudio.GUI
             assetMapCABMapToolStripMenuItem.Enabled = false;
             assetMapCABMapToolStripMenuItem.Name = "assetMapCABMapToolStripMenuItem";
             assetMapCABMapToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            assetMapCABMapToolStripMenuItem.Text = "Asset Map and CAB Map";
-            // 
-            // toolStripTextBox1
-            // 
-            toolStripTextBox1.Name = "toolStripTextBox1";
-            toolStripTextBox1.Size = new System.Drawing.Size(100, 39);
-            toolStripTextBox1.ToolTipText = "Enter name of map here";
-            // 
-            // buildBothToolStripMenuItem
-            // 
-            buildBothToolStripMenuItem.Name = "buildBothToolStripMenuItem";
-            buildBothToolStripMenuItem.Size = new System.Drawing.Size(411, 44);
-            buildBothToolStripMenuItem.Text = "Build Both";
-            buildBothToolStripMenuItem.Click += buildBothToolStripMenuItem_Click;
+            assetMapCABMapToolStripMenuItem.Text = "Build maps";
             // 
             // toolStripSeparator14
             // 
@@ -915,6 +869,7 @@ namespace AnimeStudio.GUI
             toolStripMenuItem19.Name = "toolStripMenuItem19";
             toolStripMenuItem19.Size = new System.Drawing.Size(411, 44);
             toolStripMenuItem19.Text = "Load from GitHub";
+            toolStripMenuItem19.DropDownOpening += aiVersionMenu_DropDownOpening;
             // 
             // specifyAIVersion
             // 
@@ -1018,6 +973,7 @@ namespace AnimeStudio.GUI
             sceneTreeView.Size = new System.Drawing.Size(585, 696);
             sceneTreeView.TabIndex = 1;
             sceneTreeView.AfterCheck += sceneTreeView_AfterCheck;
+            sceneTreeView.BeforeExpand += sceneTreeView_BeforeExpand;
             // 
             // treeSearch
             // 
@@ -1087,7 +1043,7 @@ namespace AnimeStudio.GUI
             // 
             // columnHeaderSHA256
             // 
-            columnHeaderSHA256.Text = "SHA256";
+            columnHeaderSHA256.Text = "Hash";
             columnHeaderSHA256.Width = 100;
             // 
             // listSearch
@@ -1450,7 +1406,7 @@ namespace AnimeStudio.GUI
             // 
             // timer
             // 
-            timer.Interval = 10;
+            timer.Interval = 50;
             timer.Tick += timer_Tick;
             // 
             // openFileDialog1
@@ -1535,6 +1491,7 @@ namespace AnimeStudio.GUI
             DragDrop += MainForm_DragDrop;
             DragEnter += MainForm_DragEnter;
             KeyDown += AnimeStudioForm_KeyDown;
+            FormClosing += MainForm_FormClosing;
             menuStrip1.ResumeLayout(false);
             menuStrip1.PerformLayout();
             splitContainer1.Panel1.ResumeLayout(false);
@@ -1649,15 +1606,12 @@ namespace AnimeStudio.GUI
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem13;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem14;
         private System.Windows.Forms.ToolStripTextBox specifyUnityVersion;
-        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem18;
-        private System.Windows.Forms.ToolStripComboBox specifyGame;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem16;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem17;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem24;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem25;
         private System.Windows.Forms.ToolStripMenuItem miscToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem assetHelpersToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem buildBothToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem buildAssetMapToolStripMenuItem;
         private System.Windows.Forms.ToolStripComboBox MapNameComboBox;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator5;
@@ -1668,7 +1622,6 @@ namespace AnimeStudio.GUI
         private System.Windows.Forms.ToolStripMenuItem assetMapToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem loadAIToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
-        private System.Windows.Forms.ToolStripMenuItem buildMapToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem enableResolveDependencies;
         private System.Windows.Forms.ToolStripMenuItem skipContainer;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator12;
@@ -1688,7 +1641,6 @@ namespace AnimeStudio.GUI
         private System.Windows.Forms.ToolStripMenuItem assetMapToolStripMenuItem1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator15;
         private System.Windows.Forms.ToolStripMenuItem assetMapCABMapToolStripMenuItem;
-        private System.Windows.Forms.ToolStripTextBox toolStripTextBox1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
         private System.Windows.Forms.ToolStripMenuItem assetBrowserToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem generalToolStripMenuItem;

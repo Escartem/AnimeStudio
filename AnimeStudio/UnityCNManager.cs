@@ -36,7 +36,7 @@ namespace AnimeStudio
             new() { "CatFantasy", "Cat Fantasy", "43614461566637323538576877363433" }
         };
         private static List<List<string>> storedData;
-        private static readonly string UnityCNKeysPath = "CNKeys.json";
+        private static readonly string UnityCNKeysPath = System.IO.Path.Combine(System.AppContext.BaseDirectory, "CNKeys.json");
 
         static UnityCNManager() {}
 

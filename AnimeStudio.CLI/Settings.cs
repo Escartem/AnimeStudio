@@ -61,5 +61,31 @@ namespace AnimeStudio.CLI.Properties {
         public string texs => AppSettings.Get("texs", string.Empty);
         public string uvs => AppSettings.Get("uvs", string.Empty);
 
+        public App.ExportConfig ToExportConfig(AssetGroupOption groupOption) => new()
+        {
+            GroupOption = groupOption,
+            ConvertTexture = convertTexture,
+            ConvertAudio = convertAudio,
+            ImageFormat = convertType,
+            RestoreExtensionName = restoreExtensionName,
+            AllowDuplicates = allowDuplicates,
+            ScrapeMonos = scrapeMonos,
+            CollectAnimations = collectAnimations,
+            ExportMaterials = exportMaterials,
+            Uvs = Newtonsoft.Json.JsonConvert.DeserializeObject<System.Collections.Generic.Dictionary<string, (bool, int)>>(uvs),
+            Texs = Newtonsoft.Json.JsonConvert.DeserializeObject<System.Collections.Generic.Dictionary<string, int>>(texs),
+            EulerFilter = eulerFilter,
+            FilterPrecision = filterPrecision,
+            ExportAllNodes = exportAllNodes,
+            ExportSkins = exportSkins,
+            ExportAnimations = exportAnimations,
+            ExportBlendShape = exportBlendShape,
+            CastToBone = castToBone,
+            BoneSize = boneSize,
+            ScaleFactor = scaleFactor,
+            FbxVersion = fbxVersion,
+            FbxFormat = fbxFormat,
+        };
+
     }
 }
