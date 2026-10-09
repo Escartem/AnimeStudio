@@ -98,6 +98,7 @@ Thanks goes to these wonderful people :
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Koko-boya"><img src="https://avatars.githubusercontent.com/u/53186299?v=4?s=100" width="100px;" alt="Koks"/><br /><sub><b>Koks</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/commits?author=Koko-boya" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/xiaoding521234"><img src="https://avatars.githubusercontent.com/u/167662303?v=4?s=100" width="100px;" alt="xiaoding521234"/><br /><sub><b>xiaoding521234</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/commits?author=xiaoding521234" title="Code">💻</a> <a href="https://github.com/Escartem/AnimeStudio/issues?q=author%3Axiaoding521234" title="Bug reports">🐛</a></td>
     </tr>
   </tbody>
 </table>
