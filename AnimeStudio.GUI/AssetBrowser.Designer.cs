@@ -165,7 +165,7 @@ namespace AnimeStudio.GUI
             // 
             // tableLayoutPanel1
             // 
-            tableLayoutPanel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.ColumnCount = 1;
             tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.Controls.Add(assetDataGridView, 0, 3);
@@ -179,7 +179,7 @@ namespace AnimeStudio.GUI
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 75F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 75F));
             tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 64F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 75F));
+            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
             tableLayoutPanel1.Size = new System.Drawing.Size(1597, 1297);
             tableLayoutPanel1.TabIndex = 3;
             // 
@@ -361,6 +361,7 @@ namespace AnimeStudio.GUI
             Icon = (System.Drawing.Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(6);
             Name = "AssetBrowser";
+            Padding = new Padding(20, 15, 20, 20);
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Asset Browser";
             FormClosing += AssetBrowser_FormClosing;
