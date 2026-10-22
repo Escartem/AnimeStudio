@@ -39,6 +39,7 @@
 #define RTM_NO_DEPRECATION
 #define ACL_ON_ASSERT_THROW
 #define RTM_ON_ASSERT_THROW
+#define FMT_UNICODE 0
 
 #include <acl/core/iallocator.h>
 #include <acl/core/ansi_allocator.h>
