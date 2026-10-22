@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using AnimeStudio.PInvoke;
 
@@ -98,16 +99,17 @@ namespace ACLLibs
             // x64 only, so they live in the application directory rather than in x86/x64.
             DllLoader.PreloadDll(DLL_NAME, archSpecific: false);
             DllLoader.PreloadDll(DLL_NAME_ZZZ, archSpecific: false);
+            DllLoader.PreloadDll(DLL_NAME_ZZZ_V2, archSpecific: false);
         }
         private static IntPtr AlignAndCopyData(byte[] data, out IntPtr base_ptr)
         {
             base_ptr = IntPtr.Zero;
-            if (data == null)
+            if (data == null || data.Length == 0)
             {
                 return IntPtr.Zero;
             }
-            base_ptr = Marshal.AllocHGlobal(data.Length + 8);
-            var dataAligned = new IntPtr(16 * (((long)base_ptr + 15) / 16));
+            base_ptr = Marshal.AllocHGlobal(data.Length + 15);
+            var dataAligned = new IntPtr((base_ptr.ToInt64() + 15) & ~15L);
             Marshal.Copy(data, 0, dataAligned, data.Length);
             return dataAligned;
         }
@@ -115,26 +117,36 @@ namespace ACLLibs
         public static void DecompressTracksV2(byte[] transform_data, byte[] scalar_data, byte[] db, byte[] db_bulk_data, out float[] values, out float[] times)
         {
             var decompressedClip = new DecompressedClip();
+            var transformPtr = AlignAndCopyData(transform_data, out var transformAllocation);
+            var scalarPtr = AlignAndCopyData(scalar_data, out var scalarAllocation);
+            var databasePtr = AlignAndCopyData(db, out var databaseAllocation);
+            var bulkPtr = AlignAndCopyData(db_bulk_data, out var bulkAllocation);
+            try
+            {
+                DecompressTracksZZZV2(transformPtr, transform_data?.Length ?? 0,
+                    scalarPtr, scalar_data?.Length ?? 0,
+                    databasePtr, db?.Length ?? 0,
+                    bulkPtr, db_bulk_data?.Length ?? 0, ref decompressedClip);
 
-            var transform_data_ptr = AlignAndCopyData(transform_data, out var transform_data_base_ptr);
-            var scalar_data_ptr = AlignAndCopyData(scalar_data, out var scalar_data_base_ptr);
-            var db_ptr = AlignAndCopyData(db, out var db_base_ptr);
-            var db_bulk_data_ptr = AlignAndCopyData(db_bulk_data, out var db_bulk_data_base_ptr);
+                var error = Marshal.PtrToStringAnsi(GetLastDecompressErrorZZZV2());
+                if (!string.IsNullOrEmpty(error))
+                    throw new InvalidDataException("ZZZ ACL: " + error);
+                if (decompressedClip.ValuesCount <= 0 || decompressedClip.TimesCount <= 0)
+                    throw new InvalidDataException("ZZZ ACL returned no samples.");
 
-            DecompressTracksZZZV2(transform_data_ptr, scalar_data_ptr, db_ptr, db_bulk_data_ptr, ref decompressedClip);
-
-            Marshal.FreeHGlobal(transform_data_base_ptr);
-            Marshal.FreeHGlobal(scalar_data_base_ptr);
-            Marshal.FreeHGlobal(db_base_ptr);
-            Marshal.FreeHGlobal(db_bulk_data_base_ptr);
-
-            values = new float[decompressedClip.ValuesCount];
-            Marshal.Copy(decompressedClip.Values, values, 0, decompressedClip.ValuesCount);
-
-            times = new float[decompressedClip.TimesCount];
-            Marshal.Copy(decompressedClip.Times, times, 0, decompressedClip.TimesCount);
-
-            DisposeZZZV2(ref decompressedClip);
+                values = new float[decompressedClip.ValuesCount];
+                times = new float[decompressedClip.TimesCount];
+                Marshal.Copy(decompressedClip.Values, values, 0, values.Length);
+                Marshal.Copy(decompressedClip.Times, times, 0, times.Length);
+            }
+            finally
+            {
+                DisposeZZZV2(ref decompressedClip);
+                Marshal.FreeHGlobal(transformAllocation);
+                Marshal.FreeHGlobal(scalarAllocation);
+                Marshal.FreeHGlobal(databaseAllocation);
+                Marshal.FreeHGlobal(bulkAllocation);
+            }
         }
         public static void DecompressTracks(byte[] data, byte[] db, out float[] values, out float[] times, bool isZZZ = false)
         {
@@ -239,8 +251,12 @@ namespace ACLLibs
         private static extern void DisposeZZZ(ref DecompressedClip decompressedClip);
 
         [DllImport(DLL_NAME_ZZZ_V2, CallingConvention = CallingConvention.Cdecl, EntryPoint = "DecompressTracksZZZ")]
-        private static extern void DecompressTracksZZZV2(nint transform_tracks, nint scalar_tracks, nint database, nint bulk_data, ref DecompressedClip decompressedClip);
-        [DllImport(DLL_NAME_ZZZ, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Dispose")]
+        private static extern void DecompressTracksZZZV2(nint transform_tracks, int transform_size,
+            nint scalar_tracks, int scalar_size, nint database, int database_size,
+            nint bulk_data, int bulk_size, ref DecompressedClip decompressedClip);
+        [DllImport(DLL_NAME_ZZZ_V2, CallingConvention = CallingConvention.Cdecl, EntryPoint = "GetLastDecompressError")]
+        private static extern nint GetLastDecompressErrorZZZV2();
+        [DllImport(DLL_NAME_ZZZ_V2, CallingConvention = CallingConvention.Cdecl, EntryPoint = "Dispose")]
         private static extern void DisposeZZZV2(ref DecompressedClip decompressedClip);
 
         #endregion

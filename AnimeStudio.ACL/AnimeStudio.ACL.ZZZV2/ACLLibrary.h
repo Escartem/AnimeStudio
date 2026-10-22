@@ -1,46 +1,17 @@
-#ifdef ACLZZZV2_EXPORTS
-#define ACLNATIVE_API __declspec(dllexport)
-#else
-#define ACLNATIVE_API __declspec(dllimport)
-#endif
-
-#define RTM_NO_DEPRECATION
-#define ACL_ON_ASSERT_ABORT
-#define FMT_UNICODE 0
-
-#include "acl/core/ansi_allocator.h"
-#include "acl/core/compressed_database.h"
-#include "acl/core/compressed_tracks.h"
-#include "acl/decompression/database/database.h"
-#include "acl/decompression/database/database_settings.h"
-#include "acl/decompression/database/database_streamer.h"
-#include "acl/decompression/database/null_database_streamer.h"
-#include "acl/decompression/decompress.h"
-#include "acl/decompression/decompression_settings.h"
-#include "spdlog/spdlog.h"
-
-struct DecompressedClip {
-	float* Values;
-	int32_t ValuesCount;
-	float* Times;
-	int32_t TimesCount;
-
-	void Reset() {
-		Values = nullptr;
-		ValuesCount = 0;
-		Times = nullptr;
-		TimesCount = 0;
-	}
-
-	void Dispose() {
-		delete Values;
-		delete Times;
-		Reset();
-	}
+#pragma once
+#include <cstdint>
+#define AS_API(ret_type) extern "C" __declspec(dllexport) ret_type __cdecl
+struct decompressed_clip
+{
+    float* values;
+    int values_count;
+    float* times;
+    int times_count;
 };
-
-// TODO: Make this work across x86 and x64 configurations.
-// static_assert(sizeof(DecompressedClip) == 32, "DecompressedClip has incorrect size");
-
-extern "C" ACLNATIVE_API void DecompressTracksZZZ(const acl::compressed_tracks* transform_tracks, const acl::compressed_tracks* scalar_tracks, const acl::compressed_database* database, const uint8_t* bulk_data, DecompressedClip* decompressedClip);
-extern "C" ACLNATIVE_API void Dispose(DecompressedClip* decompressedClip);
+// Sized C ABI consumed by HoyoToon Studio's ACL decoder wrapper.
+AS_API(void) DecompressTracksZZZ(void* transform_data, int transform_size,
+    void* scalar_data, int scalar_size, void* database_data, int database_size,
+    void* bulk_data, int bulk_size, decompressed_clip& out);
+AS_API(const char*) GetLastDecompressError();
+AS_API(const char*) GetLastDecompressInfo();
+AS_API(void) Dispose(decompressed_clip& out);

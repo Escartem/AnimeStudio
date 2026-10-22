@@ -7,7 +7,7 @@ namespace AnimeStudio
 {
     public static class USE_ZZZ_ACL_V2
     {
-        public static bool enabled = false; // switch to use the acl fix dll
+        public static bool enabled = true;
     }
     public class Keyframe<T> : IYAMLExportable where T : IYAMLExportable
     {
@@ -1037,14 +1037,20 @@ namespace AnimeStudio
 
     public class ZZZACLClip : MHYACLClip
     {
-        public byte[] m_DatabaseData;
+        // ZZZ stores database metadata in m_databaseData and the streamed quality-tier
+        // bulk data in AnimationClip's StreamingInfo resource.
+        public byte[] m_DatabaseData = Array.Empty<byte>();
 
         public byte[] m_TransformData
         {
             get
             {
-                var transform_data_size = (int)BitConverter.ToUInt32(m_ClipData, 0);
-                return (new ArraySegment<byte>(m_ClipData, 0, transform_data_size)).ToArray();
+                if (m_ClipData == null || m_ClipData.Length < sizeof(uint))
+                    throw new InvalidDataException("ZZZ ACL transform header is truncated.");
+                var transformSize = checked((int)BitConverter.ToUInt32(m_ClipData, 0));
+                if (transformSize < 32 || transformSize > m_ClipData.Length)
+                    throw new InvalidDataException("ZZZ ACL transform size is invalid.");
+                return m_ClipData.AsSpan(0, transformSize).ToArray();
             }
         }
 
@@ -1052,21 +1058,20 @@ namespace AnimeStudio
         {
             get
             {
-                var transform_data_size = (int)BitConverter.ToUInt32(m_ClipData, 0);
-                if (m_ClipData.Length > transform_data_size)
-                {
-                    var scalar_data_offset = 16 * ((transform_data_size + 15) / 16);
-
-                    if (m_ClipData.Length == scalar_data_offset)
-                    {
-                        Logger.Warning($"ZZZACLClip lacks scalar tracks. Proceeding without...");
-                        return null;
-                    }
-
-                    var scalar_data_size = (int)BitConverter.ToUInt32(m_ClipData, scalar_data_offset);
-                    return (new ArraySegment<byte>(m_ClipData, scalar_data_offset, scalar_data_size)).ToArray();
-                }
-                return null;
+                if (m_ClipData == null || m_ClipData.Length < sizeof(uint))
+                    throw new InvalidDataException("ZZZ ACL transform header is truncated.");
+                var transformSize = checked((int)BitConverter.ToUInt32(m_ClipData, 0));
+                var scalarOffset = checked(16 * ((transformSize + 15) / 16));
+                if (transformSize < 32 || scalarOffset > m_ClipData.Length)
+                    throw new InvalidDataException("ZZZ ACL scalar offset is invalid.");
+                if (scalarOffset == m_ClipData.Length)
+                    return Array.Empty<byte>();
+                if (m_ClipData.Length - scalarOffset < sizeof(uint))
+                    throw new InvalidDataException("ZZZ ACL scalar header is truncated.");
+                var scalarSize = checked((int)BitConverter.ToUInt32(m_ClipData, scalarOffset));
+                if (scalarSize < 32 || scalarSize > m_ClipData.Length - scalarOffset)
+                    throw new InvalidDataException("ZZZ ACL scalar size is invalid.");
+                return m_ClipData.AsSpan(scalarOffset, scalarSize).ToArray();
             }
         }
     }
