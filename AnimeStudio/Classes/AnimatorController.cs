@@ -148,6 +148,15 @@ namespace AnimeStudio
         public bool m_OrderedInterruption;
         public bool m_Atomic;
         public bool m_CanTransitionToSelf;
+        // ZZZ fields
+        public float m_AutoTransitionOffsetValue;
+        public float m_AutoTransitionOffsetRatio;
+        public int m_FrameCount;
+        public int m_TransitionOffsetCount;
+        public int m_TotalFramesSrc;
+        public int m_TotalFramesDest;
+        public bool m_UseFrameCount;
+        public bool m_AutoTransitionOffset;
 
         public TransitionConstant(ObjectReader reader)
         {
@@ -184,26 +193,26 @@ namespace AnimeStudio
             {
                 if (reader.Game.Type.IsZZZCB2() || reader.Game.Type.IsZZZ())
                 {
-                    var m_AutoTransitionOffsetValue = reader.ReadSingle();
-                    var m_AutoTransitionOffsetRatio = reader.ReadSingle();
+                    m_AutoTransitionOffsetValue = reader.ReadSingle();
+                    m_AutoTransitionOffsetRatio = reader.ReadSingle();
                 }
                 m_ExitTime = reader.ReadSingle();
                 if (reader.Game.Type.IsZZZCB2() || reader.Game.Type.IsZZZ())
                 {
-                    var m_FrameCount = reader.ReadInt32();
-                    var m_TransitionOffsetCount = reader.ReadInt32();
-                    var m_TotalFramesSrc = reader.ReadInt32();
-                    var m_TotalFramesDest = reader.ReadInt32();
+                    m_FrameCount = reader.ReadInt32();
+                    m_TransitionOffsetCount = reader.ReadInt32();
+                    m_TotalFramesSrc = reader.ReadInt32();
+                    m_TotalFramesDest = reader.ReadInt32();
                 }
                 m_HasExitTime = reader.ReadBoolean();
                 if (reader.Game.Type.IsZZZCB2() || reader.Game.Type.IsZZZ())
                 {
-                    var m_UseFrameCount = reader.ReadBoolean();
+                    m_UseFrameCount = reader.ReadBoolean();
                 }
                 m_HasFixedDuration = reader.ReadBoolean();
                 if (reader.Game.Type.IsZZZCB2() || reader.Game.Type.IsZZZ())
                 {
-                    var m_AutoTransitionOffset = reader.ReadBoolean();
+                    m_AutoTransitionOffset = reader.ReadBoolean();
                 }
                 reader.AlignStream();
                 m_InterruptionSource = reader.ReadInt32();
@@ -848,11 +857,12 @@ namespace AnimeStudio
     {
         public Dictionary<uint, string> m_TOS;
         public List<PPtr<AnimationClip>> m_AnimationClips;
+        public ControllerConstant m_Controller;
 
         public AnimatorController(ObjectReader reader) : base(reader)
         {
             var m_ControllerSize = reader.ReadUInt32();
-            var m_Controller = new ControllerConstant(reader);
+            m_Controller = new ControllerConstant(reader);
 
             int tosSize = reader.ReadInt32();
             m_TOS = new Dictionary<uint, string>();
