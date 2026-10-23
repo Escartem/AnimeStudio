@@ -101,6 +101,7 @@ Thanks goes to these wonderful people :
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/xiaoding521234"><img src="https://avatars.githubusercontent.com/u/167662303?v=4?s=100" width="100px;" alt="xiaoding521234"/><br /><sub><b>xiaoding521234</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/commits?author=xiaoding521234" title="Code">💻</a> <a href="https://github.com/Escartem/AnimeStudio/issues?q=author%3Axiaoding521234" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Melioli"><img src="https://avatars.githubusercontent.com/u/31974197?v=4?s=100" width="100px;" alt="Meliodas"/><br /><sub><b>Meliodas</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/issues?q=author%3AMelioli" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/YinCQL"><img src="https://avatars.githubusercontent.com/u/71113782?v=4?s=100" width="100px;" alt="YinCQL"/><br /><sub><b>YinCQL</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/issues?q=author%3AYinCQL" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Hellyon"><img src="https://avatars.githubusercontent.com/u/33961650?v=4?s=100" width="100px;" alt="Ilyace Benjelloun"/><br /><sub><b>Ilyace Benjelloun</b></sub></a><br /><a href="https://github.com/Escartem/AnimeStudio/issues?q=author%3AHellyon" title="Bug reports">🐛</a></td>
     </tr>
   </tbody>
 </table>
