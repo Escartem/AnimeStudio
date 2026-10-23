@@ -238,6 +238,15 @@
         "code",
         "bug"
       ]
+    },
+    {
+      "login": "Melioli",
+      "name": "Meliodas",
+      "avatar_url": "https://avatars.githubusercontent.com/u/31974197?v=4",
+      "profile": "https://github.com/Melioli",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
