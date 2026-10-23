@@ -116,6 +116,44 @@ namespace AnimeStudio
             }
         }
 
+        public bool EnsureAnimatorAvatarLoaded(Animator animator)
+        {
+            if (Game?.Type.IsZZZ() != true || animator?.m_Avatar == null)
+                return false;
+
+            var avatarPointer = animator.m_Avatar;
+            if (avatarPointer.IsNull || avatarPointer.m_FileID <= 0)
+                return false;
+
+            var sourceFile = animator.assetsFile;
+            if (sourceFile == null || avatarPointer.m_FileID > sourceFile.m_Externals.Count)
+                return false;
+
+            var cabName = sourceFile.m_Externals[avatarPointer.m_FileID - 1].fileName;
+            var loadedAvatarFile = assetsFileList.FirstOrDefault(file =>
+                string.Equals(file.fileName, cabName, StringComparison.OrdinalIgnoreCase));
+            if (loadedAvatarFile?.ObjectsDic.TryGetValue(avatarPointer.m_PathID, out var loadedObject) == true
+                && loadedObject is Avatar)
+            {
+                return true;
+            }
+
+            if (!AssetsHelper.TryGetCABLocation(cabName, out var fullPath, out var offset)
+                || !File.Exists(fullPath))
+            {
+                Logger.Warning($"Could not locate ZZZ Animator Avatar dependency '{cabName}' pathID={avatarPointer.m_PathID} for '{animator.Name}'. Load a CAB map that covers the character assets.");
+                return false;
+            }
+
+            AssetsHelper.AddCABOffset(cabName, fullPath, offset);
+            LoadFiles(new[] { fullPath }, mergeSplitAssets: false);
+
+            loadedAvatarFile = assetsFileList.FirstOrDefault(file =>
+                string.Equals(file.fileName, cabName, StringComparison.OrdinalIgnoreCase));
+            return loadedAvatarFile?.ObjectsDic.TryGetValue(avatarPointer.m_PathID, out loadedObject) == true
+                && loadedObject is Avatar;
+        }
+
         public void LoadFolder(string path)
         {
             if (Silent)
@@ -839,7 +877,7 @@ namespace AnimeStudio
                             ClassIDType.AnimatorOverrideController when ClassIDType.AnimatorOverrideController.CanParse() => new AnimatorOverrideController(objectReader),
                             ClassIDType.AssetBundle when ClassIDType.AssetBundle.CanParse() => new AssetBundle(objectReader),
                             ClassIDType.AudioClip when ClassIDType.AudioClip.CanParse() => new AudioClip(objectReader),
-                            ClassIDType.Avatar when ClassIDType.Avatar.CanParse() => new Avatar(objectReader),
+                            ClassIDType.Avatar when ClassIDType.Avatar.CanParse() || Game?.Type.IsZZZ() == true => new Avatar(objectReader),
                             ClassIDType.Font when ClassIDType.Font.CanParse() => new Font(objectReader),
                             ClassIDType.GameObject when ClassIDType.GameObject.CanParse() => new GameObject(objectReader),
                             ClassIDType.IndexObject when ClassIDType.IndexObject.CanParse() => new IndexObject(objectReader),

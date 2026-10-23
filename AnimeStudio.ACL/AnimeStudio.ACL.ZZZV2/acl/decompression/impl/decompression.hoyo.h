@@ -1,6 +1,5 @@
 #pragma once
 
-#include "spdlog/spdlog.h"
 #include "acl/version.h"
 #include "acl/core/compressed_tracks.h"
 #include "acl/core/compressed_tracks_version.h"
@@ -20,7 +19,6 @@ namespace acl
 		template<class decompression_settings_type, class database_settings_type>
 		inline bool initialize_v0(persistent_hoyo_decompression_context_v0& context, const compressed_tracks& tracks, const database_context<database_settings_type>* database)
 		{
-			spdlog::info("initialize_v0 called");
 			ACL_ASSERT(tracks.get_algorithm_type() == algorithm_type8::uniformly_sampled, "Invalid algorithm type [" ACL_ASSERT_STRING_FORMAT_SPECIFIER "], expected [" ACL_ASSERT_STRING_FORMAT_SPECIFIER "]", get_algorithm_name(tracks.get_algorithm_type()), get_algorithm_name(algorithm_type8::uniformly_sampled));
 			ACL_ASSERT(tracks.get_version() == compressed_tracks_version16::vHoYo, "Invalid compressed tracks version for HoYo decompression (!= %d)", (uint16_t)compressed_tracks_version16::vHoYo);
 
@@ -129,7 +127,6 @@ namespace acl
 		template<class decompression_settings_type>
 		inline void seek_v0(persistent_hoyo_decompression_context_v0& context, float sample_time, sample_rounding_policy rounding_policy)
 		{
-			spdlog::info("seek_v0 called");
 			const compressed_tracks* tracks = context.tracks;
 			const tracks_header& header = get_tracks_header(*tracks);
 			if (header.num_tracks == 0)
@@ -184,11 +181,9 @@ namespace acl
 
 			const bool has_stripped_keyframes = has_database || tracks->has_stripped_keyframes();
 
-			spdlog::info("Decompressing {} segments", num_segments);
 			if (num_segments == 1) {
 				if (has_stripped_keyframes)
 				{
-					spdlog::info("Has stripped keyframes");
 					const stripped_segment_header_t* segment_tier0_header0 = segment_tier0_headers;
 
 					// This will cache miss
@@ -326,7 +321,6 @@ namespace acl
 
 				if (has_stripped_keyframes)
 				{
-					spdlog::info("Has stripped keyframes");
 					const stripped_segment_header_t* segment_tier0_header0 = segment_tier0_headers + segment_index0;
 					const stripped_segment_header_t* segment_tier0_header1 = segment_tier0_headers + segment_index1;
 
@@ -505,13 +499,36 @@ namespace acl
 				interpolation_alpha_per_policy[static_cast<int>(sample_rounding_policy::per_track)] = no_rounding_alpha;
 			}
 
+			// HoyoToon ZZZ decoder: the database branch below was never finished upstream (it left
+			// animated_values null and kept a placeholder bit count, so it read from address zero).
+			// The layout was recovered from live ZZZ facial clips and verified value-for-value
+			// against the classic streamed/constant variant of the same clips:
+			//
+			//   hoyo_tracks_header.unk  -> 2 bits per track: 0 = default, 1 = constant, 2 = variable
+			//   range_data_size         -> number of variable tracks (single segment: no per-segment ranges)
+			//   database_constant_values-> one float per constant track, in track order
+			//   database_range_values   -> (min, extent) per VARIABLE track
+			//   segment_data            -> one bit-rate byte per VARIABLE track, then the animated data
+			//
+			// The per-track metadata array the non-database path uses does not exist here; bit rates
+			// are indexed by variable-track ordinal, which is what the earlier attempt got wrong.
 			track_metadata* per_track_metadata = nullptr;
 			float* constant_values = nullptr;
 			float* range_values = nullptr;
 			uint8_t* animated_values = nullptr;
+			const uint8_t* track_type_codes = nullptr;
+			const uint8_t* format_per_track0 = nullptr;
+			const uint8_t* format_per_track1 = nullptr;
+			const uint8_t* animated_values0 = nullptr;
+			const uint8_t* animated_values1 = nullptr;
 			if (context.has_database) {
 				constant_values = bit_cast<float*>(hoyo_header.get_database_constant_values());
 				range_values = bit_cast<float*>(hoyo_header.get_database_range_values());
+				track_type_codes = add_offset_to_ptr<const uint8_t>(&hoyo_header, hoyo_header.unk);
+				format_per_track0 = context.format_per_track_data[0];
+				format_per_track1 = context.format_per_track_data[1];
+				animated_values0 = context.animated_track_data[0];
+				animated_values1 = context.animated_track_data[1];
 			}
 			else {
 				per_track_metadata = bit_cast<track_metadata*>(hoyo_header.get_track_metadata());
@@ -519,6 +536,9 @@ namespace acl
 				range_values = bit_cast<float*>(hoyo_header.get_track_range_values());
 				animated_values = bit_cast<uint8_t*>(hoyo_header.get_track_animated_values());
 			}
+
+			// The database layout is only implemented for float1 scalar tracks, which is all ZZZ
+			// uses it for. Anything else falls through to the original code path.
 
 			uint32_t track_bit_offset0 = context.key_frame_bit_offsets[0];
 			uint32_t track_bit_offset1 = context.key_frame_bit_offsets[1];
@@ -532,6 +552,71 @@ namespace acl
 			const uint32_t max_bit_rate = version == compressed_tracks_version16::v02_00_00 ? sizeof(k_bit_rate_num_bits_v0) : sizeof(k_bit_rate_num_bits);
 #endif
 
+
+			const bool use_hoyo_database_layout = context.has_database
+				&& track_type == track_type8::float1f
+				&& track_type_codes != nullptr
+				&& format_per_track0 != nullptr && animated_values0 != nullptr;
+
+			if (use_hoyo_database_layout)
+			{
+				uint32_t variable_index = 0;
+				uint32_t bit_offset0 = track_bit_offset0;
+				uint32_t bit_offset1 = track_bit_offset1;
+
+				// packed_sub_track_types: uint32 entries, 16 sub-tracks each, 2 bits starting at the
+				// MSB (0 = default/padding, 1 = constant, 2 = animated). Reading this as a flat
+				// byte stream scrambles the assignment inside every group of 16 on little endian --
+				// the counts still come out right, which is what made the earlier attempt look
+				// plausible while every value landed on the wrong track.
+				const uint32_t* track_type_entries = bit_cast<const uint32_t*>(track_type_codes);
+
+				for (uint32_t track_index = 0; track_index < num_tracks; ++track_index)
+				{
+					const uint32_t code = (track_type_entries[track_index / 16] >> (30 - 2 * (track_index % 16))) & 3;
+
+					rtm::scalarf value;
+					if (code == 0)			// default track, not stored at all
+					{
+						value = rtm::scalar_set(0.0F);
+					}
+					else if (code == 1)		// constant over the whole clip
+					{
+						value = rtm::scalar_load(constant_values);
+						constant_values += 1;
+					}
+					else					// variable: bit rate and range are per variable track
+					{
+						const uint32_t bit_rate0 = format_per_track0[variable_index];
+						const uint32_t bit_rate1 = format_per_track1[variable_index];
+						ACL_ASSERT(bit_rate0 < max_bit_rate && bit_rate1 < max_bit_rate, "Invalid bit rate: %u/%u", bit_rate0, bit_rate1);
+						const uint32_t bits0 = num_bits_at_bit_rate[bit_rate0];
+						const uint32_t bits1 = num_bits_at_bit_rate[bit_rate1];
+
+						const rtm::scalarf range_min = rtm::scalar_load(range_values);
+						const rtm::scalarf range_extent = rtm::scalar_load(range_values + 1);
+						range_values += 2;
+
+						rtm::scalarf value0 = bits0 == 32
+							? unpack_scalarf_32_unsafe(animated_values0, bit_offset0)
+							: rtm::scalar_mul_add(unpack_scalarf_uXX_unsafe(bits0, animated_values0, bit_offset0), range_extent, range_min);
+						rtm::scalarf value1 = bits1 == 32
+							? unpack_scalarf_32_unsafe(animated_values1, bit_offset1)
+							: rtm::scalar_mul_add(unpack_scalarf_uXX_unsafe(bits1, animated_values1, bit_offset1), range_extent, range_min);
+
+						value = rtm::scalar_lerp(value0, value1, interpolation_alpha);
+						bit_offset0 += bits0;
+						bit_offset1 += bits1;
+						variable_index++;
+					}
+
+					writer.write_float1(track_index, value);
+				}
+
+				if (decompression_settings_type::disable_fp_exeptions())
+					restore_fp_exceptions(fp_env);
+				return;
+			}
 			uint32_t num_bits_per_component = num_tracks;
 			for (uint32_t track_index = 0; track_index < num_tracks; ++track_index)
 			{

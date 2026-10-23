@@ -105,6 +105,7 @@ namespace AnimeStudio
 
         private void InitWithAnimator(Animator m_Animator)
         {
+            m_Animator.assetsFile?.assetsManager?.EnsureAnimatorAvatarLoaded(m_Animator);
             if (m_Animator.m_Avatar.TryGet(out var m_Avatar))
                 avatar = m_Avatar;
 

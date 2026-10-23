@@ -81,6 +81,32 @@ namespace AnimeStudio
             return false;
         }
 
+        public static bool TryGetCABLocation(string cab, out string fullPath, out long offset)
+        {
+            fullPath = string.Empty;
+            offset = -1;
+            if (string.IsNullOrWhiteSpace(cab) || !CABMap.TryGetValue(cab, out var entry))
+                return false;
+
+            fullPath = Path.GetFullPath(Path.Combine(BaseFolder, entry.Path));
+            offset = entry.Offset;
+            return true;
+        }
+
+        public static void AddCABOffset(string cab, string fullPath, long offset)
+        {
+            if (string.IsNullOrWhiteSpace(cab) || string.IsNullOrWhiteSpace(fullPath) || offset < 0)
+                return;
+
+            var key = Path.GetFullPath(fullPath);
+            if (!Offsets.TryGetValue(key, out var offsets))
+            {
+                offsets = new HashSet<long>();
+                Offsets.Add(key, offsets);
+            }
+            offsets.Add(offset);
+        }
+
         public static void AddCABOffsetsFast(HashSet<string> paths, HashSet<string> cabs)
         {
             Queue<string> work = new Queue<string>(cabs);
