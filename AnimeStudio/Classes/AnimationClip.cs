@@ -1399,11 +1399,14 @@ namespace AnimeStudio
         public uint m_Type;
         public uint m_Index;
 
+        // ZZZ character AnimatorControllers still serialize m_TypeID (removed in Unity 5.5); other ZZZ controllers (scene props) do not
+        private static bool HasZZZTypeID(ObjectReader reader) => reader.Game.Type.IsZZZ() && reader.serializedType != null && reader.serializedType.Match("9860551FBCD452140FD34D9A51C380DE");
+
         public ValueConstant(ObjectReader reader)
         {
             var version = reader.version;
             m_ID = reader.ReadUInt32();
-            if (version[0] < 5 || (version[0] == 5 && version[1] < 5))//5.5 down
+            if (version[0] < 5 || (version[0] == 5 && version[1] < 5) || HasZZZTypeID(reader))//5.5 down
             {
                 m_TypeID = reader.ReadUInt32();
             }
