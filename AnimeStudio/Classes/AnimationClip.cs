@@ -1598,7 +1598,7 @@ namespace AnimeStudio
         public bool m_KeepOriginalPositionXZ;
         public bool m_HeightFromFeet;
         public bool m_ReducedDeltaValue;
-        public static bool HasShortIndexArray(SerializedType type) => type.Match("E708B1872AE48FD688AC012DF4A7A178") || type.Match("055AA41C7639327940F8900103A10356") || type.Match("82E1E738FBDE87C5A8DAE868F0578A4D");
+        public static bool HasShortIndexArray(SerializedType type) => type.Match("AC7ACA4D7AF2D1C1A4498E0FC82DA456") || type.Match("E708B1872AE48FD688AC012DF4A7A178") || type.Match("055AA41C7639327940F8900103A10356") || type.Match("82E1E738FBDE87C5A8DAE868F0578A4D");
         public ClipMuscleConstant() { }
 
         public ClipMuscleConstant(ObjectReader reader)
@@ -1637,7 +1637,50 @@ namespace AnimeStudio
             m_CycleOffset = reader.ReadSingle();
             m_AverageAngularSpeed = reader.ReadSingle();
 
-            if ((reader.Game.Type.IsSR() && HasShortIndexArray(reader.serializedType)) || reader.Game.Type.IsZZZ())
+            // Everything after m_AverageAngularSpeed is read by ReadTail, and its first field (m_IndexArray) has
+            // no width marker: Int16 or Int32 is only known from the game and, for SR, from the type hash. The hash
+            // list lags behind HSR updates (4.5+ ships a new one) and a wrong guess shifts every field after it, so
+            // a wrong guess rewinds to tailStart and retries the other width. When the first guess is right (every
+            // case that worked before) nothing changes
+            var tailStart = reader.Position;
+            var preferShort = reader.Game.Type.IsZZZ() || (reader.Game.Type.IsSR() && HasShortIndexArray(reader.serializedType));
+            if (!TryReadTail(reader, preferShort))
+            {
+                reader.Position = tailStart;
+                if (TryReadTail(reader, !preferShort))
+                {
+                    Logger.Warning($"ClipMuscleConstant: m_IndexArray did not parse as {(preferShort ? "Int16" : "Int32")} for {reader.Game.Type}, read as {(preferShort ? "Int32" : "Int16")}");
+                }
+                else
+                {
+                    reader.Position = tailStart;
+                    ReadTail(reader, preferShort);
+                }
+            }
+        }
+
+        // Runs ReadTail and tells whether the result can be trusted. With the wrong width the counts that follow
+        // m_IndexArray are read as garbage: that usually throws (end of stream, huge allocation), and otherwise
+        // leaves the position past the end of the data or indices outside [-1, 65535]
+        private bool TryReadTail(ObjectReader reader, bool shortIndexArray)
+        {
+            try
+            {
+                ReadTail(reader, shortIndexArray);
+                return reader.Position <= reader.Length && m_IndexArray.All(x => x >= -1 && x <= ushort.MaxValue);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        // Reads the rest of ClipMuscleConstant, from m_IndexArray to the trailing bool flags. The width of the
+        // m_IndexArray elements (Int16 or Int32) is the only part that depends on shortIndexArray
+        private void ReadTail(ObjectReader reader, bool shortIndexArray)
+        {
+            var version = reader.version;
+            if (shortIndexArray)
             {
                 m_IndexArray = reader.ReadInt16Array().Select(x => (int)x).ToArray();
             }
