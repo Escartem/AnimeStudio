@@ -671,10 +671,11 @@ namespace AnimeStudio
         public List<UAVParameter> m_UAVParams;
         public List<SamplerParameter> m_Samplers;
 
-        public static bool HasGlobalLocalKeywordIndices(SerializedType type) => type.Match("E99740711222CD922E9A6F92FF1EB07A", "450A058C218DAF000647948F2F59DA6D", "B239746E4EC6E4D6D7BA27C84178610A", "3FD560648A91A99210D5DDF2BE320536", "66839B5040F09A101A02DDDC9E522F23", "0B07D09734C07EBABF387D3CBC8BEBF0");
+        public static bool IsGIGenshinShader(SerializedType type) => type.Match("8EA866E8248B6A3228054C208F671D38");
+        public static bool HasGlobalLocalKeywordIndices(SerializedType type) => type.Match("E99740711222CD922E9A6F92FF1EB07A", "450A058C218DAF000647948F2F59DA6D", "B239746E4EC6E4D6D7BA27C84178610A", "3FD560648A91A99210D5DDF2BE320536", "66839B5040F09A101A02DDDC9E522F23", "0B07D09734C07EBABF387D3CBC8BEBF0", "8EA866E8248B6A3228054C208F671D38");
         public static bool HasInstancedStructuredBuffers(SerializedType type) => type.Match("E99740711222CD922E9A6F92FF1EB07A", "B239746E4EC6E4D6D7BA27C84178610A", "3FD560648A91A99210D5DDF2BE320536", "66839B5040F09A101A02DDDC9E522F23", "0B07D09734C07EBABF387D3CBC8BEBF0");
-        public static bool HasIsAdditionalBlob(SerializedType type) => type.Match("B239746E4EC6E4D6D7BA27C84178610A", "66839B5040F09A101A02DDDC9E522F23", "0B07D09734C07EBABF387D3CBC8BEBF0");
-        public static bool HasProgramHash(SerializedType type) => type.Match("66839B5040F09A101A02DDDC9E522F23", "0B07D09734C07EBABF387D3CBC8BEBF0");
+        public static bool HasIsAdditionalBlob(SerializedType type) => type.Match("B239746E4EC6E4D6D7BA27C84178610A", "66839B5040F09A101A02DDDC9E522F23", "0B07D09734C07EBABF387D3CBC8BEBF0", "8EA866E8248B6A3228054C208F671D38");
+        public static bool HasProgramHash(SerializedType type) => type.Match("66839B5040F09A101A02DDDC9E522F23", "0B07D09734C07EBABF387D3CBC8BEBF0", "8EA866E8248B6A3228054C208F671D38");
 
         public SerializedSubProgram(ObjectReader reader)
         {
@@ -720,7 +721,7 @@ namespace AnimeStudio
             m_GpuProgramType = (ShaderGpuProgramType)reader.ReadSByte();
             reader.AlignStream();
 
-            if (reader.Game.Name == "GI" && (m_GpuProgramType == ShaderGpuProgramType.Unknown || !Enum.IsDefined(typeof(ShaderGpuProgramType), m_GpuProgramType)))
+            if (reader.Game.Name == "GI" && !HasGlobalLocalKeywordIndices(reader.serializedType) && (m_GpuProgramType == ShaderGpuProgramType.Unknown || !Enum.IsDefined(typeof(ShaderGpuProgramType), m_GpuProgramType)))
             {
                 reader.Position -= 4;
                 var m_LocalKeywordIndices = reader.ReadUInt16Array();
@@ -831,6 +832,13 @@ namespace AnimeStudio
                         m_InstancedStructuredBuffers.Add(new ConstantBuffer(reader));
                     }
                 }
+            }
+
+            // Genshin Impact (Live) shaders have 24 extra bytes after m_ShaderRequirements
+            // in every SerializedSubProgram. They are not present in the standard Unity layout.
+            if (reader.Game.Name == "GI" && IsGIGenshinShader(reader.serializedType) && reader.Remaining >= 24)
+            {
+                reader.Position += 24;
             }
         }
     }
@@ -1012,6 +1020,12 @@ namespace AnimeStudio
             {
                 m_SerializedKeywordStateMask = reader.ReadUInt16Array();
                 reader.AlignStream();
+            }
+
+            // Genshin Impact (Live) shaders have 12 extra zero bytes at the end of every pass.
+            if (reader.Game.Name == "GI" && SerializedSubProgram.IsGIGenshinShader(reader.serializedType) && reader.Remaining >= 12)
+            {
+                reader.Position += 12;
             }
         }
     }
@@ -1257,6 +1271,11 @@ namespace AnimeStudio
                 } catch (System.IO.EndOfStreamException)
                 {
                     Logger.Error($"Cannot parse shader, no more bytes left for asset {reader.assetsFile.fileName} of {reader.assetsFile.originalPath} at path {reader.m_PathID}.");
+                    return;
+                }
+                catch (System.OverflowException)
+                {
+                    Logger.Error($"Cannot parse shader, invalid array length for asset {reader.assetsFile.fileName} of {reader.assetsFile.originalPath} at path {reader.m_PathID}.");
                     return;
                 }
                 if (reader.Game.Type.IsArknightsEndfieldCB3() || reader.Game.Type.IsArknightsEndfield())
