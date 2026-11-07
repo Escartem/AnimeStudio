@@ -2,6 +2,7 @@
 using SharpGen.Runtime;
 using SpirV;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -1043,7 +1044,7 @@ namespace AnimeStudio
                     case ShaderGpuProgramType.GLCore41:
                     case ShaderGpuProgramType.GLCore43:
                         sb.Append($"// hash: {ComputeHash64(m_ProgramCode):x8}\n");
-                        sb.Append(Encoding.UTF8.GetString(m_ProgramCode));
+                        AppendTextOrOmit(sb, m_ProgramCode, "GL shader bytecode");
                         break;
                     case ShaderGpuProgramType.DX9VertexSM20:
                     case ShaderGpuProgramType.DX9VertexSM30:
@@ -1093,6 +1094,15 @@ namespace AnimeStudio
                             var buffSpan = m_ProgramCode.AsSpan(start);
 
                             sb.Append($"// hash: {ComputeHash64(buffSpan):x8}\n");
+                            // D3DDisassemble crashes the process on malformed input, so only
+                            // call it when the payload really is a DXBC container.
+                            if (buffSpan.Length < 4 ||
+                                buffSpan[0] != (byte)'D' || buffSpan[1] != (byte)'X' ||
+                                buffSpan[2] != (byte)'B' || buffSpan[3] != (byte)'C')
+                            {
+                                sb.Append("// disassembly skipped: not a DXBC blob\n");
+                                break;
+                            }
                             try
                             {
                                 HLSLDecompiler.DecompileShader(buffSpan.ToArray(), buffSpan.Length, out var hlslText);
@@ -1101,17 +1111,10 @@ namespace AnimeStudio
                             catch (Exception e)
                             {
                                 Logger.Verbose($"Decompile error {e.Message}");
-                                Logger.Verbose($"Attempting to disassemble...");
-
-                                try
-                                {
-                                    var g = Compiler.Disassemble(buffSpan.GetPinnableReference(), new PointerUSize((ulong)buffSpan.Length), DisasmFlags.None, "");
-                                    sb.Append(g.AsString());
-                                }
-                                catch (Exception ex)
-                                {
-                                    sb.Append($"// decompile/disassembly error {ex.Message}\n");
-                                }
+                                // Do NOT fall back to the native D3DDisassemble here.
+                                // It can segfault the whole process on malformed DXBC blobs
+                                // instead of throwing a managed exception.
+                                sb.Append($"// decompile error {e.Message}\n");
                             }
                             break;
                         }
@@ -1128,7 +1131,7 @@ namespace AnimeStudio
                             }
                             var entryName = reader.ReadStringToNull();
                             var buff = reader.ReadBytes((int)(reader.BaseStream.Length - reader.BaseStream.Position));
-                            sb.Append(Encoding.UTF8.GetString(buff));
+                            AppendTextOrOmit(sb, buff, "Metal shader bytecode");
                         }
                         break;
                     case ShaderGpuProgramType.SPIRV:
@@ -1148,7 +1151,16 @@ namespace AnimeStudio
                     case ShaderGpuProgramType.ConsoleDS:
                     case ShaderGpuProgramType.ConsoleGS:
                         sb.Append($"//hash: {ComputeHash64(m_ProgramCode):x8}\n");
-                        sb.Append(Encoding.UTF8.GetString(m_ProgramCode));
+                        // Some console blobs (for example Xbox/PS5 variants) are standard DXBC
+                        // containers. Decompile those; leave every other console blob untouched.
+                        if (TryDecompileConsoleShader(m_ProgramCode, out var consoleHlsl))
+                        {
+                            sb.Append(consoleHlsl);
+                        }
+                        else
+                        {
+                            sb.Append($"// console shader bytecode omitted: not a supported standard compiled shader container ({m_ProgramCode.Length} bytes)\n");
+                        }
                         break;
                     default:
                         sb.Append($"//hash: {ComputeHash64(m_ProgramCode):x8}\n");
@@ -1159,6 +1171,136 @@ namespace AnimeStudio
             sb.Append('"');
             return sb.ToString();
         }
+        private static bool TryDecompileConsoleShader(byte[] programCode, out string hlslText)
+        {
+            hlslText = null;
+            if (!TryFindDxbcContainer(programCode, out var dxbc))
+            {
+                return false;
+            }
+
+            try
+            {
+                HLSLDecompiler.DecompileShader(dxbc, dxbc.Length, out hlslText);
+                return !string.IsNullOrEmpty(hlslText);
+            }
+            catch (Exception e)
+            {
+                Logger.Verbose($"Console shader decompile error: {e.Message}");
+                return false;
+            }
+        }
+
+        private static bool TryFindDxbcContainer(byte[] data, out byte[] dxbc)
+        {
+            dxbc = null;
+            if (data == null)
+            {
+                return false;
+            }
+
+            // Unity console shaders usually prepend a small GPU program header.
+            // Scan a short prefix to find the DXBC container that follows it.
+            for (var offset = 0; offset < data.Length && offset <= 64; offset++)
+            {
+                if (offset + 8 > data.Length)
+                {
+                    break;
+                }
+                if (data[offset] != (byte)'D' || data[offset + 1] != (byte)'X' ||
+                    data[offset + 2] != (byte)'B' || data[offset + 3] != (byte)'C')
+                {
+                    continue;
+                }
+
+                var totalSize = BinaryPrimitives.ReadUInt32LittleEndian(data.AsSpan(offset + 4, 4));
+                if (totalSize < 16 || totalSize > (uint)(data.Length - offset))
+                {
+                    continue;
+                }
+
+                var container = data.AsSpan(offset, (int)totalSize);
+                if (!HasShaderChunk(container))
+                {
+                    continue;
+                }
+
+                dxbc = container.ToArray();
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool HasShaderChunk(ReadOnlySpan<byte> dxbc)
+        {
+            if (dxbc.Length < 16)
+            {
+                return false;
+            }
+
+            var chunkCount = BinaryPrimitives.ReadUInt32LittleEndian(dxbc.Slice(8, 4));
+            if (chunkCount == 0 || chunkCount > 64 || chunkCount > (uint)((dxbc.Length - 12) / 4))
+            {
+                return false;
+            }
+
+            for (var i = 0; i < chunkCount; i++)
+            {
+                var chunkOffset = BinaryPrimitives.ReadUInt32LittleEndian(dxbc.Slice(12 + (int)i * 4, 4));
+                if (chunkOffset > (uint)(dxbc.Length - 8))
+                {
+                    continue;
+                }
+
+                var chunkSize = BinaryPrimitives.ReadUInt32LittleEndian(dxbc.Slice((int)chunkOffset + 4, 4));
+                if (chunkSize > (uint)(dxbc.Length - (int)chunkOffset - 8))
+                {
+                    continue;
+                }
+
+                var fourCC = dxbc.Slice((int)chunkOffset, 4);
+                if (fourCC[0] == (byte)'S' && fourCC[1] == (byte)'H' &&
+                    fourCC[2] == (byte)'D' && fourCC[3] == (byte)'R')
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static void AppendTextOrOmit(StringBuilder sb, byte[] data, string label)
+        {
+            if (TryGetUtf8Text(data, out var text))
+            {
+                sb.Append(text);
+            }
+            else
+            {
+                sb.Append($"// {label} omitted ({data.Length} bytes, binary)\n");
+            }
+        }
+
+        private static bool TryGetUtf8Text(byte[] data, out string text)
+        {
+            text = string.Empty;
+            if (data == null || data.Length == 0)
+            {
+                return true;
+            }
+
+            try
+            {
+                text = new UTF8Encoding(false, true).GetString(data);
+                return true;
+            }
+            catch (DecoderFallbackException)
+            {
+                return false;
+            }
+        }
+
         public ulong ComputeHash64(Span<byte> data)
         {
             ulong hval = 0;
