@@ -26,28 +26,12 @@ namespace AnimeStudio
 
         public FileReader(string path) : this(path, File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) { }
 
-        public FileReader(string path, Stream stream, bool leaveOpen = false) : base(SkipPgrHeader(stream, leaveOpen), EndianType.BigEndian, leaveOpen)
+        public FileReader(string path, Stream stream, bool leaveOpen = false) : base(stream, EndianType.BigEndian, leaveOpen)
         {
             FullPath = Path.GetFullPath(path);
             FileName = Path.GetFileName(path);
             FileType = CheckFileType();
             Logger.Verbose($"File {path} type is {FileType}");
-        }
-
-        private static Stream SkipPgrHeader(Stream stream, bool leaveOpen)
-        {
-            if (!stream.CanSeek || stream.Position != 0 || stream.Length < 40)
-                return stream;
-
-            Span<byte> header = stackalloc byte[40];
-            stream.ReadExactly(header);
-            stream.Position = 0;
-
-            if (!header.StartsWith("HARUINKUROGAME"u8) || !header[32..].StartsWith("UnityFS\0"u8))
-                return stream;
-
-            Logger.Verbose("Skipping HARUINKUROGAME bundle header");
-            return new BoundedStream(stream, 32, stream.Length - 32, leaveOpen);
         }
 
         private FileType CheckFileType()
@@ -213,6 +197,8 @@ namespace AnimeStudio
                     case GameType.EnsembleStars:
                         reader = DecryptEnsembleStar(reader);
                         break;
+                    case GameType.PGR_GLB_KR:
+                    case GameType.PGR_CN_JP_TW:
                     case GameType.OPFP:
                     case GameType.FakeHeader:
                     case GameType.ShiningNikki:
