@@ -197,6 +197,8 @@ namespace AnimeStudio
                     case GameType.EnsembleStars:
                         reader = DecryptEnsembleStar(reader);
                         break;
+                    case GameType.PGR_GLB_KR:
+                    case GameType.PGR_CN_JP_TW:
                     case GameType.OPFP:
                     case GameType.FakeHeader:
                     case GameType.ShiningNikki:
