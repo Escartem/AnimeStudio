@@ -149,7 +149,7 @@ namespace AnimeStudio
                     {
                         ReadUnityCN(reader);
                     }
-                    else if(game.Type.IsAzurPromiliaCBT2())
+                    else if(game.Type.IsAzurPromilia())
                     {
                         UnityCN.SetKey("7a346c32336268352333356826333231");
                         ReadUnityCN(reader);
@@ -421,7 +421,7 @@ namespace AnimeStudio
 
         private void ReadUnityCN(FileReader reader)
         {
-            if(Game.Type.IsAzurPromiliaCBT2() && (m_Header.flags & ArchiveFlags.UnityCNEncryption) != 0)
+            if(Game.Type.IsAzurPromilia() && (m_Header.flags & ArchiveFlags.UnityCNEncryption) != 0)
             {
                 UnityCN = new UnityCN(reader);
                 return;
@@ -713,9 +713,9 @@ namespace AnimeStudio
                                     Logger.Verbose($"Decrypting block with UnityCN...");
                                     UnityCN.DecryptBlock(compressedBytes, compressedSize, i);
                                 }
-                                if (Game.Type.IsAzurPromiliaCBT2() && ((int)blockInfo.flags & 0x100) != 0)
+                                if (Game.Type.IsAzurPromilia() && ((int)blockInfo.flags & 0x100) != 0)
                                 {
-                                    Logger.Verbose($"Decrypting block with AzurPromilia CBT2...");
+                                    Logger.Verbose($"Decrypting block with AzurPromilia...");
                                     UnityCN.DecryptBlock(compressedBytes, compressedSize, i);
                                 }
                                 if (Game.Type.IsNetEase() && i == 0)

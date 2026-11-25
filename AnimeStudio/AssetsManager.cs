@@ -792,7 +792,7 @@ namespace AnimeStudio
 
         public void CheckStrippedVersion(SerializedFile assetsFile)
         {
-            if (Game != null && Game.Type.IsAzurPromiliaCBT2() && assetsFile.IsVersionStripped)
+            if (Game != null && Game.Type.IsAzurPromilia() && assetsFile.IsVersionStripped)
             {
                 SpecifyUnityVersion = "2022.3.62f3";
             }

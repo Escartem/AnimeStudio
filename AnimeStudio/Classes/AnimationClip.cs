@@ -2268,6 +2268,17 @@ namespace AnimeStudio
                 }
                 var m_AclRange = new KeyValuePair<float, float>(reader.ReadSingle(), reader.ReadSingle());
             }
+            if (reader.Game.Type.IsAzurPromilia())
+            {
+                var m_AclFormatVersion = reader.ReadUInt32();
+                var m_AclFlags = reader.ReadUInt32();
+                var m_AclTrackCount = reader.ReadUInt32();
+                var m_AclSampleCount = reader.ReadUInt32();
+                var m_AclSampleRate = reader.ReadSingle();
+                var m_AclBlob = reader.ReadUInt8Array();
+                reader.AlignStream();
+                var m_AclTrackPathHashes = reader.ReadUInt32Array();
+            }
             if (version[0] > 4 || (version[0] == 4 && version[1] >= 3)) //4.3 and up
             {
                 m_ClipBindingConstant = new AnimationClipBindingConstant(reader);
